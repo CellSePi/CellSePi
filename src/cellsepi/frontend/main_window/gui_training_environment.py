@@ -157,12 +157,12 @@ class Training(ft.Container):
         # delete the content of the page and reset the reference to the page (reference get sometimes lost)
         self.gui.ref_training_environment.current.visible = True
         self.gui.ref_gallery_environment.current.visible = True
-        self.gui.ref_builder_environment.current.visible = False
+        #self.gui.ref_builder_environment.current.visible = False
         self.gui.ref_seg_environment.current.visible = False
         self.page.title = "CellSePi"
         self.gui.page.update()
         self.text.value = "Exit Training"
-        self.gui.ex_mode.text.value = "Go To Expert Mode"
+        #self.gui.ex_mode.text.value = "Go To Expert Mode"
 
     def add_parameter_container(self):
         return ft.Container(

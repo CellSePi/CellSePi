@@ -6,7 +6,7 @@ from enum import Enum
 
 from cellsepi.frontend.main_window.gui_mask import handle_mask_update
 from cellsepi.frontend.main_window.gui_page_overlay import PageOverlay
-from cellsepi.frontend.main_window.expert_mode.expert_constants import ModuleType
+#from cellsepi.frontend.main_window.expert_mode.expert_constants import ModuleType
 
 def hex_to_rgb(hex_color):
     """
@@ -84,16 +84,16 @@ class ColorSelection:
             self.gui.mask.mask_outputs = defaultdict(dict)
             handle_mask_update(self.gui)
             self.gui.queue.put(("color_change", self.config.get_mask_color(), self.config.get_outline_color()))
-            ModuleType.REVIEW.value.mask_color = self.config.get_mask_color()
-            ModuleType.REVIEW.value.update_class()
+            #ModuleType.REVIEW.value.mask_color = self.config.get_mask_color()
+            #ModuleType.REVIEW.value.update_class()
         else:
             self.color_icon_outline.icon_color = self.color_picker.color
             self.config.set_outline_color(hex_to_rgb(self.color_picker.color))
             self.gui.mask.mask_outputs = defaultdict(dict)
             handle_mask_update(self.gui)
             self.gui.queue.put(("color_change", self.config.get_mask_color(), self.config.get_outline_color()))
-            ModuleType.REVIEW.value.outline_color = self.config.get_outline_color()
-            ModuleType.REVIEW.value.update_class()
+            #ModuleType.REVIEW.value.outline_color = self.config.get_outline_color()
+            #ModuleType.REVIEW.value.update_class()
         self.dialog.close()
 
     def close_dialog(self, e):
@@ -115,5 +115,5 @@ class ColorOpacity:
         self.gui.csp.color_opacity = self.slider.value
         self.gui.mask.mask_outputs = defaultdict(dict)
         handle_mask_update(self.gui)
-        ModuleType.REVIEW.value.mask_opacity = self.slider.value
-        ModuleType.REVIEW.value.update_class()
+        #ModuleType.REVIEW.value.mask_opacity = self.slider.value
+        #ModuleType.REVIEW.value.update_class()

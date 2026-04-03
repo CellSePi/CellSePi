@@ -5,8 +5,8 @@ import threading
 import flet as ft
 
 from cellsepi.backend.main_window.avg_diameter import AverageDiameter
-from cellsepi.frontend.main_window.expert_mode.gui_builder import Builder
-from cellsepi.frontend.main_window.expert_mode.gui_expert_environment import ExpertEnvironment, PipelineStateListener
+#from cellsepi.frontend.main_window.expert_mode.gui_builder import Builder
+#from cellsepi.frontend.main_window.expert_mode.gui_expert_environment import ExpertEnvironment, PipelineStateListener
 from cellsepi.frontend.main_window.gui_page_overlay import PageOverlay
 from cellsepi.frontend.main_window.gui_segmentation import GUISegmentation
 from cellsepi.frontend.main_window.gui_options import Options
@@ -20,7 +20,7 @@ from cellsepi.frontend.main_window.gui_mask import error_banner, handle_image_sw
 from cellsepi.backend.main_window.image_tuning import ImageTuning, AutoImageTuning
 from cellsepi.frontend.main_window.gui_training_environment import Training
 from cellsepi.frontend.main_window.gui_page_overlay import PageOverlay
-from cellsepi.frontend.main_window.expert_mode.expert_constants import ModuleType
+#from cellsepi.frontend.main_window.expert_mode.expert_constants import ModuleType
 
 class GUI:
     """
@@ -56,7 +56,7 @@ class GUI:
         self.page.title = "CellSePi"
         self.canvas = Canvas()
         self.op = Options(self)
-        self.ex_mode = ExpertEnvironment(self)
+        #self.ex_mode = ExpertEnvironment(self)
         gui_config = GUIConfig(self)
         self.gui_config = gui_config.create_profile_container()
         self.segmentation = GUISegmentation(self)
@@ -101,9 +101,9 @@ class GUI:
         self.training_environment=Training(self)
         self.ref_seg_environment = ft.Ref[ft.Column]()
         self.ref_training_environment = ft.Ref[ft.Column]()
-        self.builder_environment = Builder(self.page)
-        pipeline_state_listener = PipelineStateListener(self)
-        self.builder_environment.pipeline_gui.pipeline.event_manager.subscribe(listener=pipeline_state_listener)
+        #self.builder_environment = Builder(self.page)
+        #pipeline_state_listener = PipelineStateListener(self)
+        #self.builder_environment.pipeline_gui.pipeline.event_manager.subscribe(listener=pipeline_state_listener)
         self.ref_builder_environment = ft.Ref[ft.Column]()
         self.ref_gallery_environment = ft.Ref[ft.Column]()
         if self.csp.config.get_auto_button():
@@ -143,7 +143,7 @@ class GUI:
                                 alignment=ft.MainAxisAlignment.START,
                                 visible=False,ref=self.ref_training_environment
                             ),
-                            ft.Column([self.builder_environment.builder_page_stack],expand=True,visible=False,ref=self.ref_builder_environment),
+                            #ft.Column([self.builder_environment.builder_page_stack],expand=True,visible=False,ref=self.ref_builder_environment),
                             #RIGHT COLUMN that handles gallery and directory_card
                             ft.Column(
                                 [
@@ -155,7 +155,8 @@ class GUI:
                                 ],
                                 expand=True,ref=self.ref_gallery_environment
                             ),
-                            ft.Column([self.op, self.training_environment,self.ex_mode]),
+                            ft.Column([self.op, self.training_environment,#self.ex_mode
+                                       ]),
                         ],
                         alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                         expand=True,
@@ -165,9 +166,9 @@ class GUI:
             ),
         )
         #set the colors for the review module from the config file
-        ModuleType.REVIEW.value.mask_color = self.csp.config.get_mask_color()
-        ModuleType.REVIEW.value.outline_color = self.csp.config.get_outline_color()
-        ModuleType.REVIEW.value.update_class()
+        #ModuleType.REVIEW.value.mask_color = self.csp.config.get_mask_color()
+        #ModuleType.REVIEW.value.outline_color = self.csp.config.get_outline_color()
+        #ModuleType.REVIEW.value.update_class()
 
     def update_view_mask(self):
         """
@@ -225,6 +226,7 @@ class GUI:
         Handle the closing event of Flet GUI.
         """
         if e.data == "close" and not self.closing_event:
+            """
             if not self.builder_environment.pipeline_storage.check_saved() and not saved_checked:
                 def cancel_dialog(a):
                     cupertino_alert_dialog.open = False
@@ -249,7 +251,7 @@ class GUI:
                 cupertino_alert_dialog.open = True
                 self.page.update()
                 return
-
+            """
             self.closing_event = True
             overlay = PageOverlay(self.page,content=self.closing_sheet,modal=True)
             overlay.open()
@@ -263,11 +265,13 @@ class GUI:
             if self.csp.readout_running:
                 self.readout_event = multiprocessing.Event()
                 self.readout_event.wait()
+            """
             if self.builder_environment.pipeline_gui.pipeline.running:
                 self.builder_environment.cancel()
                 self.expert_running_event = multiprocessing.Event()
                 self.builder_environment.pipeline_running_event = self.expert_running_event
                 self.expert_running_event.wait()
+            """
             self.pipe_listener_running = False
             self.queue.put("close")
             if self.process_drawing_window is not None and self.process_drawing_window.is_alive():
