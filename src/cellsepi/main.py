@@ -13,7 +13,7 @@ def main():
         flet_build()
     else:
         multiprocessing.set_start_method("spawn")
-        ft.app(target=async_main, view=ft.FLET_APP)
+        ft.run(main=async_main, view=ft.AppView.FLET_APP)
 
 if __name__ == "__main__":
     main()

@@ -37,7 +37,7 @@ def format_directory_path(dir_path: str, max_length=30):
 
     return path
 
-def copy_to_clipboard(page,value: str,name: str):
+async def copy_to_clipboard(page,value: str,name: str):
     """
     Adds the value in to the clipboard and opens the snack_bar and say that it has been copied.
     Args:
@@ -45,8 +45,8 @@ def copy_to_clipboard(page,value: str,name: str):
         value (str): Value to add to the clipboard.
         name (str): Name of the thing that got copied.
     """
-    page.set_clipboard(value)
-    page.open(ft.SnackBar(ft.Text(f"{name} copied to clipboard!")))
+    await ft.Clipboard().set(value)
+    page.show_dialog(ft.SnackBar(ft.Text(f"{name} copied to clipboard!")))
     page.update()
 
 
@@ -64,14 +64,14 @@ def get_image(linux_or_3d: bool, src):
             src_base64=src,
             height=150,
             width=150,
-            fit=ft.ImageFit.CONTAIN
+            fit=ft.BoxFit.CONTAIN
         )
     else:
         return ft.Image(
             src=src,
             height=150,
             width=150,
-            fit=ft.ImageFit.CONTAIN
+            fit=ft.BoxFit.CONTAIN
         )
 
 
@@ -103,9 +103,9 @@ class DirectoryCard(ft.Card):
             )
             self.image_gallery = ft.ListView()
             self.path_list_tile = self.create_path_list_tile()
-            self.get_directory_dialog = None
-            self.pick_files_dialog = None
-            self.create_handlers()
+            #self.get_directory_dialog = None
+            #self.pick_files_dialog = None
+            #self.create_handlers()
             self.directory_row = self.create_dir_row()
             self.files_row = self.create_files_row()
             self.lif_slider_blocker = ft.Container(
@@ -130,7 +130,7 @@ class DirectoryCard(ft.Card):
             self.icon_x = {}
 
     def create_path_list_tile(self):
-        return ft.ListTile(leading=ft.Icon(name=ft.Icons.FOLDER_OPEN),
+        return ft.ListTile(leading=ft.Icon(icon=ft.Icons.FOLDER_OPEN),
                     title=self.formatted_path,
                     subtitle=self.count_results_txt
                     )
@@ -139,17 +139,26 @@ class DirectoryCard(ft.Card):
         self.count_results_txt.value = f"Results: {len(self.gui.csp.image_paths)}"
         self.count_results_txt.update()
 
-    def get_directory_result(self, e: ft.FilePickerResultEvent):
+    async def get_directory_result(self, e: ft.Event[ft.Button]):
         """
         Checks if the picked directory or file exists and if it worked updates everything with the new values.
         builds the canvas container for the file results on the right column of the GUI
         """
-        if not(e.files is None and e.path is None):
-            self.gui.progress_ring.visible = True
+        #initiate filepicker and fetch files/directory
+        self.gui.progress_ring.visible = True
+        if self.is_lif:
+            files = await ft.FilePicker().pick_files(allow_multiple=False)
+
+        else:
+            files = await ft.FilePicker().get_directory_path()
+
+
+        if not(files is None ):
+
             self.image_gallery.controls.clear()
             self.gui.canvas.main_image.content = ft.Image(
                 src=r"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA\AAAFCAIAAAFe0wxPAAAAAElFTkSuQmCC",
-                fit=ft.ImageFit.SCALE_DOWN)
+                fit=ft.BoxFit.SCALE_DOWN)
             # the window of the image display is cleared of all content
             self.gui.switch_mask.value = False
             self.gui.canvas.container_mask.visible = False
@@ -175,13 +184,18 @@ class DirectoryCard(ft.Card):
             self.gui.page.update()
             self.gui.queue.put("delete_mask")
 
+
+
             #differentiate between the lif and tiff case, as there are two different file formats
             if self.is_lif:
                 #is a file
-                path = e.files[0].path
+                # get data
+                fetched_date = files[0]
+                path = str(fetched_date.path)
+
             else:
                 #is a directory
-                path = e.path
+                path = files
             if path:
                 self.directory_path.value = path
                 self.select_directory_parallel(path,self.is_lif,self.gui.csp.config.get_channel_prefix())
@@ -238,7 +252,7 @@ class DirectoryCard(ft.Card):
                 if event_manager is not None:
                     raise PipelineRunningException("Directory Error","Directory ’output’ is not supported!")
                 else:
-                    self.gui.page.open(ft.SnackBar(ft.Text("The directory path output is not allowed!")))
+                    self.gui.page.show_dialog(ft.SnackBar(ft.Text("The directory path output is not allowed!")))
                     self.output_dir = True
                     self.gui.page.update()
                     self.gui.csp.image_paths = {}
@@ -320,7 +334,7 @@ class DirectoryCard(ft.Card):
 
         if not self.is_supported_lif:
             self.gui.ready_to_start = False
-            self.gui.page.open(ft.SnackBar(
+            self.gui.page.show_dialog(ft.SnackBar(
                 ft.Text("The selected file is not supported! Only .lif are supported.")))
             image_paths = {}
             mask_paths = {}
@@ -328,9 +342,10 @@ class DirectoryCard(ft.Card):
             self.gui.page.update()
         else:
             image_paths, mask_paths = load_directory(working_directory, channel_prefix=cp, mask_suffix=ms)
+
             if len(image_paths) == 0:
                 self.gui.ready_to_start = False
-                self.gui.page.open(ft.SnackBar(ft.Text("The directory contains no valid files with the current channel prefix!")))
+                self.gui.page.show_dialog(ft.SnackBar(ft.Text("The directory contains no valid files with the current channel prefix!")))
                 self.gui.page.update()
                 self.count_results_txt.color = ft.Colors.RED
                 self.gui.progress_ring.visible = False
@@ -338,7 +353,7 @@ class DirectoryCard(ft.Card):
                     os.rmdir(self.gui.csp.working_directory)
             elif not is_supported_tif:
                 self.gui.ready_to_start = False
-                self.gui.page.open(ft.SnackBar(ft.Text("The directory contains an unsupported file type. Only 8 or 16 bit .tiff files allowed.")))
+                self.gui.page.show_dialog(ft.SnackBar(ft.Text("The directory contains an unsupported file type. Only 8 or 16 bit .tiff files allowed.")))
                 self.count_results_txt.color = ft.Colors.RED
                 self.gui.progress_ring.visible = False
                 self.gui.page.update()
@@ -388,7 +403,7 @@ class DirectoryCard(ft.Card):
                     width=154,
                     height=154,
                     border=ft.border.all(4, ft.Colors.ORANGE_700),
-                    alignment=ft.alignment.center,
+                    alignment=ft.Alignment.CENTER,
                     visible=False,
                     padding=5
                 )
@@ -399,7 +414,7 @@ class DirectoryCard(ft.Card):
                             ft.GestureDetector(
                                 content=ft.Container(ft.Stack([get_image(self.gui.csp.linux_or_3d,
                                                                          cur_image_paths[channel_id]), self.selected_images_visualise[image_id][channel_id]]), width=156, height=156),
-                                on_tap=lambda e, img_id=image_id, c_id=channel_id: update_main_image(img_id, c_id,
+                                on_tap=lambda e, img_id=image_id, c_id=channel_id:e.page.run_task( update_main_image,img_id, c_id,
                                                                                                      self.gui),
                             ),
                             ft.Text(channel_id, size=10, text_align=ft.TextAlign.CENTER),
@@ -433,6 +448,7 @@ class DirectoryCard(ft.Card):
         Args:
             image_id: the id of the image to check mask availability
         """
+
         if self.gui.csp.mask_paths is not None and image_id in self.gui.csp.mask_paths and self.gui.csp.config.get_bf_channel() in self.gui.csp.mask_paths[image_id]:
             self.icon_check[image_id].visible = True
             self.icon_x[image_id].visible = False
@@ -449,41 +465,49 @@ class DirectoryCard(ft.Card):
             for image_id in self.gui.csp.image_paths:
                 self.update_mask_check(image_id)
 
+
     def create_dir_row(self):
         """
         Creates the row for directory picking.
         """
         return ft.Row(
         [
-            ft.ElevatedButton(
-                "Open Directory",
+            ft.Button(
+                content="Open Directory",
                 icon=ft.Icons.FOLDER_OPEN,
-                on_click=lambda _: self.get_directory_dialog.get_directory_path(),
+                on_click=lambda e: e.page.run_task(self.get_directory_result, e),
                 disabled=self.gui.page.web,
             ),
         ], alignment=ft.MainAxisAlignment.START  # Change alignment to extend fully to the left
     )
+
+
     def create_files_row(self):
         """
         Creates the row for file picking.
         """
         return ft.Row(
         [
-            ft.ElevatedButton(
-                "Pick File",
+            ft.Button(
+                content="Pick File",
                 icon=ft.Icons.UPLOAD_FILE,
-                on_click=lambda _: self.pick_files_dialog.pick_files(allow_multiple=False),
+                on_click=lambda e: e.page.run_task(self.get_directory_result, e),
             )
         ], alignment=ft.MainAxisAlignment.START  # Change alignment to extend fully to the left
     )
+
+
     def create_handlers(self):
         """
         Creates the handlers.
         """
-        self.get_directory_dialog = ft.FilePicker(on_result=lambda e: self.get_directory_result(e))
-        self.pick_files_dialog = ft.FilePicker(on_result=lambda e: self.get_directory_result(e))
+        #self.get_directory_dialog = ft.FilePicker(on_upload=lambda e: self.get_directory_result(e))
+        #self.pick_files_dialog = ft.FilePicker(on_upload=lambda e: self.get_directory_result(e))
+        #self.get_directory_dialog = ft.FilePicker()
+        #self.pick_files_dialog = ft.FilePicker()
+
         #add the handlers to the page
-        self.gui.page.overlay.extend([self.pick_files_dialog, self.get_directory_dialog])
+        #self.gui.page.overlay.extend([ self.get_directory_dialog])
 
     def update_view(self,e):
         """
@@ -521,9 +545,9 @@ class DirectoryCard(ft.Card):
                                 content=ft.IconButton(
                                     icon=ft.Icons.COPY,
                                     tooltip="Copy to clipboard",
-                                    on_click=lambda e: copy_to_clipboard(self.gui.page,self.gui.directory.directory_path.value,"Directory path")
+                                    on_click=lambda e: e.page.run_task(copy_to_clipboard,self.gui.page,self.gui.directory.directory_path.value,"Directory path")
                                 ),
-                                alignment=ft.alignment.top_right,
+                                alignment=ft.Alignment.TOP_RIGHT,
                             )
                         )
                     ]

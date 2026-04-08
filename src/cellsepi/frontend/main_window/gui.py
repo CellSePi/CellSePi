@@ -1,6 +1,7 @@
 import asyncio
 import multiprocessing
 import os
+import queue
 import threading
 import flet as ft
 
@@ -33,6 +34,7 @@ class GUI:
         self.switch_mask = ft.Switch(label="Mask", value=False)
         self.switch_mask.on_change = lambda e: self.update_view_mask()
         self.queue = multiprocessing.Queue()
+
         self.average_diameter = AverageDiameter(self)
         parent_conn, child_conn = multiprocessing.Pipe()
         self.parent_conn, self.child_conn = parent_conn, child_conn
@@ -47,10 +49,10 @@ class GUI:
         self.page.window.prevent_close = True
         self.page.window.on_event = lambda e: self.handle_closing_event(e)
         self.process_drawing_window = self.start_drawing_window()
-        self.drawing_button= ft.ElevatedButton(text="Drawing Tools", icon="brush_rounded",on_click=lambda e: self.set_queue_drawing_window(),disabled=True)
+        self.drawing_button= ft.Button(content="Drawing Tools", icon="brush_rounded",on_click=lambda e: self.set_queue_drawing_window(),disabled=True)
         self.page.window.width = 1428
         self.page.window.height = 800
-        self.page.window.center()
+        self.handle_window_centering()
         self.page.window.min_width = self.page.window.width
         self.page.window.min_height = self.page.window.height
         self.page.title = "CellSePi"
@@ -72,27 +74,29 @@ class GUI:
         self.image_tuning = ImageTuning(self)
         self.progress_ring = ft.ProgressRing(visible=False)
         self.closing_sheet = ft.Stack([
-            ft.Column([ft.Container(ft.ProgressRing(),alignment=ft.alignment.center)],
+            ft.Column([ft.Container(ft.ProgressRing(),alignment=ft.Alignment.CENTER)],
                 alignment=ft.MainAxisAlignment.CENTER,
             ),
         ])
+
         self.brightness_slider = ft.Slider(
             min=0, max=2.0, value=1.0, disabled= True,
-            on_change=lambda e: asyncio.run(self.image_tuning.update_brightness_and_contrast_async())
+            on_change=lambda e: e.page.run_task(self.image_tuning.update_brightness_and_contrast_async)
         )
         self.contrast_slider = ft.Slider(
             min=0, max=2.0, value=1.0, disabled= True,
-            on_change=lambda e: asyncio.run(self.image_tuning.update_brightness_and_contrast_async())
+            on_change=lambda e: e.page.run_task(self.image_tuning.update_brightness_and_contrast_async)
         )
+
         self.auto_image_tuning = AutoImageTuning(self)
         self.auto_brightness_contrast = ft.IconButton(icon=ft.Icons.AUTO_FIX_HIGH,icon_color=ft.Colors.GREY_700,style=ft.ButtonStyle(
                     shape=ft.RoundedRectangleBorder(radius=12),
-                ),on_click=lambda e: self.auto_image_tuning.pressed(),tooltip="Auto brightness and contrast")
-        self.brightness_icon = ft.Icon(name=ft.Icons.SUNNY,tooltip="Brightness")
-        self.contrast_icon = ft.Icon(name=ft.Icons.CONTRAST,tooltip="Contrast")
+                ),on_click=lambda e: e.page.run_task(self.auto_image_tuning.pressed),tooltip="Auto brightness and contrast")
+        self.brightness_icon = ft.Icon(icon=ft.Icons.SUNNY,tooltip="Brightness")
+        self.contrast_icon = ft.Icon(icon=ft.Icons.CONTRAST,tooltip="Contrast")
         self.diameter_text = ft.Text("0.00", size=14, weight=ft.FontWeight.BOLD,tooltip="Copy to clipboard")
         self.diameter_display = ft.Container(
-            content=ft.Row([ft.Icon(name=ft.Icons.STRAIGHTEN_ROUNDED, tooltip="Average diameter"), ft.GestureDetector(content=self.diameter_text,on_tap=lambda e: copy_to_clipboard(page=self.page,value=str(self.diameter_text.value),name="Average diameter"),on_enter=lambda e:self.on_enter_diameter(),on_exit=lambda e:self.on_exit_diameter()),]),
+            content=ft.Row([ft.Icon(icon=ft.Icons.STRAIGHTEN_ROUNDED, tooltip="Average diameter"), ft.GestureDetector(content=self.diameter_text,on_tap=lambda e: e.page.run_task(copy_to_clipboard,page=self.page,value=str(self.diameter_text.value),name="Average diameter"),on_enter=lambda e:self.on_enter_diameter(),on_exit=lambda e:self.on_exit_diameter()),]),
             border_radius=12,
             padding=8,
             opacity=0.5,
@@ -107,7 +111,7 @@ class GUI:
         self.ref_builder_environment = ft.Ref[ft.Column]()
         self.ref_gallery_environment = ft.Ref[ft.Column]()
         if self.csp.config.get_auto_button():
-            self.auto_image_tuning.pressed()
+             self.auto_image_tuning.pressed()
 
     def build(self):
         """
@@ -149,7 +153,7 @@ class GUI:
                                 [
                                     self.directory,
                                     ft.Card(
-                                        content=ft.Stack([ft.Container(self.progress_ring,alignment=ft.alignment.center),ft.Container(self.directory.image_gallery,padding=20)]),
+                                        content=ft.Stack([ft.Container(self.progress_ring,alignment=ft.Alignment.CENTER),ft.Container(self.directory.image_gallery,padding=20)]),
                                         expand=True
                                     ),
                                 ],
@@ -200,7 +204,7 @@ class GUI:
                     self.process_drawing_window.terminate()
                     self.process_drawing_window.join()
                 except Exception as e:
-                    self.page.open(ft.SnackBar(ft.Text(f"Error while terminating process: {e}")))
+                    self.page.show_dialog(ft.SnackBar(ft.Text(f"Error while terminating process: {e}")))
             self.queue = multiprocessing.Queue()
             parent_conn, child_conn = multiprocessing.Pipe()
             self.parent_conn, self.child_conn = parent_conn, child_conn
@@ -217,7 +221,7 @@ class GUI:
             self.csp.window_mask_path= os.path.join(directory, mask_file_name)
             self.queue.put((self.csp.config.get_mask_color(), self.csp.config.get_outline_color(),self.csp.color_opacity, self.csp.window_bf_channel, self.csp.mask_paths, self.csp.window_image_id, self.csp.adjusted_image_path, self.csp.window_mask_path,self.csp.window_channel_id,self.csp.current_channel_prefix))
         else:
-            self.page.open(ft.SnackBar(
+            self.page.show_dialog(ft.SnackBar(
                 ft.Text(f"Selected bright-field channel {self.csp.window_bf_channel} has no image!")))
             self.page.update()
 
@@ -328,3 +332,6 @@ class GUI:
     def on_exit_diameter(self):
         self.diameter_text.color = None
         self.diameter_text.update()
+
+    async def handle_window_centering(self):
+        await self.page.window.center()

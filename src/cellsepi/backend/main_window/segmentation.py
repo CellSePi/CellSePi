@@ -36,7 +36,12 @@ class Segmentation(Notifier):
         self._call_completion_listeners()
 
     def update(self, progress, current_image):
+
         self._call_update_listeners(progress, current_image)
+
+    async def _call_update_listeners_safe(self, progress, current_image):
+        self._call_update_listeners(progress, current_image)
+
 
     def start(self):
         current_percentage = round(self.batch_image_segmentation.num_seg_images / len(self.gui.csp.image_paths) * 100)

@@ -115,7 +115,7 @@ class GUIConfig:
         try:
             renamed = self.config_class.rename_profile(self.config_class.index_to_name(idx), e.control.value)
             if not renamed:
-                self.page.open(ft.SnackBar(
+                self.page.show_dialog(ft.SnackBar(
                     ft.Text("The name is already taken!")))
                 self.page.update()
             else:
@@ -126,7 +126,7 @@ class GUIConfig:
                 self.update_overlay()
                 self.page.update()
         except ValueError:
-            self.page.open(ft.SnackBar(
+            self.page.show_dialog(ft.SnackBar(
                 ft.Text("The name must be not empty!")))
             self.page.update()
 
@@ -468,7 +468,7 @@ class GUIConfig:
                 ),
                 ft.IconButton(
                     icon=ft.Icons.LIBRARY_ADD_ROUNDED,
-                    content=ft.Text("Add Profile", size=18),
+                    #content=ft.Text("Add Profile", size=18),
                     tooltip="Add new profile",
                     on_click=lambda e: self.add_profile_pressed(e)
                 ),
@@ -481,3 +481,7 @@ class GUIConfig:
                             profiles_row,
                             ft.Row([tf_bf, tf_cp]),
                             ft.Row([tf_ms, tf_d])]),padding=10)
+
+
+
+

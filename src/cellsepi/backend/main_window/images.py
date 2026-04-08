@@ -98,9 +98,21 @@ class BatchImageSegmentation(Notifier):
             for segmentation_channel, path in channels.items():
                 if segmentation_channel == self.segmentation_channel:
                     if os.path.exists(path):
+                        #needed to add error catches to handle listener with ui thread (can not update page ui in listener thread in version 0.84)
+                        try:
+                            if os.path.getsize(path) == 0:
+                                print("Empty file:", path)
+                                continue
+                            mask = np.load(path, allow_pickle=True)
+                        except EOFError:
+                            print("Corrupted file (EOF):", path)
+                            continue
+                        except Exception as e:
+                            print("Error loading mask:", path, e)
+                            continue
+
                         self.masks_backup[image_id] = {}
                         self.prev_masks_exist = True
-                        mask = np.load(path,allow_pickle=True)
                         self.masks_backup[image_id][segmentation_channel] = mask
 
         if self.prev_masks_exist:

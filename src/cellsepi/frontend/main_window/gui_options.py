@@ -9,7 +9,6 @@ class Options(ft.Container):
     """
     def __init__(self, gui):
         super().__init__()
-        self.page = gui.page
         self.gui = gui
         self.dark_light_text = ft.Text("Light Theme")
         self.dark_light_icon = ft.IconButton(
@@ -27,41 +26,41 @@ class Options(ft.Container):
         )
         self.content = self.menu_button
         self.padding = 10
-        self.alignment = ft.alignment.top_right
+        self.alignment = ft.Alignment.TOP_RIGHT
 
     async def theme_changed(self, e):
         """
         Changes the theme of the page to the opposite of the current selected theme.
         """
-        if self.page.theme_mode == ft.ThemeMode.LIGHT:
-            self.page.theme_mode = ft.ThemeMode.DARK
+        if self.gui.page.theme_mode == ft.ThemeMode.LIGHT:
+            self.gui.page.theme_mode = ft.ThemeMode.DARK
             self.dark_light_text.value = "Dark Theme"
             self.dark_light_icon.icon = ft.Icons.BRIGHTNESS_HIGH
         else:
-            self.page.theme_mode = ft.ThemeMode.LIGHT
+            self.gui.page.theme_mode = ft.ThemeMode.LIGHT
             self.dark_light_text.value = "Light Theme"
             self.dark_light_icon.icon = ft.Icons.BRIGHTNESS_2_OUTLINED
-        self.page.update()
+        self.gui.page.update()
 
     def check_current_theme(self,e):
         """
         Checks what the current theme is.
         """
-        if self.page.theme_mode == ft.ThemeMode.SYSTEM:
-            if self.page.platform_brightness == ft.Brightness.LIGHT:
+        if self.gui.page.theme_mode == ft.ThemeMode.SYSTEM:
+            if self.gui.page.platform_brightness == ft.Brightness.LIGHT:
                 self.dark_light_text.value = "Light Theme"
                 self.dark_light_icon.icon = ft.Icons.BRIGHTNESS_2_OUTLINED
             else:
                 self.dark_light_text.value = "Dark Theme"
                 self.dark_light_icon.icon = ft.Icons.BRIGHTNESS_HIGH
         else:
-            if self.page.theme_mode == ft.ThemeMode.LIGHT:
+            if self.gui.page.theme_mode == ft.ThemeMode.LIGHT:
                 self.dark_light_text.value = "Light Theme"
                 self.dark_light_icon.icon = ft.Icons.BRIGHTNESS_2_OUTLINED
             else:
                 self.dark_light_text.value = "Dark Theme"
                 self.dark_light_icon.icon = ft.Icons.BRIGHTNESS_HIGH
-        self.page.update()
+        self.gui.page.update()
 
     def create_appbar_items(self):
         """
@@ -101,3 +100,4 @@ class Options(ft.Container):
                 ),
             )
         ]
+

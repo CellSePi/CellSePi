@@ -29,13 +29,13 @@ class Training(ft.Container):
         )
         self.content = self.button_training_environment_menu
         self.padding = 10
-        self.alignment = ft.alignment.top_right
-        self.start_button = ft.ElevatedButton(
-            text="Start",
+        self.alignment = ft.Alignment.TOP_RIGHT
+        self.start_button = ft.Button(
+            content="Start",
             icon=ft.Icons.PLAY_CIRCLE,
             tooltip="Start the training epochs",
             disabled=True,
-            on_click=self.start_training,
+            on_click=lambda e : e.page.run_thread(self.start_training,e),
         )
 
         self.model = "nuclei"
@@ -64,39 +64,41 @@ class Training(ft.Container):
                 ft.dropdown.Option("cyto2"),
                 ft.dropdown.Option("cyto3")
             ],border_color=ft.Colors.BLUE_400,
-            on_change=lambda e: self.changed_input("modeltype", e),expand=True,
+            on_select=lambda e: self.changed_input("modeltype", e),expand=True,
         )
         self.re_train_model = ft.Checkbox(value=False, label="Retrain Model",on_change=lambda e: self.change_re_train_model())
 
         # the following methods are called when clicking on the corresponding button
-        def pick_model_result(e: ft.FilePickerResultEvent):
+        async def pick_model_result(e: ft.Event[ft.Button]):
             """
             The result of the file selection is handled.
 
             Arguments:
-                e (ft.FilePickerResultEvent): the result of the file picker event, i.e. the chosen file
+                e (ft.FilePicker): pseudo Event, indicating the event structure
             """
-            if e.files is None:
+            files = await ft.FilePicker().pick_files(allow_multiple=False,
+                                                     initial_directory=self.model_directory)
+
+
+            if files is None:
                 #case: no model selected
                 pass
-            elif e.files[0].path is not None:
-                self.gui.csp.re_train_model_path = e.files[0].path
-                self.field_model_name.value = e.files[0].name
-                self.re_train_model_name = e.files[0].name
+            elif files[0].path is not None:
+                self.gui.csp.re_train_model_path = files[0].path
+                self.field_model_name.value = files[0].name
+                self.re_train_model_name = files[0].name
                 self.field_model_name.color = ft.Colors.BLUE_400
                 self.gui.page.update()
 
-        pick_model_dialog = ft.FilePicker(on_result=pick_model_result)
-        self.gui.page.overlay.extend([pick_model_dialog])
 
         self.re_train_model_chooser = ft.IconButton(
                 icon=ft.Icons.UPLOAD_FILE,
                 tooltip="Choose model to retrain",
-                on_click=lambda _: pick_model_dialog.pick_files(allow_multiple=False,
-                                                                initial_directory=self.model_directory),disabled=True
+                on_click=lambda e: e.page.run_task(pick_model_result,e)
+
             )
         self.field_model_name = ft.TextField(label="Model Name", value=self.model_name, border_color=self.color,on_change=lambda e: self.changed_input("model_name", e))
-        self.model_stack = ft.Stack([self.field_model_name, self.re_train_model_chooser],alignment=ft.alignment.top_right)
+        self.model_stack = ft.Stack([self.field_model_name, self.re_train_model_chooser],alignment=ft.Alignment.TOP_RIGHT)
         self.field_model = ft.Row([self.model_dropdown, self.model_stack])
         # New field for custom model input, visible only if "custom" is selected
         self.field_custom_model = ft.TextField(label="Custom Model", value="", border_color=self.color, visible=False,
@@ -120,9 +122,9 @@ class Training(ft.Container):
                                 content=ft.IconButton(
                                     icon=ft.Icons.COPY,
                                     tooltip="Copy to clipboard",
-                                    on_click=lambda e: copy_to_clipboard(self.gui.page,self.model_directory,"Model directory")
+                                    on_click=lambda e: e.page.run_task(copy_to_clipboard,self.gui.page,self.model_directory,"Model directory")
                                 ),
-                                alignment=ft.alignment.top_right,
+                                alignment=ft.Alignment.TOP_RIGHT,
                             )
                         )])
         self.progress_ring = ft.ProgressRing(visible=False)
@@ -238,7 +240,7 @@ class Training(ft.Container):
 
         text = ft.Text("Training")
         title = ft.ListTile(
-            leading=ft.Icon(name=ft.Icons.HUB_OUTLINED),
+            leading=ft.Icon(icon=ft.Icons.HUB_OUTLINED),
             title=text,
         )
         pick_model_row = ft.Row(
@@ -272,6 +274,7 @@ class Training(ft.Container):
         This method starts the training process with the selected parameters and model.
         """
         self.start_button.disabled = True
+        self.re_train_model_chooser.disabled =True
         self.gui.directory.disable_path_choosing()
         self.progress_ring.visible = True
         self.progress_bar_text.value = ""
@@ -280,10 +283,11 @@ class Training(ft.Container):
 
         # checks if the right model type was selected
         if self.re_train_model.value and self.re_train_model_name is None:
-            self.page.open(ft.SnackBar(
+            self.page.show_dialog(ft.SnackBar(
                 ft.Text(f"The model you inserted is not a retrained model!")))
             self.gui.directory.enable_path_choosing()
             self.start_button.disabled = False
+            self.re_train_model_chooser.disabled = False
             self.progress_ring.visible = False
             self.progress_bar_text.value = ""
             self.enable_switch_environment()
@@ -301,11 +305,12 @@ class Training(ft.Container):
             images, labels, image_names, test_images, test_labels, image_names_test = output
 
         except Exception as e:
-            self.page.open(ft.SnackBar(
+            self.page.show_dialog(ft.SnackBar(
                 ft.Text(f"Something went wrong while gather training data: {str(e)}")))
             self.gui.directory.enable_path_choosing()
             self.start_button.disabled = False
             self.progress_ring.visible = False
+            self.re_train_model_chooser.disabled = False
             self.progress_bar_text.value = ""
             self.enable_switch_environment()
             self.page.update()
@@ -314,11 +319,12 @@ class Training(ft.Container):
                 self.gui.training_event.set()
             return
         if len(images) == 0 or len(labels) == 0:
-            self.page.open(ft.SnackBar(
+            self.page.show_dialog(ft.SnackBar(
                 ft.Text(f"You need images and suitable masks to train a model!")))
             self.gui.directory.enable_path_choosing()
             self.start_button.disabled = False
             self.progress_ring.visible = False
+            self.re_train_model_chooser.disabled = False
             self.progress_bar_text.value = ""
             self.enable_switch_environment()
             self.page.update()
@@ -347,15 +353,17 @@ class Training(ft.Container):
             self.progress_bar_text.value = "Finished Training"
 
         except Exception as e:
-            self.page.open(ft.SnackBar(
+            self.page.show_dialog(ft.SnackBar(
                 ft.Text(f"Something went wrong while training: {str(e)}")))
             self.progress_bar_text.value = ""
             self.page.update()
         self.gui.directory.enable_path_choosing()
         self.start_button.disabled = False
         self.progress_ring.visible = False
+        self.re_train_model_chooser.disabled =False
         self.enable_switch_environment()
         self.page.update()
+        print("finished training")
         self.gui.csp.training_running = False
         if self.gui.training_event is not None:
             self.gui.training_event.set()
@@ -364,14 +372,14 @@ class Training(ft.Container):
         self.switch_icon.color = ft.Colors.GREY_400
         self.button_training_environment_menu.disabled = True
         self.button_training_environment_menu.update()
-        self.gui.ex_mode.switch_icon.color = ft.Colors.GREY_400
-        self.gui.ex_mode.button_expert_environment_menu.disabled = True
-        self.gui.ex_mode.button_expert_environment_menu.update()
+        #self.gui.ex_mode.switch_icon.color = ft.Colors.GREY_400
+        #self.gui.ex_mode.button_expert_environment_menu.disabled = True
+        #self.gui.ex_mode.button_expert_environment_menu.update()
 
     def enable_switch_environment(self):
         self.switch_icon.color = None
         self.button_training_environment_menu.disabled = False
         self.button_training_environment_menu.update()
-        self.gui.ex_mode.switch_icon.color = None
-        self.gui.ex_mode.button_expert_environment_menu.disabled = False
-        self.gui.ex_mode.button_expert_environment_menu.update()
+        #self.gui.ex_mode.switch_icon.color = None
+        #self.gui.ex_mode.button_expert_environment_menu.disabled = False
+        #self.gui.ex_mode.button_expert_environment_menu.update()

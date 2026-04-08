@@ -25,6 +25,7 @@ def listdir(directory):
 def organize_files(files, channel_prefix, mask_suffix=""):
     id_to_file = {}
     for file in files:
+
         if channel_prefix in file.name:
             image_id, channel_id = file.stem.replace(mask_suffix, "").split(channel_prefix)
             if image_id not in id_to_file:
@@ -37,13 +38,14 @@ def organize_files(files, channel_prefix, mask_suffix=""):
                                 Channel Id: {channel_id}
                                 Path: {file}""")
 
-            id_to_file[image_id][channel_id] = file
+            id_to_file[image_id][channel_id] = str(file)
 
     #sorting the Channel IDs
     for image_id in id_to_file:
         id_to_file[image_id] = dict(sorted(id_to_file[image_id].items()))
     #sorting the Image IDs
     id_to_file = dict(sorted(id_to_file.items()))
+
     return id_to_file
 
 class ReturnTypePath(Enum):
@@ -258,7 +260,7 @@ def extract_from_lif_file(lif_path, target_dir,channel_prefix,event_manager: Eve
                         target_path.unlink()  # Remove the existing file
 
                     # Save the image to the target path using pillows save function
-                    img.save(target_path)
+                    img.save(str(target_path))
 
                 except Exception as e:
                     print(f"Error processing {file_name}: {e}")

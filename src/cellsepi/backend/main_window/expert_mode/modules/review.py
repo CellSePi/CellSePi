@@ -73,11 +73,11 @@ class Review(Module, ABC):
         if self._settings is None:
             self._container_mask = ft.Container(
                 ft.Image(src=r"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA\AAAFCAIAAAFe0wxPAAAAAElFTkSuQmCC",
-                         fit=ft.ImageFit.SCALE_DOWN, ), visible=False, alignment=ft.alignment.center, width=632, height=632)
+                         fit=ft.ImageFit.SCALE_DOWN, ), visible=False, alignment=ft.Alignment.CENTER, width=632, height=632)
 
             self._main_image = ft.Container(
                 ft.Image(src=r"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA\AAAFCAIAAAFe0wxPAAAAAElFTkSuQmCC",
-                         fit=ft.ImageFit.SCALE_DOWN), alignment=ft.alignment.center, width=632, height=632)
+                         fit=ft.ImageFit.SCALE_DOWN), alignment=ft.Alignment.CENTER, width=632, height=632)
 
             self._interactive_viewer = FletExtendedInteractiveViewer(
                 content=ft.Stack([self._main_image, self._container_mask]), constrained=False, min_scale=0.1, width=632,
@@ -259,7 +259,7 @@ class Review(Module, ABC):
                     width=154,
                     height=154,
                     border=ft.border.all(4, ft.Colors.ORANGE_700),
-                    alignment=ft.alignment.center,
+                    alignment=ft.Alignment.CENTRE,
                     visible=False,
                     padding=5
                 )

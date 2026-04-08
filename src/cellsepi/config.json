@@ -11,6 +11,36 @@
             "mask_suffix": "_seg",
             "channel_prefix": "c",
             "diameter": 250.0
+        },
+        "new Profile": {
+            "bf_channel": "2",
+            "mask_suffix": "_seg",
+            "channel_prefix": "c",
+            "diameter": 125.0
+        },
+        "new Profile1": {
+            "bf_channel": "2",
+            "mask_suffix": "_seg",
+            "channel_prefix": "c",
+            "diameter": 125.0
+        },
+        "new Profile2": {
+            "bf_channel": "2",
+            "mask_suffix": "_seg",
+            "channel_prefix": "c",
+            "diameter": 125.0
+        },
+        "new Profile3": {
+            "bf_channel": "2",
+            "mask_suffix": "_seg",
+            "channel_prefix": "c",
+            "diameter": 125.0
+        },
+        "54": {
+            "bf_channel": "2",
+            "mask_suffix": "_seg",
+            "channel_prefix": "c",
+            "diameter": 125.0
         }
     },
     "Selected Profile": {

@@ -12,6 +12,7 @@ from tifffile import tifffile
 from cellsepi.frontend.main_window.gui_canvas import update_main_image
 
 
+
 class ImageTuning:
     """
     Manages the task to tune the image brightness and contrast.
@@ -21,9 +22,12 @@ class ImageTuning:
         cached_image: contains the image that is current be cached.
     """
     def __init__(self,gui):
+        self._task = None
         self.gui = gui
         self.running_tasks = set()
         self.cached_image = None
+        self._update_task = None
+        
     async def update_brightness_and_contrast_async(self, on_click=False,linux_or_3d = False):
         """
         Updates the main image brightness and contrast with the current selected values with the sliders.
@@ -36,22 +40,15 @@ class ImageTuning:
         """
         if linux_or_3d and on_click:
             self.cancel_all_tasks()
-            self.gui.canvas.main_image.content.src_base64 = self.gui.csp.linux_images[self.gui.csp.image_id][self.gui.csp.channel_id]
+            self.gui.canvas.main_image.content = ft.Image(self.gui.csp.linux_images[self.gui.csp.image_id][self.gui.csp.channel_id])
             self.gui.canvas.main_image.update()
         elif on_click:
             self.cancel_all_tasks()
-            self.gui.canvas.main_image.content.src_base64 = None
-            self.gui.canvas.main_image.content.src = self.gui.csp.image_paths[self.gui.csp.image_id][self.gui.csp.channel_id]
+            #self.gui.canvas.main_image.content.src_base64 = None
+            self.gui.canvas.main_image.content = ft.Image(self.gui.csp.image_paths[self.gui.csp.image_id][self.gui.csp.channel_id])
             self.gui.canvas.main_image.update()
         else:
-            task = asyncio.create_task(self.update_image())
-            self.running_tasks.add(task)
-            try:
-                await task
-            except asyncio.CancelledError:
-                pass
-            finally:
-                self.running_tasks.discard(task)
+            await self.update_image()
 
     def cancel_all_tasks(self):
         for task in self.running_tasks:
@@ -62,13 +59,17 @@ class ImageTuning:
     async def update_image(self):
         """
         Updates the main image as base64_image with the new brightness and contrast values.
+
         """
         base64_image = await self.adjust_image_async(
             round(self.gui.brightness_slider.value, 2),
             round(self.gui.contrast_slider.value, 2)
         )
-        self.gui.canvas.main_image.content.src_base64 = base64_image
+        self.gui.canvas.main_image.content = ft.Image(base64_image)
+
         self.gui.canvas.main_image.update()
+
+
 
     async def adjust_image_async(self, brightness, contrast):
         return await asyncio.to_thread(self.adjust_image_in_memory, brightness, contrast)
@@ -120,6 +121,15 @@ class ImageTuning:
         self.cached_image = (image_path, img)
         return img
 
+
+
+    def cancel_all_tasks(self):
+        for task in self.running_tasks:
+            task.cancel()
+        self.running_tasks.clear()
+
+   
+
     def save_current_main_image(self):
         """
         Saves the current selected image to disk.
@@ -156,7 +166,8 @@ class AutoImageTuning:
         self.gui = gui
         self.active = False
 
-    def pressed(self):
+
+    async def pressed(self):
         if self.active:
             self.active = False
             self.gui.csp.config.set_auto_button(False)
@@ -168,7 +179,7 @@ class AutoImageTuning:
             self.gui.contrast_icon.color = None
             self.gui.page.update()
             if self.gui.csp.image_id is not None:
-                update_main_image(self.gui.csp.image_id, self.gui.csp.channel_id, self.gui, False)
+                self.gui.page.run_task( update_main_image,self.gui.csp.image_id, self.gui.csp.channel_id, self.gui, False)
         else:
             self.active = True
             self.gui.csp.config.set_auto_button(True)
@@ -180,9 +191,11 @@ class AutoImageTuning:
             self.gui.contrast_icon.color = ft.Colors.GREY_700
             self.gui.page.update()
             if self.gui.csp.image_id is not None:
-                update_main_image(self.gui.csp.image_id, self.gui.csp.channel_id, self.gui, False)
+                self.gui.page.run_task(update_main_image,self.gui.csp.image_id, self.gui.csp.channel_id, self.gui, False)
+
+
 
     def update_main_image_auto(self,image_path):
-        self.gui.canvas.main_image.content.src_base64 = auto_adjust(image_path)
+        self.gui.canvas.main_image.content =ft.Image(auto_adjust(image_path))
         self.gui.canvas.main_image.update()
 

@@ -108,7 +108,7 @@ class ColorOpacity:
         )
         self.text = ft.Container(
             content=ft.Text("Mask Opacity"),
-            alignment=ft.alignment.center
+            alignment=ft.Alignment.CENTER
         )
 
     def opacity_change(self):

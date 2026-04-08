@@ -14,15 +14,21 @@ class PageOverlay(ft.Stack):
         on_dismiss: callback when the overlay gets dismissed
         modal: Whether this bottom sheet can be dismissed/closed by clicking the area outside of it.
     """
+
+    @property
+    def page(self):
+        return self._page
+
     def __init__(self,page: ft.Page,content: ft.Stack = None,on_dismiss = None,modal = False):
         super().__init__()
-        self.page = page
+        self.page =page
         self.controls = []
         self._content: ft.Stack | None = None
         self.on_dismiss: Any | None = on_dismiss
         self.modal = modal
         self._background = self.create_background()
         self.content = content
+
         self.container = ft.Container(content=self,
                                       animate_opacity=ft.Animation(duration=300,
                                                                    curve=ft.AnimationCurve.LINEAR_TO_EASE_OUT),
@@ -78,3 +84,8 @@ class PageOverlay(ft.Stack):
         )
         self.controls.append(background)
         return background
+
+    @page.setter
+    def page(self, value):
+        self._page = value
+
