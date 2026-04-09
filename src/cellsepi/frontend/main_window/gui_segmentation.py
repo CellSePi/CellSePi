@@ -12,7 +12,7 @@ from cellsepi.backend.main_window.avg_diameter import AverageDiameter
 from cellsepi.backend.main_window.fluorescence import Fluorescence
 from cellsepi.frontend.main_window.gui_fluorescence import fluorescence_button
 from cellsepi.backend.main_window.segmentation import Segmentation
-from cellsepi.frontend.main_window.gui_mask import handle_mask_update, reset_mask
+from cellsepi.frontend.main_window.gui_mask import reset_mask
 
 
 class GUISegmentation:
@@ -316,12 +316,9 @@ class GUISegmentation:
                     self.gui.page.window.progress_bar = self.progress_bar.value
 
             if current_image is not None:
-                if current_image["image_id"] == self.gui.csp.window_image_id:
-                    if self.segmentation.batch_image_segmentation.segmentation_channel == self.gui.csp.window_bf_channel:
-                        self.gui.queue.put("refresh_mask")
                 if current_image[
                     "image_id"] == self.gui.csp.image_id and self.segmentation.batch_image_segmentation.segmentation_channel == self.gui.csp.config.get_bf_channel():
-                    handle_mask_update(self.gui)
+                    self.gui.csp.canvas.update_mask_image()
                 else:
                     reset_mask(self.gui, current_image["image_id"],
                                self.segmentation.batch_image_segmentation.segmentation_channel)

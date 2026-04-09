@@ -18,12 +18,10 @@ from torchvision.models.detection import maskrcnn_resnet50_fpn
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.models.detection.mask_rcnn import MaskRCNNPredictor
 
-from cellsepi.backend.drawing_window.drawing_util import trace_contour
 from cellsepi.backend.main_window.data_util import load_image_to_numpy
 from cellsepi.backend.main_window.expert_mode.event_manager import EventManager
 from cellsepi.backend.main_window.expert_mode.listener import ProgressEvent
 from cellsepi.backend.main_window.notifier import Notifier
-from cellsepi.frontend.main_window.gui_mask import reset_mask, handle_mask_update
 
 
 class BatchImageSegmentation(Notifier):

@@ -50,29 +50,14 @@ async def copy_to_clipboard(page,value: str,name: str):
     page.update()
 
 
-def get_image(linux_or_3d: bool, src):
-    """
-    Adjust the method of reading the image, depending on whether the system is Linux and if the images are 3d or not (src_Base64 or src).
-    Args:
-        linux_or_3d (bool): Whether the system is Linux or the files are 3d.
-        src (str): The path of the image to load.
-    Returns:
-          ft.Image: the image at the src path.
-    """
-    if linux_or_3d:
-        return ft.Image(
-            src_base64=src,
-            height=150,
-            width=150,
-            fit=ft.BoxFit.CONTAIN
-        )
-    else:
-        return ft.Image(
-            src=src,
-            height=150,
-            width=150,
-            fit=ft.BoxFit.CONTAIN
-        )
+def get_image(src):
+    return ft.Image(
+        src=src,
+        height=150,
+        width=150,
+        fit=ft.BoxFit.CONTAIN,
+        gapless_playback=True
+    )
 
 
 class DirectoryCard(ft.Card):
@@ -152,20 +137,13 @@ class DirectoryCard(ft.Card):
         else:
             files = await ft.FilePicker().get_directory_path()
 
-
-        if not(files is None ):
-
+        if not(files is None) and len(files) > 0:
             self.image_gallery.controls.clear()
-            self.gui.canvas.main_image.content = ft.Image(
-                src=r"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA\AAAFCAIAAAFe0wxPAAAAAElFTkSuQmCC",
-                fit=ft.BoxFit.SCALE_DOWN)
+            self.gui.canvas.reset_image()
             # the window of the image display is cleared of all content
-            self.gui.switch_mask.value = False
-            self.gui.canvas.container_mask.visible = False
             self.gui.csp.image_id = None
             self.gui.csp.channel_id = None
             self.gui.open_button.visible = False
-            self.gui.drawing_button.disabled = True
             self.gui.start_button.disabled = True
             self.gui.training_environment.start_button.disabled = True
             fluorescence_button.visible = False
@@ -182,9 +160,6 @@ class DirectoryCard(ft.Card):
             if not platform.system() == "Linux":
                 self.gui.page.window.progress_bar = -1
             self.gui.page.update()
-            self.gui.queue.put("delete_mask")
-
-
 
             #differentiate between the lif and tiff case, as there are two different file formats
             if self.is_lif:
@@ -215,6 +190,8 @@ class DirectoryCard(ft.Card):
                 self.gui.diameter_display.update()
                 self.formatted_path.color = None
             self.formatted_path.update()
+        else:
+            self.gui.progress_ring.visible = False
 
     def select_directory_parallel(self, directory_path ,is_lif:bool,channel_prefix: str ,event_manager: EventManager = None):
         """
@@ -369,7 +346,8 @@ class DirectoryCard(ft.Card):
 
         self.gui.csp.image_paths = image_paths
         self.gui.csp.mask_paths = mask_paths
-
+        self.gui.canvas.set_mask_paths(self.gui.csp.mask_paths)
+        self.gui.canvas.set_main_paths(self.gui.csp.image_paths)
 
     def load_images(self):
         """
@@ -412,10 +390,8 @@ class DirectoryCard(ft.Card):
                     ft.Column(
                     [
                             ft.GestureDetector(
-                                content=ft.Container(ft.Stack([get_image(self.gui.csp.linux_or_3d,
-                                                                         cur_image_paths[channel_id]), self.selected_images_visualise[image_id][channel_id]]), width=156, height=156),
-                                on_tap=lambda e, img_id=image_id, c_id=channel_id:e.page.run_task( update_main_image,img_id, c_id,
-                                                                                                     self.gui),
+                                content=ft.Container(ft.Stack([get_image(cur_image_paths[channel_id]), self.selected_images_visualise[image_id][channel_id]]), width=156, height=156),
+                                on_tap=lambda e, img_id=image_id, c_id=channel_id:e.page.run_task(update_main_image ,img_id, c_id, self.gui),
                             ),
                             ft.Text(channel_id, size=10, text_align=ft.TextAlign.CENTER),
                         ],
@@ -436,7 +412,6 @@ class DirectoryCard(ft.Card):
             self.image_gallery.controls.append(ft.Column([ft.Row(
             [ft.Text(f"{image_id}", weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.CENTER), self.icon_check[image_id], self.icon_x[image_id]], spacing=2),
                                                       group_row], spacing=10, alignment=ft.MainAxisAlignment.CENTER))
-
         self.gui.progress_ring.visible = False
         self.gui.progress_ring.update()
         self.image_gallery.update()

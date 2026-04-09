@@ -5,19 +5,18 @@ import queue
 import threading
 import flet as ft
 
+from image_editing_view import ImageEditingView
 from cellsepi.backend.main_window.avg_diameter import AverageDiameter
 #from cellsepi.frontend.main_window.expert_mode.gui_builder import Builder
 #from cellsepi.frontend.main_window.expert_mode.gui_expert_environment import ExpertEnvironment, PipelineStateListener
 from cellsepi.frontend.main_window.gui_page_overlay import PageOverlay
 from cellsepi.frontend.main_window.gui_segmentation import GUISegmentation
 from cellsepi.frontend.main_window.gui_options import Options
-from cellsepi.frontend.drawing_window.gui_drawing import open_qt_window
-from cellsepi.frontend.main_window.gui_canvas import Canvas
 from cellsepi.frontend.main_window.gui_config import GUIConfig
 from cellsepi.frontend.main_window.gui_directory import DirectoryCard, copy_to_clipboard
 from cellsepi.backend.main_window.cellsepi import CellSePi
 from cellsepi.backend.main_window.mask import Mask
-from cellsepi.frontend.main_window.gui_mask import error_banner, handle_image_switch_mask_on, handle_mask_update, reset_mask
+from cellsepi.frontend.main_window.gui_mask import error_banner, reset_mask
 from cellsepi.backend.main_window.image_tuning import ImageTuning, AutoImageTuning
 from cellsepi.frontend.main_window.gui_training_environment import Training
 from cellsepi.frontend.main_window.gui_page_overlay import PageOverlay
@@ -44,19 +43,15 @@ class GUI:
         self.expert_running_event = None
         self.readout_event = None
         self.pipe_listener_running = True
-        self.thread = threading.Thread(target=self.child_conn_listener, daemon=True)
-        self.thread.start()
         self.page.window.prevent_close = True
         self.page.window.on_event = lambda e: self.handle_closing_event(e)
-        self.process_drawing_window = self.start_drawing_window()
-        self.drawing_button= ft.Button(content="Drawing Tools", icon="brush_rounded",on_click=lambda e: self.set_queue_drawing_window(),disabled=True)
         self.page.window.width = 1428
         self.page.window.height = 800
-        self.handle_window_centering()
+        self.page.run_task(self.handle_window_centering)
         self.page.window.min_width = self.page.window.width
         self.page.window.min_height = self.page.window.height
         self.page.title = "CellSePi"
-        self.canvas = Canvas()
+        self.canvas = ImageEditingView()
         self.op = Options(self)
         #self.ex_mode = ExpertEnvironment(self)
         gui_config = GUIConfig(self)
@@ -124,8 +119,7 @@ class GUI:
                             #LEFT COLUMN that handles all elements on the left side(canvas,switch_mask,segmentation)
                             ft.Column(
                         [
-                                    self.canvas.canvas_card,
-                                    ft.Row([self.switch_mask, self.drawing_button]),
+                                    self.canvas,
                                     ft.Row([self.gui_config, ft.Column([ft.Card(content=ft.Container(content=ft.Column(
                                         [ft.Row([self.brightness_icon, ft.Container(self.brightness_slider, padding=-15)]),
                                          ft.Row([self.contrast_icon, ft.Container(self.contrast_slider, padding=-15)])]), padding=10)),
@@ -153,7 +147,7 @@ class GUI:
                                 [
                                     self.directory,
                                     ft.Card(
-                                        content=ft.Stack([ft.Container(self.progress_ring,alignment=ft.Alignment.CENTER),ft.Container(self.directory.image_gallery,padding=20)]),
+                                        content=ft.Stack([ft.Container(self.directory.image_gallery,padding=20),ft.Container(self.progress_ring,alignment=ft.Alignment.CENTER,ignore_interactions=True)]),
                                         expand=True
                                     ),
                                 ],
@@ -183,47 +177,6 @@ class GUI:
             self.switch_mask.value=False
         else:
             handle_image_switch_mask_on(self)
-
-    def start_drawing_window(self):
-        """
-        Start the drawing window in multiprocessing.
-        """
-        process = multiprocessing.Process(target=open_qt_window,
-                                args=(self.queue,self.child_conn))
-        process.start()
-        return process
-
-    def set_queue_drawing_window(self):
-        """
-        Sets queue for drawing window with the current selected image and mask.
-        """
-        self.image_tuning.save_current_main_image()
-        if self.process_drawing_window is None or not self.process_drawing_window.is_alive(): #make sure that the process is running before putting new image in the queue
-            if self.process_drawing_window is not None:
-                try:
-                    self.process_drawing_window.terminate()
-                    self.process_drawing_window.join()
-                except Exception as e:
-                    self.page.show_dialog(ft.SnackBar(ft.Text(f"Error while terminating process: {e}")))
-            self.queue = multiprocessing.Queue()
-            parent_conn, child_conn = multiprocessing.Pipe()
-            self.parent_conn, self.child_conn = parent_conn, child_conn
-            self.process_drawing_window = self.start_drawing_window()
-        self.csp.window_image_id = self.csp.image_id
-        self.csp.window_bf_channel = self.csp.config.get_bf_channel()
-        self.csp.window_channel_id = self.csp.channel_id
-
-        if self.csp.window_bf_channel in self.csp.image_paths[self.csp.image_id]:#check if the bf has an image
-            image_path = self.csp.image_paths[self.csp.image_id][self.csp.window_bf_channel]
-            directory, filename = os.path.split(image_path)
-            name, _ = os.path.splitext(filename)
-            mask_file_name = f"{name}{self.csp.current_mask_suffix}.npy"
-            self.csp.window_mask_path= os.path.join(directory, mask_file_name)
-            self.queue.put((self.csp.config.get_mask_color(), self.csp.config.get_outline_color(),self.csp.color_opacity, self.csp.window_bf_channel, self.csp.mask_paths, self.csp.window_image_id, self.csp.adjusted_image_path, self.csp.window_mask_path,self.csp.window_channel_id,self.csp.current_channel_prefix))
-        else:
-            self.page.show_dialog(ft.SnackBar(
-                ft.Text(f"Selected bright-field channel {self.csp.window_bf_channel} has no image!")))
-            self.page.update()
 
     def handle_closing_event(self, e,saved_checked:bool=False):
         """
@@ -277,11 +230,6 @@ class GUI:
                 self.expert_running_event.wait()
             """
             self.pipe_listener_running = False
-            self.queue.put("close")
-            if self.process_drawing_window is not None and self.process_drawing_window.is_alive():
-                self.process_drawing_window.join()
-            self.child_conn.send("close")
-
             if self.thread is not None and self.thread.is_alive():
                 self.thread.join()
             self.child_conn.close()
@@ -290,41 +238,6 @@ class GUI:
             self.page.window.on_event = None
             self.page.update()
             self.page.window.close()
-
-    def child_conn_listener(self):
-        """
-        Listener for the child connection.
-        """
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        async def pipe_listener():
-            while self.pipe_listener_running:
-                data = await asyncio.to_thread(self.parent_conn.recv)
-                split_data = data.split(".")
-                if data == "close":
-                    break
-                elif split_data[0] == "new_mask":
-                    if self.csp.window_image_id not in self.csp.mask_paths:
-                        self.csp.mask_paths[self.csp.window_image_id] = {}
-                    self.csp.mask_paths[self.csp.window_image_id][self.csp.window_bf_channel] = self.csp.window_mask_path
-                    self.directory.update_mask_check(split_data[1])
-                    self.page.run_task(self.directory.check_masks)
-                elif split_data[0] == "ready":
-                    pass
-                else:
-                    if self.csp.window_image_id == self.csp.image_id and self.csp.window_bf_channel == self.csp.config.get_bf_channel() and self.switch_mask.value:
-                        handle_mask_update(self)
-                        self.page.update()
-                    else:
-                        reset_mask(self,self.csp.window_image_id,self.csp.window_bf_channel)
-                    self.diameter_text.value = self.average_diameter.get_avg_diameter()
-                    self.diameter_display.visible = True
-                    self.diameter_display.update()
-        try:
-            loop.run_until_complete(pipe_listener())
-        finally:
-            loop.stop()
-            loop.close()
 
     def on_enter_diameter(self):
         self.diameter_text.color = ft.Colors.BLUE_400

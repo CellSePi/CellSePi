@@ -3,5 +3,5 @@ webview_flutter_android = "4.10.1"
 
 [project]
 dependencies = [
-    "flet-extended-interactive-viewer == 0.1.2",
+    "flet-extended-interactive-viewer == 0.2.0",
 ]

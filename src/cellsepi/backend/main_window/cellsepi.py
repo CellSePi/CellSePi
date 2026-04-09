@@ -17,15 +17,8 @@ class CellSePi:
 
         self.image_id = None
         self.channel_id = None
-        self.window_image_id = None
-        self.window_bf_channel = None
-        self.window_channel_id = None
-        self.window_mask_path = None
         self.current_channel_prefix = None
         self.current_mask_suffix = None
-        self.window_mask_path = None
-        self.color_opacity = 128
-
 
         self.readout = None
 
