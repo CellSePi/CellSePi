@@ -308,7 +308,7 @@ class GUIConfig:
             ]
 
 
-    def bf_updater(self, e):
+    async def bf_updater(self, e):
         """
         Handles the event of updating the bright-field (BF) channel.
 
@@ -326,7 +326,7 @@ class GUIConfig:
             self.gui.diameter_text.value = self.gui.average_diameter.get_avg_diameter()
             self.page.update()
             if self.gui.csp.image_id is not None:
-                update_main_image(self.gui.csp.image_id, self.gui.csp.channel_id, self.gui, False)
+                await update_main_image(self.gui.csp.image_id, self.gui.csp.channel_id, self.gui, False)
             if not self.gui.csp.readout_running and not self.gui.csp.segmentation_running:
                 self.gui.page.run_task(self.gui.directory.check_masks)
         except ValueError:
@@ -347,6 +347,7 @@ class GUIConfig:
         """
         if e.control.value:
             self.config_class.update_profile(self.config_class.get_selected_profile_name(), mask_suffix=e.control.value)
+            self.gui.canvas.mask_suffix=e.control.value
             self.txt_ms_ref.current.color = None
             self.page.update()
         else:
@@ -418,7 +419,7 @@ class GUIConfig:
             border_color=ft.Colors.BLUE_ACCENT,
             value=self.config_class.get_bf_channel(),
             ref=self.txt_bf_ref,
-            on_blur=lambda e: self.bf_updater(e),
+            on_blur=self.bf_updater,
             width=200,
             height=60,
         )

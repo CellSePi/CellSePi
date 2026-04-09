@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.cellsepi.backend.drawing_window.drawing_util import mask_shifting
+from drawing_util import mask_shifting
 import pytest
 
 mask_data = {
