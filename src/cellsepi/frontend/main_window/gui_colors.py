@@ -112,7 +112,7 @@ class ColorOpacity:
 
     def opacity_change(self):
         self.gui.mask.mask_outputs = defaultdict(dict)
-        self.gui.canvas.opacity = self.slider.value
+        self.gui.canvas.mask_opacity = self.slider.value
         self.gui.canvas.update_mask_image()
         #ModuleType.REVIEW.value.mask_opacity = self.slider.value
         #ModuleType.REVIEW.value.update_class()

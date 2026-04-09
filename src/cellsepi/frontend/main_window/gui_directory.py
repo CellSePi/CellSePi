@@ -355,7 +355,6 @@ class DirectoryCard(ft.Card):
         """
 
         self.page.run_task(self.check_masks)
-
         self.gui.page.update()
 
         src = self.gui.csp.image_paths
@@ -397,7 +396,8 @@ class DirectoryCard(ft.Card):
                         ],
                         alignment=ft.MainAxisAlignment.CENTER,
                         horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                        spacing=5
+                        spacing=5,
+                        tight=True
                     )
                     for channel_id in cur_image_paths
                 ],
@@ -408,20 +408,22 @@ class DirectoryCard(ft.Card):
             self.icon_check[image_id] = ft.Icon(ft.Icons.CHECK, color=ft.Colors.GREEN, size=17, visible=False,
                                                 tooltip="Mask is available")
             self.icon_x[image_id] = ft.Icon(ft.Icons.CLOSE, size=17, visible=True, tooltip="Mask not available")
-            self.update_mask_check(image_id)
+            self.update_mask_check(image_id,False)
             self.image_gallery.controls.append(ft.Column([ft.Row(
             [ft.Text(f"{image_id}", weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.CENTER), self.icon_check[image_id], self.icon_x[image_id]], spacing=2),
                                                       group_row], spacing=10, alignment=ft.MainAxisAlignment.CENTER))
+            self.page.update()
+
         self.gui.progress_ring.visible = False
         self.gui.progress_ring.update()
-        self.image_gallery.update()
         self.update_results_text()
 
-    def update_mask_check(self, image_id):
+    def update_mask_check(self, image_id, update=True):
         """
         Updates the symbol next to series number of image to a check or x, depending on if the corresponding image is available.
         Args:
             image_id: the id of the image to check mask availability
+            update: says if the method should update the icons
         """
 
         if self.gui.csp.mask_paths is not None and image_id in self.gui.csp.mask_paths and self.gui.csp.config.get_bf_channel() in self.gui.csp.mask_paths[image_id]:
@@ -430,7 +432,9 @@ class DirectoryCard(ft.Card):
         else:
             self.icon_check[image_id].visible = False
             self.icon_x[image_id].visible = True
-        self.image_gallery.update()
+        if update:
+            self.icon_check[image_id].update()
+            self.icon_x[image_id].update()
 
     def update_all_masks_check(self):
         """
