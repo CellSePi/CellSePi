@@ -318,7 +318,7 @@ class GUISegmentation:
             if current_image is not None:
                 if current_image[
                     "image_id"] == self.gui.csp.image_id and self.segmentation.batch_image_segmentation.segmentation_channel == self.gui.csp.config.get_bf_channel():
-                    self.gui.csp.canvas.update_mask_image()
+                    self.gui.canvas.update_mask_image()
                 else:
                     reset_mask(self.gui, current_image["image_id"],
                                self.segmentation.batch_image_segmentation.segmentation_channel)
