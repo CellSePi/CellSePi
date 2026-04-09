@@ -30,10 +30,6 @@ class GUI:
         self.csp: CellSePi = CellSePi()
         self.page = page
         self.directory = DirectoryCard(self)
-        self.switch_mask = ft.Switch(label="Mask", value=False)
-        self.switch_mask.on_change = lambda e: self.update_view_mask()
-        self.queue = multiprocessing.Queue()
-
         self.average_diameter = AverageDiameter(self)
         parent_conn, child_conn = multiprocessing.Pipe()
         self.parent_conn, self.child_conn = parent_conn, child_conn
@@ -51,7 +47,7 @@ class GUI:
         self.page.window.min_width = self.page.window.width
         self.page.window.min_height = self.page.window.height
         self.page.title = "CellSePi"
-        self.canvas = ImageEditingView()
+        self.canvas = ImageEditingView(on_mask_change=lambda img_id: self.mask_update(img_id))
         self.op = Options(self)
         #self.ex_mode = ExpertEnvironment(self)
         gui_config = GUIConfig(self)
@@ -168,15 +164,10 @@ class GUI:
         #ModuleType.REVIEW.value.outline_color = self.csp.config.get_outline_color()
         #ModuleType.REVIEW.value.update_class()
 
-    def update_view_mask(self):
-        """
-        Method that controls what happened when switch is on/off
-        """
-        if self.csp.image_id is None:
-            error_banner(self,"No image selected!")
-            self.switch_mask.value=False
-        else:
-            handle_image_switch_mask_on(self)
+    def mask_update(self, image_id):
+        self.directory.update_mask_check(image_id)
+        self.diameter_text.value = self.average_diameter.get_avg_diameter()
+        self.diameter_text.update()
 
     def handle_closing_event(self, e,saved_checked:bool=False):
         """
@@ -242,6 +233,7 @@ class GUI:
     def on_enter_diameter(self):
         self.diameter_text.color = ft.Colors.BLUE_400
         self.diameter_text.update()
+
     def on_exit_diameter(self):
         self.diameter_text.color = None
         self.diameter_text.update()
