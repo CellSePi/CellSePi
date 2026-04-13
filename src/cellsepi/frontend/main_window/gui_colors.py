@@ -1,7 +1,7 @@
 from collections import defaultdict
 
 import flet as ft
-#from flet_contrib.color_picker import ColorPicker
+
 from enum import Enum
 
 from cellsepi.frontend.main_window.gui_page_overlay import PageOverlay

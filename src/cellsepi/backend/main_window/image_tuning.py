@@ -6,7 +6,6 @@ import flet as ft
 import cv2
 import numpy as np
 from PIL import Image, ImageEnhance
-from matplotlib import pyplot as plt
 from tifffile import tifffile
 
 from cellsepi.frontend.main_window.gui_canvas import update_main_image

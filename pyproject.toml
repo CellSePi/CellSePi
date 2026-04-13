@@ -18,27 +18,22 @@ packages = [
 
 [tool.poetry.dependencies]
 python = ">=3.10,<4.0"
-numpy = "1.26.4"
-pillow = "12.1.1"
+numpy = "2.1.0"
+pillow = "12.2.0"
 pandas = "2.2.3"
 openpyxl = "3.1.5"
-cellpose = "3.1.1.1"
+cellpose = "4.1.1"
 flet = "0.84.0"
 flet-cli = "0.84.0"
 flet-desktop = "0.84.0"
-bioio = "1.2.0"
-numba = "0.65.0"
-matplotlib = "3.10.1"
-pyqt5 = "5.15.11"
-flet_contrib = "2024.12.3"
-flet_core = "0.24.1"
-bioio-lif = "1.0.0"
-torchvision = "0.17.2"
-imageio = "2.11.0"
-jsonschema = "4.25.1"
+flet-color-pickers = "0.84.0"
 flet-extended-interactive-viewer = "0.2.0"
+bioio = "3.3.0"
+bioio-lif = "1.4.2"
+torchvision = "0.17.2"
+jsonschema = "4.25.1"
 big-fish = "0.6.2"
-cellsepi-drawing = { git = "https://github.com/CellSePi/CellSePiDrawing.git", branch = "main" }
+cellsepi-drawing = { git = "https://github.com/CellSePi/CellSePiDrawing.git", branch = "master" }
 
 [tool.poetry.group.dev.dependencies]
 pytest = "8.3.4"
