@@ -64,9 +64,8 @@ class ImageTuning:
             round(self.gui.brightness_slider.value, 2),
             round(self.gui.contrast_slider.value, 2)
         )
-        self.gui.canvas.main_image.content = ft.Image(base64_image)
-
-        self.gui.canvas.main_image.update()
+        self.gui.canvas._main_image.src = base64_image
+        self.gui.canvas._main_image.update()
 
 
 
@@ -195,6 +194,6 @@ class AutoImageTuning:
 
 
     def update_main_image_auto(self,image_path):
-        self.gui.canvas.main_image.content =ft.Image(auto_adjust(image_path))
-        self.gui.canvas.main_image.update()
+        self.gui.canvas._main_image.src = auto_adjust(image_path)
+        self.gui.canvas._main_image.update()
 

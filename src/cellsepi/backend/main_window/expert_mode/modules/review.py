@@ -15,7 +15,6 @@ from cellsepi.backend.main_window.data_util import convert_tiffs_to_png_parallel
 from cellsepi.backend.main_window.expert_mode.listener import ProgressEvent, OnPipelineChangeEvent
 from cellsepi.backend.main_window.expert_mode.module import *
 from cellsepi.backend.main_window.image_tuning import auto_adjust
-from cellsepi.frontend.drawing_window.gui_drawing import open_qt_window
 
 
 class Review(Module, ABC):
@@ -420,7 +419,7 @@ class Review(Module, ABC):
             else:
                 outline = np.max(outline, axis=0)
 
-        image_mask = np.zeros(shape=(mask.shape[0], mask.shape[1], 4), dtype=np.uint8)
+        image_mask = np.zeros(shape=(mask.shape[0], mask.shape[1], 4), dtype=np.uint16)
         r,g,b = self.mask_color
         image_mask[mask != 0] = (r, g, b, self.mask_opacity)
         r, g, b = self.outline_color

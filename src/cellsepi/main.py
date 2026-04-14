@@ -23,5 +23,5 @@ def main(page: ft.Page):
     page.add(expert_builder.builder_page_stack)
     page.update()
 
-ft.app(main)
+ft.run(main)
 """

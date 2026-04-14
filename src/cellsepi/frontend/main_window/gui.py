@@ -61,7 +61,6 @@ class GUI:
         self.start_button = start_button
         self.progress_bar = progress_bar
         self.progress_bar_text = progress_bar_text
-        self.mask=Mask(self.csp)
         self.image_tuning = ImageTuning(self)
         self.progress_ring = ft.ProgressRing(visible=False)
         self.closing_sheet = ft.Stack([

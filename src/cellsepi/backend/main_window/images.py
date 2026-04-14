@@ -64,7 +64,7 @@ class BatchImageSegmentation(Notifier):
             return False
 
     def get_contour_from_labeled_mask(label_mask):
-        outlines = np.zeros_like(label_mask, dtype=np.uint8)
+        outlines = np.zeros_like(label_mask, dtype=np.uint16)
         obj_ids = np.unique(label_mask)
         obj_ids = obj_ids[obj_ids != 0]
 
@@ -287,7 +287,7 @@ class BatchImageSegmentation(Notifier):
                     elif image.shape[2] == 1:
                         image = np.concatenate([image] * 3, axis=-1)
 
-                    pil_img = Image.fromarray((image * 255).astype(np.uint8))
+                    pil_img = Image.fromarray((image * 65535).astype(np.uint16))
                     transform = T.ToTensor()
                     img_tensor = transform(pil_img).to(device)
 
@@ -324,7 +324,7 @@ class BatchImageSegmentation(Notifier):
                     io.masks_flows_to_seg([image], [mask], [flow], [image_path])
                 else:
                     H, W = image.shape[:2]
-                    flow0 = np.zeros((H, W, 3), dtype=np.uint8)
+                    flow0 = np.zeros((H, W, 3), dtype=np.uint16)
                     flow1 = np.zeros((2, H, W), dtype=np.float32)
                     flow2 = np.zeros((H, W), dtype=np.float32)
                     dummy_flow = [flow0, flow1, flow2]
