@@ -15,7 +15,6 @@ from cellsepi.frontend.main_window.gui_options import Options
 from cellsepi.frontend.main_window.gui_config import GUIConfig
 from cellsepi.frontend.main_window.gui_directory import DirectoryCard, copy_to_clipboard
 from cellsepi.backend.main_window.cellsepi import CellSePi
-from cellsepi.backend.main_window.mask import Mask
 from cellsepi.frontend.main_window.gui_mask import error_banner, reset_mask
 from cellsepi.backend.main_window.image_tuning import ImageTuning, AutoImageTuning
 from cellsepi.frontend.main_window.gui_training_environment import Training

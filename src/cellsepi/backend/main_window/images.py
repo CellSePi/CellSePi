@@ -576,7 +576,7 @@ class BatchImageReadout(Notifier):
                 continue
             mask_path = mask_paths[image_id][segmentation_channel]
             mask_data = np.load(mask_path,allow_pickle=True).item()
-            mask = mask_data["masks"]
+            mask = mask_data["masks"].astype(np.uint16)
 
             if mask.ndim == 3:
                 mask = np.transpose(mask, (1, 2, 0))
