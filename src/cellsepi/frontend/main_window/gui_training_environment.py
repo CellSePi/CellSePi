@@ -4,7 +4,6 @@ import os
 
 from cellsepi.frontend.main_window.gui_directory import format_directory_path, copy_to_clipboard
 
-
 class Training(ft.Container):
 
     def __init__(self, gui):
@@ -59,10 +58,7 @@ class Training(ft.Container):
             label="Model Type",
             value="nuclei",
             options=[
-                ft.dropdown.Option("nuclei"),
-                ft.dropdown.Option("cyto"),
-                ft.dropdown.Option("cyto2"),
-                ft.dropdown.Option("cyto3")
+                ft.dropdown.Option("cpsam"),
             ],border_color=ft.Colors.BLUE_400,
             on_select=lambda e: self.changed_input("modeltype", e),expand=True,
         )
@@ -80,7 +76,7 @@ class Training(ft.Container):
                                                      initial_directory=self.model_directory)
 
 
-            if files is None:
+            if files is None or len(files) == 0:
                 #case: no model selected
                 pass
             elif files[0].path is not None:
@@ -94,8 +90,8 @@ class Training(ft.Container):
         self.re_train_model_chooser = ft.IconButton(
                 icon=ft.Icons.UPLOAD_FILE,
                 tooltip="Choose model to retrain",
-                on_click=lambda e: e.page.run_task(pick_model_result,e)
-
+                on_click=lambda e: e.page.run_task(pick_model_result,e),
+                disabled=True
             )
         self.field_model_name = ft.TextField(label="Model Name", value=self.model_name, border_color=self.color,on_change=lambda e: self.changed_input("model_name", e))
         self.model_stack = ft.Stack([self.field_model_name, self.re_train_model_chooser],alignment=ft.Alignment.TOP_RIGHT)
@@ -105,17 +101,17 @@ class Training(ft.Container):
                                                on_change=lambda e: self.changed_input("custom_model", e))
 
         self.field_batch = ft.TextField(label="Batch Size", value=self.batch_size, border_color=self.color,
-                                        on_change=lambda e: self.changed_input("batch_size", e))
+                                        on_change=lambda e: self.changed_input("batch_size", e),expand=True)
         self.field_epoch = ft.TextField(label="Epochs", value=self.epochs, border_color=self.color,
-                                        on_change=lambda e: self.changed_input("epochs", e))
+                                        on_change=lambda e: self.changed_input("epochs", e),expand=True)
         self.field_lr = ft.TextField(label="Learning Rate", value=self.learning_rate, border_color=self.color,
-                                     on_change=lambda e: self.changed_input("learning_rate", e))
+                                     on_change=lambda e: self.changed_input("learning_rate", e),expand=True)
         self.field_diameter = ft.TextField(label="Diameter", value=self.diameter, border_color=self.color,
-                                           on_change=lambda e: self.changed_input("diameter", e))
+                                           on_change=lambda e: self.changed_input("diameter", e),expand=True)
         self.field_weights = ft.TextField(label="Weight Decay", value=self.weight, border_color=self.color,
-                                          on_change=lambda e: self.changed_input("weight", e))
-        self.field_directory = ft.TextField(label="Directory", value=format_directory_path(self.model_directory,60), border_color=self.color,
-                                            read_only=True,disabled=True)
+                                          on_change=lambda e: self.changed_input("weight", e),expand=True)
+        self.field_directory = ft.TextField(label="Directory", value=format_directory_path(self.model_directory,max_length=60), border_color=self.color,
+                                            read_only=True,disabled=True,expand=True)
 
         self.directory_stack = ft.Stack([self.field_directory,ft.Container(
                             content=ft.Container(
@@ -172,7 +168,8 @@ class Training(ft.Container):
                 [self.field_model,self.re_train_model, self.field_custom_model, self.field_batch, self.field_epoch, self.field_weights,
                  self.field_lr, self.field_diameter, self.directory_stack
                  ]
-            ), padding=10,
+            ),
+            padding=10,
         )
 
     def changed_input(self, field, e):
@@ -294,7 +291,6 @@ class Training(ft.Container):
             self.page.update()
             return
         self.gui.csp.training_running = True
-        self.gui.queue.put("delete_mask")
         try:
             mask_filter = f"{self.gui.csp.current_mask_suffix}.npy"
 
@@ -336,21 +332,23 @@ class Training(ft.Container):
             # initializing variables, who differ if pretrained or not (Initialized with not pretrained)
             sgd_value = False
             model_name = self.model_name
-            model = models.CellposeModel(model_type=self.model, diam_mean=self.diameter)
+            model = models.CellposeModel()
             if self.re_train_model.value:
                 sgd_value = True
                 model_name = self.re_train_model_name
-                model = models.CellposeModel(model_type=None, pretrained_model=self.gui.csp.re_train_model_path)
+                model = models.CellposeModel(pretrained_model=self.gui.csp.re_train_model_path)
 
             # start the training epochs
             train.train_seg(model.net,
                             train_data=images, train_labels=labels,
-                            channels=[1, 2], normalize=True,
+                            normalize=True,
                             test_data=test_images, test_labels=test_labels,
                             weight_decay=self.weight, SGD=sgd_value, learning_rate=self.learning_rate,
                             n_epochs=self.epochs, model_name=model_name,
                             save_path=os.path.dirname(self.model_directory))
             self.progress_bar_text.value = "Finished Training"
+
+
 
         except Exception as e:
             self.page.show_dialog(ft.SnackBar(

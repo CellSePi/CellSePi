@@ -32,7 +32,7 @@ class Options(ft.Container):
         """
         Changes the theme of the page to the opposite of the current selected theme.
         """
-        if self.gui.page.theme_mode == ft.ThemeMode.LIGHT:
+        if self.gui.page.theme_mode == ft.ThemeMode.LIGHT or (self.gui.page.theme_mode == ft.ThemeMode.SYSTEM and self.gui.page.platform_brightness == ft.Brightness.LIGHT):
             self.gui.page.theme_mode = ft.ThemeMode.DARK
             self.dark_light_text.value = "Dark Theme"
             self.dark_light_icon.icon = ft.Icons.BRIGHTNESS_HIGH
