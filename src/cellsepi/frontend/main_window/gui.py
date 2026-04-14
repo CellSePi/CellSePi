@@ -30,17 +30,14 @@ class GUI:
         self.page = page
         self.directory = DirectoryCard(self)
         self.average_diameter = AverageDiameter(self)
-        parent_conn, child_conn = multiprocessing.Pipe()
-        self.parent_conn, self.child_conn = parent_conn, child_conn
         self.cancel_event = None
         self.closing_event = False
         self.training_event = None
         self.expert_running_event = None
         self.readout_event = None
-        self.pipe_listener_running = True
         self.page.window.prevent_close = True
         self.page.window.on_event = lambda e: self.handle_closing_event(e)
-        self.page.window.width = 1428
+        self.page.window.width = 1440
         self.page.window.height = 800
         self.page.run_task(self.handle_window_centering)
         self.page.window.min_width = self.page.window.width
@@ -171,7 +168,7 @@ class GUI:
         """
         Handle the closing event of Flet GUI.
         """
-        if e.data == "close" and not self.closing_event:
+        if e.type == ft.WindowEventType.CLOSE and not self.closing_event:
             """
             if not self.builder_environment.pipeline_storage.check_saved() and not saved_checked:
                 def cancel_dialog(a):
@@ -218,15 +215,10 @@ class GUI:
                 self.builder_environment.pipeline_running_event = self.expert_running_event
                 self.expert_running_event.wait()
             """
-            self.pipe_listener_running = False
-            if self.thread is not None and self.thread.is_alive():
-                self.thread.join()
-            self.child_conn.close()
-            self.parent_conn.close()
             self.page.window.prevent_close = False
             self.page.window.on_event = None
             self.page.update()
-            self.page.window.close()
+            self.page.run_task(self.handle_window_closing)
 
     def on_enter_diameter(self):
         self.diameter_text.color = ft.Colors.BLUE_400
@@ -235,6 +227,9 @@ class GUI:
     def on_exit_diameter(self):
         self.diameter_text.color = None
         self.diameter_text.update()
+
+    async def handle_window_closing(self):
+        await self.page.window.close()
 
     async def handle_window_centering(self):
         await self.page.window.center()
