@@ -96,7 +96,7 @@ class GUI:
         self.ref_builder_environment = ft.Ref[ft.Column]()
         self.ref_gallery_environment = ft.Ref[ft.Column]()
         if self.csp.config.get_auto_button():
-             self.auto_image_tuning.pressed()
+             self.page.run_task(self.auto_image_tuning.pressed)
 
     def build(self):
         """
