@@ -16,7 +16,7 @@ from cellsepi.frontend.main_window.gui_config import GUIConfig
 from cellsepi.frontend.main_window.gui_directory import DirectoryCard, copy_to_clipboard
 from cellsepi.backend.main_window.cellsepi import CellSePi
 from cellsepi.frontend.main_window.gui_mask import error_banner, reset_mask
-from cellsepi.backend.main_window.image_tuning import ImageTuning, AutoImageTuning
+from cellsepi.backend.main_window.image_tuning import AutoImageTuning
 from cellsepi.frontend.main_window.gui_training_environment import Training
 from cellsepi.frontend.main_window.gui_page_overlay import PageOverlay
 #from cellsepi.frontend.main_window.expert_mode.expert_constants import ModuleType
@@ -57,7 +57,6 @@ class GUI:
         self.start_button = start_button
         self.progress_bar = progress_bar
         self.progress_bar_text = progress_bar_text
-        self.image_tuning = ImageTuning(self)
         self.progress_ring = ft.ProgressRing(visible=False)
         self.closing_sheet = ft.Stack([
             ft.Column([ft.Container(ft.ProgressRing(),alignment=ft.Alignment.CENTER)],
@@ -67,11 +66,11 @@ class GUI:
 
         self.brightness_slider = ft.Slider(
             min=0, max=2.0, value=1.0, disabled= True,
-            on_change=lambda e: e.page.run_task(self.image_tuning.update_brightness_and_contrast_async)
+            on_change=lambda e: e.page.run_task(self.update_adjusted_image)
         )
         self.contrast_slider = ft.Slider(
             min=0, max=2.0, value=1.0, disabled= True,
-            on_change=lambda e: e.page.run_task(self.image_tuning.update_brightness_and_contrast_async)
+            on_change=lambda e: e.page.run_task(self.update_adjusted_image)
         )
 
         self.auto_image_tuning = AutoImageTuning(self)
@@ -97,7 +96,7 @@ class GUI:
         self.ref_builder_environment = ft.Ref[ft.Column]()
         self.ref_gallery_environment = ft.Ref[ft.Column]()
         if self.csp.config.get_auto_button():
-             self.auto_image_tuning.pressed()
+             self.page.run_task(self.auto_image_tuning.pressed)
 
     def build(self):
         """
@@ -233,3 +232,8 @@ class GUI:
 
     async def handle_window_centering(self):
         await self.page.window.center()
+
+    async def update_adjusted_image(self):
+        self.canvas.brightness =  round(self.brightness_slider.value, 2)
+        self.canvas.contrast = round(self.contrast_slider.value, 2)
+        await self.canvas.update_main_image_with_brightness_contrast(self.csp.image_paths[self.csp.image_id][self.csp.channel_id])

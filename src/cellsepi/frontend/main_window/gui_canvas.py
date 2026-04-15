@@ -19,6 +19,11 @@ async def update_main_image(img_id,channel_id,gui,on_click = True):
     if on_click:
         gui.contrast_slider.value = 1.0
         gui.brightness_slider.value = 1.0
+        gui.canvas.brightness= 1.0
+        gui.canvas.contrast= 1.0
+    if not gui.canvas.auto_adjust:
+        gui.contrast_slider.disabled = False
+        gui.brightness_slider.disabled = False
     gui.contrast_slider.update()
     gui.brightness_slider.update()
-    gui.canvas.select_image(img_id,channel_id,gui.csp.config.get_bf_channel())
+    gui.canvas.select_image(img_id,channel_id,gui.csp.config.get_bf_channel(),on_click)
