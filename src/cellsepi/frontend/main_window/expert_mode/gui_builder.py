@@ -65,12 +65,8 @@ class Builder:
             animate_opacity= ft.Animation(duration=600, curve=ft.AnimationCurve.LINEAR_TO_EASE_OUT),
         )
         self.pipeline_storage = PipelineStorage(self.pipeline_gui)
-        self.file_picker = ft.FilePicker(
-            on_upload=lambda a: self.on_select_file(a))
-        self.file_saver = ft.FilePicker(
-            on_upload=lambda a: self.on_file_saved(a))
-        self.page.services.append(self.file_picker)
-        self.page.services.append(self.file_saver)
+        self.file_picker = ft.FilePicker()
+        self.file_saver = ft.FilePicker()
         self.load_button = ft.IconButton(icon=ft.Icons.UPLOAD_FILE, on_click=self.click_load_file,
                                          icon_color=MAIN_ACTIVE_COLOR,
                                          style=ft.ButtonStyle(
@@ -406,25 +402,6 @@ class Builder:
     async def reset_view(self, e):
         await self.interactive_view.reset(400)
 
-    async def click_load_file(self):
-        """
-        Called when clicked a file should be loaded.
-        """
-        await self.file_picker.pick_files(file_type=ft.FilePickerFileType.CUSTOM, allowed_extensions=["csp"],
-                                    allow_multiple=False)
-        self.load_button.icon_color = ft.Colors.BLUE_400
-        self.load_button.update()
-
-    async def click_save_as_file(self):
-        """
-        Called when clicked to save a file is at a specific location.
-        """
-        await self.file_saver.save_file(file_type=ft.FilePickerFileType.CUSTOM, allowed_extensions=["csp"],
-                             dialog_title="Save Pipeline", file_name=self.pipeline_gui.pipeline_name,
-                             initial_directory=self.pipeline_gui.pipeline_directory)
-        self.save_as_button.icon_color = ft.Colors.BLUE_400
-        self.save_as_button.update()
-
     def click_save_file(self):
         """
         Called when clicked a file should be saved.
@@ -441,11 +418,15 @@ class Builder:
         self.save_button.disabled = True
         self.page.update()
 
-    def on_select_file(self, e):
+    async def click_load_file(self, e: ft.Event[ft.Button]):
         """
-        Handles if a file is selected.
+        Handles if pipline file is selected.
         """
-        if e.files is not None:
+        files = await self.file_picker.pick_files(file_type=ft.FilePickerFileType.CUSTOM, allowed_extensions=["csp"],
+                                    allow_multiple=False)
+        self.load_button.icon_color = ft.Colors.BLUE_400
+        self.load_button.update()
+        if files is not None and len(files) > 0:
             if not self.pipeline_storage.check_saved():
                 def cancel_dialog(a):
                     cupertino_alert_dialog.open = False
@@ -463,7 +444,7 @@ class Builder:
                         self.pipeline_gui.page.update()
                         return
                     try:
-                        self.pipeline_storage.load_pipeline(e.files[0].path)
+                        self.pipeline_storage.load_pipeline(files[0].path)
                         self.pipeline_gui.reset()
                         self.pipeline_gui.load_pipeline()
                     except Exception as exception2:
@@ -498,7 +479,7 @@ class Builder:
                     self.pipeline_gui.page.update()
                     return
                 try:
-                    self.pipeline_storage.load_pipeline(e.files[0].path)
+                    self.pipeline_storage.load_pipeline(files[0].path)
                     self.pipeline_gui.reset()
                     self.pipeline_gui.load_pipeline()
                 except Exception as exception1:
@@ -512,23 +493,27 @@ class Builder:
         self.load_button.icon_color = MAIN_ACTIVE_COLOR
         self.load_button.update()
 
-
-    def on_file_saved(self, e):
+    async def click_save_as_file(self, e: ft.Event[ft.Button]):
         """
-        Handles if a file gets saved.
+        Called to save a file is at a specific location.
         """
-        if e.path is not None:
-            if Path(e.path).suffix == "":
-                e.path = e.path + ".csp"
-            if Path(e.path).suffix != ".csp":
+        dir = await self.file_saver.save_file(file_type=ft.FilePickerFileType.CUSTOM, allowed_extensions=["csp"],
+                             dialog_title="Save Pipeline", file_name=self.pipeline_gui.pipeline_name,
+                             initial_directory=self.pipeline_gui.pipeline_directory)
+        self.save_as_button.icon_color = ft.Colors.BLUE_400
+        self.save_as_button.update()
+        if dir is not None:
+            if Path(dir).suffix == "":
+                dir = dir + ".csp"
+            if Path(dir).suffix != ".csp":
                 self.pipeline_gui.page.show_dialog(ft.SnackBar(ft.Text(f"Pipeline name must have .csp suffix!",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
                 self.pipeline_gui.page.update()
                 self.page.title = f"CellSePi - {self.pipeline_gui.pipeline_name}*"
                 self.save_as_button.icon_color = MAIN_ACTIVE_COLOR
                 self.page.update()
                 return
-            self.pipeline_storage.save_as_pipeline(e.path)
-            self.pipeline_gui.page.show_dialog(ft.SnackBar(ft.Text(f"Pipeline saved at {e.path}",color=ft.Colors.WHITE),bgcolor=ft.Colors.GREEN))
+            self.pipeline_storage.save_as_pipeline(dir)
+            self.pipeline_gui.page.show_dialog(ft.SnackBar(ft.Text(f"Pipeline saved at {dir}",color=ft.Colors.WHITE),bgcolor=ft.Colors.GREEN))
             self.pipeline_gui.page.update()
             self.page.title = f"CellSePi - {self.pipeline_gui.pipeline_name}"
             self.save_button.icon_color = ft.Colors.WHITE24
@@ -537,7 +522,6 @@ class Builder:
 
         self.save_as_button.icon_color = MAIN_ACTIVE_COLOR
         self.save_as_button.update()
-
 
     def press_page_forward(self):
         """
