@@ -200,7 +200,7 @@ class PipelineManager:
             raise RuntimeError(f"The pipeline contains a cycle, only acyclic graphs are supported.")
         return topological_order
 
-    def check_pipeline_runnable(self,ignore:List[str]="") -> bool:
+    def check_pipeline_runnable(self,ignore:List[str]=None) -> bool:
         """
         Checks if every module input is satisfied.
         """
