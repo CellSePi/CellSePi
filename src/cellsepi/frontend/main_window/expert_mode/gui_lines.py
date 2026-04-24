@@ -193,7 +193,8 @@ class LinesGUI(cv.Canvas):
             with self._lock:
                 self.shapes.remove(conn["edge"])
                 self.shapes.remove(conn["arrow"])
-                self.shapes.remove(conn["port_txt"])
+                if conn["port_txt"] is not None:
+                    self.shapes.remove(conn["port_txt"])
                 self.pipeline_gui.delete_stack.controls.remove(conn["delete_button"])
                 self.update()
                 self.pipeline_gui.delete_stack.update()
@@ -231,7 +232,8 @@ class LinesGUI(cv.Canvas):
             for key, data in self.connections.copy().items():
                 self.shapes.append(data["edge"])
                 self.shapes.append(data["arrow"])
-                self.shapes.append(data["port_txt"])
+                if data["port_txt"] is not None:
+                    self.shapes.append(data["port_txt"])
                 self.pipeline_gui.delete_stack.controls.append(data["delete_button"])
             self.update()
             self.pipeline_gui.delete_stack.update()

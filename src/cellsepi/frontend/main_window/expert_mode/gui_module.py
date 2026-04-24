@@ -35,7 +35,7 @@ class ModuleGUI(ft.GestureDetector):
         if module_dict is not None:
             self.update_user_attr(module_dict)
         if self.module.settings is None and hasattr(self.module, "_settings"):
-            self.module._settings = None #self.generate_options_overlay()
+            self.module._settings = self.generate_options_overlay()
         if show_mode:
             if index is None:
                 self.pipeline_gui.show_room_modules.append(self)
@@ -605,6 +605,7 @@ class ModuleGUI(ft.GestureDetector):
                 self.name_text.value = self.module_id
             self.pipeline_gui.refill_show_room(self,self.visible,index,show_room_id)
             self.pipeline_gui.page_stack.controls.remove(self)
+            self.pipeline_gui.page_stack.update()
             self.left = min(max(0,cast(int, check_left)),CANVAS_WIDTH-MODULE_WIDTH)
             self.top = min(max(0,cast(int, check_top)),CANVAS_HEIGHT-MODULE_HEIGHT)
             self.pipeline_gui.controls.append(self)
@@ -661,7 +662,6 @@ class ModuleGUI(ft.GestureDetector):
             FilePath
             DirectoryPath
         """
-
         items = []
         for attribute_name in attributes:
             value = getattr(self.module, attribute_name)
@@ -700,16 +700,17 @@ class ModuleGUI(ft.GestureDetector):
                     value=format_directory_path(value.path,50),
                     height=60,
                     read_only=True,
-                    disabled=True
+                    disabled=True,
+                    expand=True
                 )
                 attr = getattr(self.module, attribute_name)
-                file_picker = ft.FilePicker(on_upload=lambda a,attr_name= attribute_name,content=text_field: self.on_select_file(a,attr_name,text))
-                self.pipeline_gui.page.overlay.append(file_picker) #change
+                file_picker = ft.FilePicker()
+                self.pipeline_gui._page.services.append(file_picker)
                 items.append(ft.Stack([text_field,ft.Container(
                                 content=ft.IconButton(
                                     icon=ft.Icons.UPLOAD_FILE,
                                     tooltip="Pick file",
-                                    on_click=lambda e, fp= file_picker: asyncio.create_task(fp.pick_files(allow_multiple=False,file_type=ft.FilePickerFileType.CUSTOM if attr.suffix is not None else ft.FilePickerFileType.ANY,allowed_extensions=attr.suffix if attr.suffix is not None else [],)),
+                                    on_click=lambda a,attr_name= attribute_name,content=text_field: self.pipeline_gui.page.run_task(self.on_select_file,a,file_picker,attr.suffix,attr_name,content),
                                 ),
                                 alignment=ft.Alignment.TOP_RIGHT
                             ,right=10,top=5)
@@ -721,20 +722,15 @@ class ModuleGUI(ft.GestureDetector):
                     value=format_directory_path(value.path, 50),
                     height=60,
                     read_only=True,
-                    disabled=True
+                    disabled=True,
+                    expand=True
                 )
-                dir_picker = ft.FilePicker(
-                    on_upload=lambda a, attr_name=attribute_name, content=text_field: self.on_select_dir(a, attr_name, text))
-
-                async def open_dir(e, dp=dir_picker):
-                    await dp.get_directory_path()
-
-                self.pipeline_gui.page.overlay.append(dir_picker) #change
+                file_picker = ft.FilePicker()
                 items.append(ft.Stack([text_field, ft.Container(
                         content=ft.IconButton(
                             icon=ft.Icons.FOLDER_OPEN,
                             tooltip="Choose directory",
-                            on_click=lambda e: asyncio.create_task(open_dir(e)),
+                            on_click=lambda a, attr_name=attribute_name, content=text_field: self.pipeline_gui.page.run_task(self.on_select_dir,a,file_picker, attr_name, content),
                         ),
                         alignment=ft.Alignment.TOP_RIGHT,right=10,top=5
                     )
@@ -743,25 +739,27 @@ class ModuleGUI(ft.GestureDetector):
                 raise ValueError(f"Unsupported 'user_' attribute file type: {typ}")
         return items
 
-    def on_select_file(self,e,attr_name,text):
+    async def on_select_file(self,e: ft.Event[ft.Button],file_picker,suffix,attr_name,text):
         """
         Handles if a file is selected.
         """
-        if e.files is not None:
+        files = await file_picker.pick_files(allow_multiple=False,file_type=ft.FilePickerFileType.CUSTOM if suffix is not None else ft.FilePickerFileType.ANY,allowed_extensions=suffix if suffix is not None else [],)
+        if files is not None and len(files) > 0:
             current_file_path = getattr(self.module, attr_name)
-            current_file_path.path = e.files[0].path
-            text.value = format_directory_path(e.files[0].path,50)
+            current_file_path.path = files[0].path
+            text.value = format_directory_path(files[0].path,50)
             text.update()
             self.pipeline_gui.page.update()
             self.pipeline_gui.pipeline.event_manager.notify(OnPipelineChangeEvent("user_attr_change"))
 
-    def on_select_dir(self,e,attr_name,text):
+    async def on_select_dir(self,e: ft.Event[ft.Button],file_picker,attr_name,text):
         """
         Handles if a directory is selected.
         """
-        if e.path is not None:
-            setattr(self.module, attr_name, FilePath(e.path))
-            text.value = format_directory_path(e.path,50)
+        dir = await file_picker.get_directory_path()
+        if dir is not None:
+            setattr(self.module, attr_name, FilePath(dir))
+            text.value = format_directory_path(dir,50)
             text.update()
             self.pipeline_gui.page.update()
             self.pipeline_gui.pipeline.event_manager.notify(OnPipelineChangeEvent("user_attr_change"))

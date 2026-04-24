@@ -9,8 +9,6 @@ from cellsepi.frontend.main_window.expert_mode.expert_constants import *
 from cellsepi.frontend.main_window.expert_mode.gui_pipeline_listener import PipelineChangeListener, ModuleExecutedListener, ModuleStartedListener, \
     ModuleProgressListener, ModuleErrorListener, DragAndDropListener, PipelinePauseListener, PipelineCancelListener, PipelineErrorListener
 from cellsepi.frontend.main_window.expert_mode.pipeline_storage import PipelineStorage
-from controls.core.stack import Stack
-
 
 def is_rendert(control):
     """
@@ -31,7 +29,7 @@ def is_rendert(control):
 class Builder:
     def __init__(self,page: ft.Page):
         self.page = page
-        self.builder_page_stack = Stack()
+        self.builder_page_stack = ft.Stack()
         self.pipeline_gui = PipelineGUI(self.page)
         self.pipeline_gui.interactive_view = None
         self.pipeline_running_event = None
@@ -165,8 +163,6 @@ class Builder:
                                               style=ft.ButtonStyle(
                                                  shape=ft.RoundedRectangleBorder(radius=12), ),
                                               tooltip="Show zoom menu\n[Ctrl + M]", hover_color=ft.Colors.WHITE12)
-
-
 
         self.right_tools = ft.Container(ft.Container(ft.Column(
             [
