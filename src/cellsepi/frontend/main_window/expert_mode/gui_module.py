@@ -48,7 +48,7 @@ class ModuleGUI(ft.GestureDetector):
         self.valid = False
         self.wrapped_description = "\n".join(textwrap.wrap(self.module.gui_config().description, width=40))
         self.click_container = ft.Container(on_click=self.add_connection,tooltip=self.wrapped_description if self.show_mode else None, height=MODULE_HEIGHT, width=MODULE_WIDTH,
-                                            visible=False if not show_mode else True,bgcolor=INVALID_COLOR if not show_mode else ft.Colors.TRANSPARENT,disabled=True if not show_mode else False,border_radius=ft.border_radius.all(10))
+                                            visible=False if not show_mode else True,bgcolor=INVALID_COLOR if not show_mode else ft.Colors.TRANSPARENT,disabled=True if not show_mode else False,border_radius=ft.border_radius.all(10), ignore_interactions=True if not show_mode else False)
         self.click_gesture = ft.GestureDetector(visible=False if not show_mode else True,disabled=True if not show_mode else False,content=self.click_container,on_enter=self.on_enter_click_module,on_exit=self.on_exit_click_module)
 
         self.connect_button = ft.IconButton(icon=ft.Icons.SHARE, icon_color=ft.Colors.WHITE60,
@@ -63,10 +63,10 @@ class ModuleGUI(ft.GestureDetector):
                                                       ), on_click=lambda e: self.open_options(e),
                                             tooltip="Options", hover_color=ft.Colors.WHITE12, visible=True if self.module.settings is not None else False,)
         self.copy_button = ft.IconButton(icon=ft.Icons.CONTENT_COPY, icon_color=ft.Colors.WHITE60,
-                                            style=ft.ButtonStyle(
-                                                          shape=ft.RoundedRectangleBorder(radius=12),
-                                                      ), on_click=self.copy_module,
+                                            style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=12)),
+                                            on_click=self.copy_module,
                                             tooltip="Copy module", hover_color=ft.Colors.WHITE12,)
+        self.test_button = ft.IconButton(icon=ft.Icons.FORMAT_QUOTE_SHARP, on_hover= lambda e: print("test button clicked"))
 
         self.paused_button = ft.Stack([ft.Container(bgcolor=ft.Colors.BLACK26, width=30, height=30, top=5, right=5, border_radius=ft.border_radius.all(45)), ft.IconButton(icon=ft.Icons.PLAY_ARROW, icon_color=ft.Colors.WHITE, disabled=True,
                                                                                                                                                                            style=ft.ButtonStyle(
@@ -170,6 +170,7 @@ class ModuleGUI(ft.GestureDetector):
             animate_opacity=ft.Animation(duration=300, curve=ft.AnimationCurve.LINEAR_TO_EASE_OUT),
             animate=ft.Animation(duration=300, curve=ft.AnimationCurve.LINEAR_TO_EASE_OUT),
         )
+        self.ignore_interactions_container = ft.Container(self.click_gesture, ignore_interactions=True if not show_mode else False)
         self.content = ft.Stack([
             self.ports_container,
             ft.Column([ft.Stack([
@@ -181,10 +182,10 @@ class ModuleGUI(ft.GestureDetector):
                 self.paused_button,
                 self.warning_satisfied,
                 self.error_stack,
-                self.click_gesture,
+                self.ignore_interactions_container,
         ]
         ),
-        self.connection_ports
+        self.connection_ports,
         ],tight=True
         )],height=self.module_container.height,
         )
@@ -443,6 +444,8 @@ class ModuleGUI(ft.GestureDetector):
             self.detection = False
             self.click_container.disabled = False
             self.click_container.visible = True
+            self.ignore_interactions_container.ignore_interactions = False
+            self.ignore_interactions_container.update()
             self.click_container.update()
             self.click_gesture.disabled = False
             self.click_gesture.visible = True
@@ -454,6 +457,8 @@ class ModuleGUI(ft.GestureDetector):
             self.set_invalid()
             self.click_container.disabled = True
             self.click_container.visible = False
+            self.ignore_interactions_container.ignore_interactions = True
+            self.ignore_interactions_container.update()
             self.click_container.update()
             self.click_gesture.disabled = True
             self.click_gesture.visible = False
@@ -604,6 +609,8 @@ class ModuleGUI(ft.GestureDetector):
             self.top = min(max(0,cast(int, check_top)),CANVAS_HEIGHT-MODULE_HEIGHT)
             self.pipeline_gui.controls.append(self)
             self.click_container.disabled = True
+            self.ignore_interactions_container.ignore_interactions = True
+            self.ignore_interactions_container.update()
             self.click_container.bgcolor = INVALID_COLOR
             self.click_container.visible = False
             self.click_container.tooltip = None
@@ -613,7 +620,7 @@ class ModuleGUI(ft.GestureDetector):
             if self.pipeline_gui.source_module != "":
                 self.toggle_detection()
                 self.pipeline_gui.check_for_valid_all_modules()
-            self.pipeline_gui.page.update()
+            self.pipeline_gui.update()
 
         e.control.update()
         self.pipeline_gui.lines_gui.update_lines(self)
