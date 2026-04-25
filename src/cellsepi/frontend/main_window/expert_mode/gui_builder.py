@@ -144,7 +144,7 @@ class Builder:
         self.progress_bar_module_text = ft.Text("0%", color=MAIN_ACTIVE_COLOR)
         self.progress_and_start = ft.Column([ft.Container(self.progress_stack,alignment=ft.Alignment.CENTER),
             ft.Container(
-                content=ft.Stack([self.start_button, self.resume_button,self.cancel_button]),alignment=ft.Alignment.CENTER)],width=95,spacing=20
+                content=ft.Stack([self.start_button, self.resume_button,self.cancel_button]),alignment=ft.Alignment.CENTER)],width=100,spacing=20
         )
         self.running_module = ft.Text("Module",color=ft.Colors.WHITE70,width=230,overflow=ft.TextOverflow.ELLIPSIS,max_lines=1,theme_style=ft.TextThemeStyle.HEADLINE_SMALL)
         self.info_text = ft.Text("Idle, waiting for start.", color=MAIN_ACTIVE_COLOR, width=250, overflow=ft.TextOverflow.ELLIPSIS, max_lines=2)
@@ -566,7 +566,7 @@ class Builder:
             self.run_menu_button.icon_color = ft.Colors.BLUE_400
             self.run_menu_button.tooltip = f"Hide run menu\n[Ctrl + R]"
             self.run_menu_button.update()
-            self.run_menu.width = 430
+            self.run_menu.width = 440
             self.run_menu.opacity = 1
             self.run_menu.update()
 
