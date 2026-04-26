@@ -30,21 +30,11 @@ class Review(Module, ABC):
         self.channel_id: str | None = None
         self._selected_images_visualise = {}
         self._image_gallery = ft.ListView()
-        self._container_mask: ft.Container | None = None
-        self._main_image: ft.Container | None = None
-        self._mask_button:ft.IconButton | None = None
         self._edit_allowed = False
-        self._edit_button:ft.IconButton | None = None
-        self._slider_2d: ft.CupertinoSlidingSegmentedButton | None = None
         self._text_field_segmentation_channel: ft.TextField | None = None
-        self._slider_2_5d:ft.Slider | None = None
+        self._text_field_mask_suffix: ft.TextField | None = None
         self._control_menu: ft.Container | None = None
         self._main_image_view: ft.Card | None = None
-        self._window_image_id = ""
-        self._window_bf_channel = ""
-        self._window_channel_id = ""
-        self._window_mask_path = ""
-        self._thread = None
         Review._instances.append(self)
 
     @property
@@ -63,6 +53,7 @@ class Review(Module, ABC):
                 focused_border_color=ft.Colors.WHITE,
                 text_style=ft.TextStyle(color=ft.Colors.BLACK,weight=ft.FontWeight.BOLD),
                 cursor_color=ft.Colors.BLACK,
+                expand=False,
             )
             self._text_field_mask_suffix = ft.TextField(
                 border_color=ft.Colors.WHITE60,
@@ -77,21 +68,21 @@ class Review(Module, ABC):
                 focused_border_color=ft.Colors.WHITE,
                 text_style=ft.TextStyle(color=ft.Colors.BLACK, weight=ft.FontWeight.BOLD),
                 cursor_color=ft.Colors.BLACK,
-                visible= False
+                visible= False,
+                expand=False,
             )
             self._control_menu = ft.Container(ft.Container(ft.Row(
                 [
                     self._text_field_segmentation_channel,
                     self._text_field_mask_suffix,
                 ], spacing=2, alignment=ft.MainAxisAlignment.CENTER,
-            ), bgcolor=ft.Colors.BLUE_400, expand=True, border_radius=ft.border_radius.vertical(top=12, bottom=0),
+            ), bgcolor=ft.Colors.BLUE_400, expand=True, border_radius=ft.border_radius.vertical(top=0, bottom=12),height=38,
             )
             )
-            self._main_image_view =
+            self._main_image_view = ft.Card()
             self._settings: ft.Stack = ft.Stack([ft.Row([ft.Column([ft.Row([
                 self._main_image_view,
-                ft.Card(content=ft.Container(ft.Column([self._control_menu,self._image_gallery]), width=600, height=700, expand=True, padding=20),
-                        expand=True),
+                ft.Card(content=ft.Column([ft.Container(self._image_gallery, width=600, height=700, expand=True, padding=20),self._control_menu],expand=True,height=700,width=640)),
             ])
             ],
                 alignment=ft.MainAxisAlignment.CENTER, )], alignment=ft.MainAxisAlignment.CENTER),])
@@ -117,12 +108,8 @@ class Review(Module, ABC):
         self._icon_check = {}
         self.image_id = None
         self.channel_id = None
-        self._image_gallery.clean()
-        self._main_image.content.src=r"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA\AAAFCAIAAAFe0wxPAAAAAElFTkSuQmCC"
-        self._main_image.content.src_base64 = None
-        self._main_image.update()
-        self._container_mask.visible = False
-        self._container_mask.update()
+        self._image_gallery.controls.clear()
+        #reset image_viewer
         self._edit_allowed = True
         self.event_manager.notify(ProgressEvent(percent=100, process=f"Preparing: finished"))
         self.event_manager.notify(ProgressEvent(percent=0, process=f"Loading Images: Starting"))
@@ -147,7 +134,7 @@ class Review(Module, ABC):
                     [
                             ft.GestureDetector(
                                 content=ft.Container(ft.Stack([ft.Image(
-                                src_base64=cur_image_paths[channel_id],
+                                src=cur_image_paths[channel_id],
                                 height=150,
                                 width=150,
                                 fit=ft.ImageFit.CONTAIN
@@ -228,7 +215,8 @@ class Review(Module, ABC):
         self.user_segmentation_channel = str(e.control.value)
         self.update_all_masks_check()
         if self.image_id is not None:
-            self.update_main_image(self.image_id, self.channel_id)
+            pass
+            #self.update_main_image(self.image_id, self.channel_id)
         self.event_manager.notify(OnPipelineChangeEvent("user_attr_change"))
 
     @classmethod

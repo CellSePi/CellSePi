@@ -8,8 +8,8 @@ from cellsepi.backend.main_window.expert_mode.modules.image_segmentation import 
 from cellsepi.backend.main_window.expert_mode.modules.project_3d_to_2d import Project3dTo2d
 from cellsepi.backend.main_window.expert_mode.modules.read_lif import ReadLif
 from cellsepi.backend.main_window.expert_mode.modules.read_tif import ReadTif
-#from cellsepi.backend.main_window.expert_mode.modules.review import Review
-#from cellsepi.backend.main_window.expert_mode.modules.spot_detection import SpotDetectionModule
+from cellsepi.backend.main_window.expert_mode.modules.review import Review
+from cellsepi.backend.main_window.expert_mode.modules.spot_detection import SpotDetectionModule
 
 #Constants used in the PipelineBuildingTool(ExpertMode)
 CANVAS_HEIGHT = 10000
@@ -33,7 +33,7 @@ ZOOM_VALUE = 0.20
 BOTTOM_SPACING = 20
 MAIN_ACTIVE_COLOR = ft.Colors.WHITE60
 THROTTLE_UPDATE_LINES = 0.036 #~30FPS
-DEBUG = True
+DEBUG = False
 
 class ModuleType(Enum):
     """
@@ -42,10 +42,10 @@ class ModuleType(Enum):
     """
     IMAGE_READOUT = ImageReadoutModule
     IMAGE_SEGMENTATION = ImageSegmentationModule
-    #SPOT_DETECTION = SpotDetectionModule
+    SPOT_DETECTION = SpotDetectionModule
     READ_LIF = ReadLif
     READ_TIF = ReadTif
     PROJECTION_3D_TO_2D = Project3dTo2d
-    #REVIEW = Review
+    REVIEW = Review
 
 
