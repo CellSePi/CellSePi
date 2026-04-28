@@ -22,6 +22,7 @@ from cellsepi.backend.main_window.data_util import load_image_to_numpy
 from cellsepi.backend.main_window.expert_mode.event_manager import EventManager
 from cellsepi.backend.main_window.expert_mode.listener import ProgressEvent
 from cellsepi.backend.main_window.notifier import Notifier
+from cellsepi.frontend.main_window.gui_mask import reset_mask
 
 
 class BatchImageSegmentation(Notifier):
@@ -147,11 +148,11 @@ class BatchImageSegmentation(Notifier):
                         backup_path = self.gui.csp.mask_paths[image_id].get(segmentation_channel)
                         if backup_path:
                             np.save(backup_path, mask)
-                            if image_id == self.gui.csp.window_image_id:
+                            if image_id == self.gui.csp.window_image_id: #TODO update to new drawing window functionality
                                 if segmentation_channel == self.gui.csp.window_bf_channel:
                                     self.gui.queue.put("refresh_mask")  # refreshes if the backup is the current selected image and the mask is the same channel
                             if image_id == self.gui.csp.image_id and segmentation_channel == self.gui.csp.config.get_bf_channel(): #refreshes or delete the current generated mask
-                                handle_mask_update(self.gui)
+                                continue #handle_mask_update(self.gui) #TODO update to new drawing window functionality
                             else:
                                 reset_mask(self.gui, image_id,segmentation_channel)
                     else:
@@ -229,10 +230,11 @@ class BatchImageSegmentation(Notifier):
 
         io.logger_setup()  # configures logging system for Cellpose
 
-        if self._is_cellpose_model(segmentation_model):
-            model_type = 'cellpose'
-            model = models.CellposeModel(device=device, pretrained_model=segmentation_model)
-        else:
+        #if self._is_cellpose_model(segmentation_model):
+        model_type = 'cellpose'
+        #model = models.CellposeModel(device=device, pretrained_model=segmentation_model)
+        model = models.CellposeModel(device=device)
+        """else:
             model_type = 'pytorch'
             model = maskrcnn_resnet50_fpn(weights="DEFAULT")
             in_features = model.roi_heads.box_predictor.cls_score.in_features
@@ -242,7 +244,7 @@ class BatchImageSegmentation(Notifier):
 
             model.load_state_dict(torch.load(segmentation_model, map_location=self.device))
             model.to(self.device)
-            model.eval()
+            model.eval()"""
 
         start_index = self.num_seg_images
         for iN, image_id in enumerate(list(image_paths)[start_index:], start=start_index):

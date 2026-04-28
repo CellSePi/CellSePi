@@ -13,6 +13,7 @@ from cellsepi.backend.main_window.fluorescence import Fluorescence
 from cellsepi.frontend.main_window.gui_fluorescence import fluorescence_button
 from cellsepi.backend.main_window.segmentation import Segmentation
 from cellsepi.frontend.main_window.gui_mask import reset_mask
+from controls.types import MainAxisAlignment
 
 
 class GUISegmentation:
@@ -113,6 +114,29 @@ class GUISegmentation:
                 self.gui.csp.model_path = files[0].path
                 self.gui.page.update()
 
+
+        def new_pick_model_result(e: ft.Event[ft.Button]):
+            print(model_drop_down.value)
+            if model_drop_down.value == "Choose custom model...":
+                print("choose your own model selected")
+                model_choose_button.visible = True
+                model_text.value = "Choose model"
+            #TODO save which non-custom model was selected and use that for segmentation
+            elif model_drop_down.value == "CellposeSAM":
+                if self.gui.ready_to_start:
+                    self.progress_bar_text.value = "Ready to Start"
+                    start_button.disabled = False
+                model_text.value = "Cellpose SAM"
+                model_choose_button.visible = False
+                self.gui.csp.model_path = "CellposeSAM"
+            elif model_drop_down.value == "MicroSAM":
+                if self.gui.ready_to_start:
+                    self.progress_bar_text.value = "Ready to Start"
+                    start_button.disabled = False
+                model_text.value = "Microscopy SAM"
+                model_choose_button.visible = False
+                self.gui.csp.model_path = "MicroSAM"
+            self.gui.page.update()
 
 
 
@@ -319,9 +343,8 @@ class GUISegmentation:
                 if current_image[
                     "image_id"] == self.gui.csp.image_id and self.segmentation.batch_image_segmentation.segmentation_channel == self.gui.csp.config.get_bf_channel():
                     self.gui.canvas.update_mask_image()
-                else:
-                    reset_mask(self.gui, current_image["image_id"],
-                               self.segmentation.batch_image_segmentation.segmentation_channel)
+                #else:
+                    #reset_mask(self.gui, current_image["image_id"],self.segmentation.batch_image_segmentation.segmentation_channel) #TODO update to new drawing window functionality
 
             print("at the end text value progress", self.progress_bar_text.value)
 
@@ -403,13 +426,32 @@ class GUISegmentation:
         project_root =os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         model_directory = os.path.join(project_root, "models")
 
-        model_chooser = ft.Container(
+        """model_chooser = ft.Container(
                             content=ft.IconButton(
                                 icon=ft.Icons.UPLOAD_FILE,
                                 tooltip="Choose model",
                                 on_click=lambda e: e.page.run_task(pick_model_result,e),
                             ), alignment=ft.Alignment.BOTTOM_RIGHT,
-                        )
+                        )"""
+
+        model_drop_down = ft.DropdownM2(
+                width=220,
+                options=[ft.dropdownm2.Option(key="CellposeSAM", text="CellposeSAM"),
+                     ft.dropdownm2.Option(key="MicroSAM", text="MicroSAM"),
+                     ft.dropdownm2.Option(key="Choose custom model...", text="CCM")],
+                on_change=lambda e: new_pick_model_result(e))
+
+        model_choose_button = ft.IconButton(
+                icon=ft.Icons.UPLOAD_FILE,
+                tooltip="Choose model",
+                visible=False,
+                on_click=lambda e: e.page.run_task(pick_model_result,e))
+
+        model_chooser = ft.Container(ft.Row(
+            controls = [model_drop_down, model_choose_button],
+            alignment=ft.MainAxisAlignment.END,),
+        alignment=ft.Alignment.BOTTOM_RIGHT)
+
 
         segmentation_card = ft.Card(
             content=ft.Container(
