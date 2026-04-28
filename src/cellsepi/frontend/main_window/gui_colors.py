@@ -43,8 +43,7 @@ class ColorSelection:
         self.gui = gui
         color_mask = rgb_to_hex(self.config.get_mask_color())#rgb_to_hex((255, 0, 0))
         color_outline = rgb_to_hex(self.config.get_outline_color())#rgb_to_hex((0, 255, 0))
-        print("mask color:",color_mask)
-        print("outline color:", color_outline)
+
         self.current_color = None
         self.color_picker = ColorPicker(on_color_change=self.on_color_change)
         self.color_icon_mask = ft.IconButton(icon=ft.Icons.BRIGHTNESS_1_ROUNDED,icon_color=color_mask,disabled=True,mouse_cursor=ft.MouseCursor.CLICK)
