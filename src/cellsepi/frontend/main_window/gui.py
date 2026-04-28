@@ -44,6 +44,8 @@ class GUI:
         self.page.window.min_height = self.page.window.height
         self.page.title = "CellSePi"
         self.canvas = ImageEditingView(on_mask_change=lambda img_id: self.mask_update(img_id))
+        self.canvas.mask_color=self.csp.config.get_mask_color()
+        self.canvas.outline_color=self.csp.config.get_outline_color()
         self.op = Options(self)
         #self.ex_mode = ExpertEnvironment(self)
         gui_config = GUIConfig(self)
