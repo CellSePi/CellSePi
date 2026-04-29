@@ -13,7 +13,6 @@ from cellsepi.backend.main_window.fluorescence import Fluorescence
 from cellsepi.frontend.main_window.gui_fluorescence import fluorescence_button
 from cellsepi.backend.main_window.segmentation import Segmentation
 from cellsepi.frontend.main_window.gui_mask import reset_mask
-from controls.types import MainAxisAlignment
 
 
 class GUISegmentation:
