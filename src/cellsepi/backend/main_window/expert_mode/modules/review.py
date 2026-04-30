@@ -1,7 +1,8 @@
+from image_editing_view import ImageEditingView
+
 from cellsepi.backend.main_window.data_util import convert_tiffs_to_png_parallel
 from cellsepi.backend.main_window.expert_mode.listener import ProgressEvent, OnPipelineChangeEvent
 from cellsepi.backend.main_window.expert_mode.module import *
-#from cellsepi.backend.main_window.image_tuning import auto_adjust
 
 
 class Review(Module, ABC):
@@ -10,6 +11,7 @@ class Review(Module, ABC):
     outline_color = (0, 255, 0)
     _instances = []
     _gui_config = ModuleGuiConfig("Review",Categories.MANUAL,"This module allows you to manually review and edit masks. Also you can create new masks when no mask are given.")
+
     def __init__(self, module_id: str = None) -> None:
         #regular modul
         super().__init__(module_id)
@@ -72,30 +74,29 @@ class Review(Module, ABC):
                 expand=False,
             )
             self._control_menu = ft.Container(ft.Container(ft.Row(
-                [
-                    self._text_field_segmentation_channel,
+                [self._text_field_segmentation_channel,
                     self._text_field_mask_suffix,
                 ], spacing=2, alignment=ft.MainAxisAlignment.CENTER,
-            ), bgcolor=ft.Colors.BLUE_400, expand=True, border_radius=ft.border_radius.vertical(top=0, bottom=12),height=38,
+            ), bgcolor=ft.Colors.BLUE_ACCENT, expand=True, border_radius=ft.border_radius.vertical(top=0, bottom=12),height=38,
             )
             )
-            self._main_image_view = ft.Card()
-            self._settings: ft.Stack = ft.Stack([ft.Row([ft.Column([ft.Row([
+            self._main_image_view = ImageEditingView(on_mask_change=lambda img_id,mask_added_or_removed: self.mask_update(img_id,mask_added_or_removed))
+            self._main_image_view.height=700
+            self._main_image_view.auto_adjust=True
+            self._settings: ft.Stack = ft.Stack([ft.Row([
                 self._main_image_view,
                 ft.Card(content=ft.Column([ft.Container(self._image_gallery, width=600, height=700, expand=True, padding=20),self._control_menu],expand=True,height=700,width=640)),
-            ])
-            ],
-                alignment=ft.MainAxisAlignment.CENTER, )], alignment=ft.MainAxisAlignment.CENTER),])
+            ],alignment=ft.Alignment.CENTER, )],)
         return self._settings
 
     def finished(self):
         self.outputs["mask_paths"].data = self.inputs["mask_paths"].data
         self._text_field_mask_suffix.visible = False
         self._text_field_mask_suffix.update()
-        self._edit_allowed = False
-        self._edit_button.icon_color = ft.Colors.BLACK12
-        self._edit_button.disabled = True
-        self._edit_button.update()
+        self._main_image_view._edit_allowed = False
+        self._main_image_view._edit_button.icon_color = ft.Colors.BLACK12
+        self._main_image_view._edit_button.disabled = True
+        self._main_image_view._edit_button.update()
 
     def run(self):
         self.event_manager.notify(ProgressEvent(percent=0, process=f"Preparing: starting"))
@@ -117,7 +118,6 @@ class Review(Module, ABC):
         n_series = len(src)
         for iN,image_id in enumerate(src):
             cur_image_paths = src[image_id]
-
             self._selected_images_visualise[image_id] = {}
             for iN2,channel_id in enumerate(cur_image_paths):
                 self._selected_images_visualise[image_id][channel_id] = ft.Container(
@@ -188,6 +188,10 @@ class Review(Module, ABC):
         if self.inputs["image_paths"].data is not None:
             for image_id in self.inputs["image_paths"].data:
                 self.update_mask_check(image_id)
+
+    def mask_update(self, image_id, mask_added_or_removed):
+        if mask_added_or_removed:
+            self.update_mask_check(image_id)
 
     def on_change_ms(self,e):
         if str(e.control.value) == "":

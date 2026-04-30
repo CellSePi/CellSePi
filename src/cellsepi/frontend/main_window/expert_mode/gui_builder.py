@@ -114,7 +114,8 @@ class Builder:
             icon=ft.Icons.PLAY_CIRCLE,
             tooltip="Start the pipeline",
             disabled=False if len(self.pipeline_gui.modules) > 0 else True,
-            on_click=lambda e:self.run(),
+            on_click=lambda e:
+                self.page.run_task(self.run),
             opacity=0.75,
         )
 
@@ -144,7 +145,7 @@ class Builder:
         self.progress_bar_module_text = ft.Text("0%", color=MAIN_ACTIVE_COLOR)
         self.progress_and_start = ft.Column([ft.Container(self.progress_stack,alignment=ft.Alignment.CENTER),
             ft.Container(
-                content=ft.Stack([self.start_button, self.resume_button,self.cancel_button]),alignment=ft.Alignment.CENTER)],width=100,spacing=20
+                content=ft.Stack([self.start_button, self.resume_button,self.cancel_button]),alignment=ft.Alignment.CENTER)],width=110,spacing=20
         )
         self.running_module = ft.Text("Module",color=ft.Colors.WHITE70,width=230,overflow=ft.TextOverflow.ELLIPSIS,max_lines=1,theme_style=ft.TextThemeStyle.HEADLINE_SMALL)
         self.info_text = ft.Text("Idle, waiting for start.", color=MAIN_ACTIVE_COLOR, width=250, overflow=ft.TextOverflow.ELLIPSIS, max_lines=2)
@@ -244,7 +245,7 @@ class Builder:
 
         self.pipeline_gui.pipeline.cancel()
 
-    def run(self,ignore_check=False):
+    async def run(self,ignore_check=False):
         """
         To run the pipeline.
 
@@ -263,7 +264,7 @@ class Builder:
             def dismiss_dialog_ignore(e):
                 cupertino_alert_dialog.open = False
                 e.control.page.update()
-                self.run(True)
+                self.page.run_task(self.run,True)
             cupertino_alert_dialog = ft.CupertinoAlertDialog(
                 title=ft.Text("Mandatory Input Warning"),
                 content=ft.Text("Not all mandatory inputs are satisfied."),
@@ -299,7 +300,7 @@ class Builder:
             module.error_stack.update()
             module.check_warning()
         self.update_modules_executed(reset=True)
-        self.pipeline_gui.pipeline.run(show_room_module_ids)
+        await asyncio.to_thread(self.pipeline_gui.pipeline.run,show_room_module_ids)
         if len(self.pipeline_gui.pipeline.modules) - len(ModuleType) * 2 != self.pipeline_gui.module_count or self.pipeline_gui.module_count != self.pipeline_gui.pipeline.modules_executed:
             self.update_modules_executed(reset=True)
         self.start_button.visible = True
@@ -566,7 +567,7 @@ class Builder:
             self.run_menu_button.icon_color = ft.Colors.BLUE_400
             self.run_menu_button.tooltip = f"Hide run menu\n[Ctrl + R]"
             self.run_menu_button.update()
-            self.run_menu.width = 440
+            self.run_menu.width = 450
             self.run_menu.opacity = 1
             self.run_menu.update()
 

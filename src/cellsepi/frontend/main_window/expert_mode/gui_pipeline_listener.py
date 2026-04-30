@@ -18,9 +18,9 @@ class PipelineChangeListener(EventListener):
     def update(self, event: OnPipelineChangeEvent) -> None:
         if not isinstance(event, self.get_event_type()):
             raise TypeError("The given event is not the right event type!")
-        self._update(event)
+        self.builder.page.run_task(self._update,event)
 
-    def _update(self, event: OnPipelineChangeEvent) -> None:
+    async def _update(self, event: OnPipelineChangeEvent) -> None:
         if self.builder.pipeline_gui.loading:
             return
         if event.change_type == "user_attr_change":
@@ -101,9 +101,9 @@ class DragAndDropListener(EventListener):
     def update(self, event: DragAndDropEvent) -> None:
         if not isinstance(event, self.get_event_type()):
             raise TypeError("The given event is not the right event type!")
-        self._update(event)
+        self.builder.page.run_task(self._update,event)
 
-    def _update(self, event: DragAndDropEvent) -> None:
+    async def _update(self, event: DragAndDropEvent) -> None:
         if len(self.builder.pipeline_gui.modules) == 0:
             if event.drag:
                 self.builder.help_text.opacity = 0.60
@@ -125,9 +125,9 @@ class ModuleExecutedListener(EventListener):
     def update(self, event: ModuleExecutedEvent) -> None:
         if not isinstance(event, self.get_event_type()):
             raise TypeError("The given event is not the right event type!")
-        self._update(event)
+        self.builder.page.run_task(self._update,event)
 
-    def _update(self, event: ModuleExecutedEvent) -> None:
+    async def _update(self, event: ModuleExecutedEvent) -> None:
         self.builder.pipeline_gui.modules[event.module_id].enable_tools()
         if self.builder.pipeline_gui.source_module != "":
             self.builder.pipeline_gui.check_for_valid(event.module_id)
@@ -154,9 +154,9 @@ class ModuleStartedListener(EventListener):
     def update(self, event: ModuleStartedEvent) -> None:
         if not isinstance(event, self.get_event_type()):
             raise TypeError("The given event is not the right event type!")
-        self._update(event)
+        self.builder.page.run_task(self._update,event)
 
-    def _update(self, event: ModuleStartedEvent) -> None:
+    async def _update(self, event: ModuleStartedEvent) -> None:
         self.builder.pipeline_gui.modules[event.module_id].set_running()
         self.builder.category_icon.color = self.builder.pipeline_gui.modules[event.module_id].module.gui_config().category.value
         self.builder.category_icon.update()
@@ -180,9 +180,9 @@ class PipelinePauseListener(EventListener):
     def update(self, event: PipelinePauseEvent) -> None:
         if not isinstance(event, self.get_event_type()):
             raise TypeError("The given event is not the right event type!")
-        self._update(event)
+        self.builder.page.run_task(self._update,event)
 
-    def _update(self, event: PipelinePauseEvent) -> None:
+    async def _update(self, event: PipelinePauseEvent) -> None:
         if event.resume:
             self.builder.pipeline_gui.modules[event.module_id].disable_pause()
             self.builder.pipeline_gui.modules[event.module_id].paused_button.visible = False
@@ -232,9 +232,9 @@ class ModuleProgressListener(EventListener):
     def update(self, event: ProgressEvent) -> None:
         if not isinstance(event, self.get_event_type()):
             raise TypeError("The given event is not the right event type!")
-        self._update(event)
+        self.builder.page.run_task(self._update,event)
 
-    def _update(self, event: ProgressEvent) -> None:
+    async def _update(self, event: ProgressEvent) -> None:
         if self.builder.pipeline_gui.pipeline._cancel_event.is_set():
             self.builder.info_text.value = ""
             self.builder.info_text.spans = [
@@ -264,9 +264,9 @@ class ModuleErrorListener(EventListener):
     def update(self, event: ErrorEvent) -> None:
         if not isinstance(event, self.get_event_type()):
             raise TypeError("The given event is not the right event type!")
-        self._update(event)
+        self.builder.page.run_task(self._update,event)
 
-    def _update(self, event: ErrorEvent) -> None:
+    async def _update(self, event: ErrorEvent) -> None:
             self.builder.cancel_button.visible = False
             self.builder.cancel_button.disabled = False
             self.builder.cancel_button.color = ft.Colors.RED
@@ -307,9 +307,9 @@ class PipelineCancelListener(EventListener):
     def update(self, event: PipelineCancelEvent) -> None:
         if not isinstance(event, self.get_event_type()):
             raise TypeError("The given event is not the right event type!")
-        self._update(event)
+        self.builder.page.run_task(self._update,event)
 
-    def _update(self, event: PipelineCancelEvent) -> None:
+    async def _update(self, event: PipelineCancelEvent) -> None:
         self.builder.info_text.spans = []
         self.builder.info_text.value = "Idle, waiting for start."
         self.builder.info_text.update()
@@ -342,9 +342,9 @@ class PipelineErrorListener(EventListener):
     def update(self, event: PipelineErrorEvent) -> None:
         if not isinstance(event, self.get_event_type()):
             raise TypeError("The given event is not the right event type!")
-        self._update(event)
+        self.builder.page.run_task(self._update,event)
 
-    def _update(self, event: PipelineErrorEvent) -> None:
+    async def _update(self, event: PipelineErrorEvent) -> None:
         self.builder.info_text.value = ""
         self.builder.info_text.spans = [
             ft.TextSpan("Error: ", style=ft.TextStyle(weight=ft.FontWeight.BOLD, color=ft.Colors.RED)),
