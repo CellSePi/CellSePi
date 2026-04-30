@@ -101,7 +101,7 @@ class GUISegmentation:
             files = await ft.FilePicker().pick_files(allow_multiple=False,
                                                      initial_directory=model_directory
                                                      )
-            if files is None:
+            if files is None or len(files) == 0:
                 #case: no model selected
                 pass
             elif files[0].path is not None:
@@ -116,16 +116,18 @@ class GUISegmentation:
 
         def new_pick_model_result(e: ft.Event[ft.Button]):
             print(model_drop_down.value)
-            if model_drop_down.value == "Choose custom model...":
+            if model_drop_down.value == "Custom model":
                 print("choose your own model selected")
                 model_choose_button.visible = True
                 model_text.value = "Choose model"
+                model_text.color = None
             #TODO save which non-custom model was selected and use that for segmentation
             elif model_drop_down.value == "CellposeSAM":
                 if self.gui.ready_to_start:
                     self.progress_bar_text.value = "Ready to Start"
                     start_button.disabled = False
                 model_text.value = "Cellpose SAM"
+                model_text.color = None
                 model_choose_button.visible = False
                 self.gui.csp.model_path = "CellposeSAM"
             elif model_drop_down.value == "MicroSAM":
@@ -133,6 +135,7 @@ class GUISegmentation:
                     self.progress_bar_text.value = "Ready to Start"
                     start_button.disabled = False
                 model_text.value = "Microscopy SAM"
+                model_text.color = None
                 model_choose_button.visible = False
                 self.gui.csp.model_path = "MicroSAM"
             self.gui.page.update()
@@ -314,8 +317,7 @@ class GUISegmentation:
             self.gui.page.update()
             self.segmentation_resuming = False
 
-
-        def update_progress_bar(progress, current_image):
+        async def _update_progress_bar(progress, current_image):
             """
             This method updates the progress bar at any point before, during and after the segmentation and fluorescence process.
 
@@ -323,8 +325,6 @@ class GUISegmentation:
                 progress (int): the current progress
                 current_image (dict): the current image number
             """
-
-            print("value progress", progress)
             if self.segmentation_pausing:
                 self.progress_bar_text.value = "Pausing: " + str(progress)
             elif self.segmentation_cancelling:
@@ -345,12 +345,10 @@ class GUISegmentation:
                 #else:
                     #reset_mask(self.gui, current_image["image_id"],self.segmentation.batch_image_segmentation.segmentation_channel) #TODO update to new drawing window functionality
 
-            print("at the end text value progress", self.progress_bar_text.value)
+            self.gui.page.update()
 
-            print("value progress", self.progress_bar.value)
-            self.gui.page.schedule_update()
-            time.sleep(0.02)
-
+        def update_progress_bar(progress,current_image):
+            self.gui.page.run_task(_update_progress_bar,progress,current_image)
 
 
         # listeners for getting different information from the state of the segmentation process
@@ -408,7 +406,7 @@ class GUISegmentation:
                 ft.Container(content=ft.Row([start_button, pause_button, resume_button, cancel_button, fl_button, open_button]))
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN
         )
-        model_text = ft.Text("Choose Model")
+        model_text = ft.Text("Model name",color=ft.Colors.GREY_500)
         model_title = ft.ListTile(
                                         leading=ft.Icon(icon=ft.Icons.HUB_OUTLINED),
                                         title= model_text,
@@ -425,24 +423,18 @@ class GUISegmentation:
         project_root =os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         model_directory = os.path.join(project_root, "models")
 
-        """model_chooser = ft.Container(
-                            content=ft.IconButton(
-                                icon=ft.Icons.UPLOAD_FILE,
-                                tooltip="Choose model",
-                                on_click=lambda e: e.page.run_task(pick_model_result,e),
-                            ), alignment=ft.Alignment.BOTTOM_RIGHT,
-                        )"""
-
         model_drop_down = ft.DropdownM2(
                 width=220,
+                label="Choose model",
+                border_color=ft.Colors.BLUE_ACCENT,
                 options=[ft.dropdownm2.Option(key="CellposeSAM", text="CellposeSAM"),
                      ft.dropdownm2.Option(key="MicroSAM", text="MicroSAM"),
-                     ft.dropdownm2.Option(key="Choose custom model...", text="CCM")],
+                     ft.dropdownm2.Option(key="Custom model", text="CCM",text_style=ft.TextStyle(weight=ft.FontWeight.BOLD))],
                 on_change=lambda e: new_pick_model_result(e))
 
         model_choose_button = ft.IconButton(
                 icon=ft.Icons.UPLOAD_FILE,
-                tooltip="Choose model",
+                tooltip="Select custom model",
                 visible=False,
                 on_click=lambda e: e.page.run_task(pick_model_result,e))
 

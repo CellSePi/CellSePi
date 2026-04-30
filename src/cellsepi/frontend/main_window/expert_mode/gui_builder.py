@@ -648,7 +648,7 @@ class Builder:
             Called when the resize-event is triggered.
             Updates all relevant GUI elements.
             """
-            self.interactive_view.height = cast(float, self.page.window.height)-20
+            self.interactive_view.height = self.page.window.height - 20
             self.interactive_view.width = self.page.window.width
             self.interactive_view.update()
             self.pipeline_gui.update_show_room()

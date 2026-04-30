@@ -50,26 +50,26 @@ class ColorSelection:
         self.color_icon_outline = ft.IconButton(icon=ft.Icons.BRIGHTNESS_1_ROUNDED, icon_color=color_outline,disabled=True,mouse_cursor=ft.MouseCursor.CLICK)
         self.color_type = None
         self.dialog = PageOverlay(self.gui.page,ft.Stack([ft.Row([
-            ft.Column([ft.Card(content=ft.Stack([ft.Container(ft.ListTile(height=370,width=650),padding=10),ft.Container(ft.Column(
+            ft.Column([ft.Card(content=ft.Stack([ft.Container(ft.Column(
                 [self.color_picker,
                 ft.Container(ft.Row([ft.TextButton("Save", on_click=self.change_color)
-                 ],alignment=ft.MainAxisAlignment.END),padding=10)
+                 ],alignment=ft.MainAxisAlignment.END))
                 ]
-            ),height=430,width=650,padding=10)]))],horizontal_alignment=ft.CrossAxisAlignment.CENTER,alignment=ft.MainAxisAlignment.CENTER)],alignment=ft.MainAxisAlignment.CENTER)]),
+            ),padding=20,alignment=ft.Alignment.CENTER)]),height=385,width=700)],horizontal_alignment=ft.CrossAxisAlignment.CENTER,alignment=ft.MainAxisAlignment.CENTER)],alignment=ft.MainAxisAlignment.CENTER)]),
             on_dismiss=self.close_dialog,
         )
     def open_color_picker_mask(self,e):
         self.dialog.open()
         self.color_picker.color = rgb_to_hex(self.config.get_mask_color())
-        self.current_color = None
+        self.current_color = self.color_picker.color
         self.color_type = ColorTypes.Mask
         e.control.page.update()
-
 
     def open_color_picker_outline(self, e):
         self.dialog.open()
         self.color_picker.color = rgb_to_hex(self.config.get_outline_color())
-        self.current_color = None
+        self.color_picker.update()
+        self.current_color = self.color_picker.color
         self.color_type = ColorTypes.Outline
         e.control.page.update()
 
