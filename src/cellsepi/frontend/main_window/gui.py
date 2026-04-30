@@ -43,7 +43,7 @@ class GUI:
         self.page.window.min_width = self.page.window.width
         self.page.window.min_height = self.page.window.height
         self.page.title = "CellSePi"
-        self.canvas = ImageEditingView(on_mask_change=lambda img_id: self.mask_update(img_id))
+        self.canvas = ImageEditingView(on_mask_change=lambda img_id,mask_added_or_removed: self.mask_update(img_id,mask_added_or_removed))
         self.canvas.mask_color=self.csp.config.get_mask_color()
         self.canvas.outline_color=self.csp.config.get_outline_color()
         self.op = Options(self)
@@ -160,8 +160,10 @@ class GUI:
         ModuleType.REVIEW.value.outline_color = self.csp.config.get_outline_color()
         ModuleType.REVIEW.value.update_class()
 
-    def mask_update(self, image_id):
-        self.directory.update_mask_check(image_id)
+    def mask_update(self, image_id, mask_added_or_removed):
+        if mask_added_or_removed:
+            self.directory.update_mask_check(image_id)
+            self.page.run_task(self.directory.check_masks)
         self.diameter_text.value = self.average_diameter.get_avg_diameter()
         self.diameter_text.update()
 
