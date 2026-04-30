@@ -1,3 +1,4 @@
+
 import flet as ft
 from cellsepi.frontend.main_window.gui import GUI
 
@@ -11,9 +12,9 @@ def main():
 if __name__ == "__main__":
     main()
 
-
 """
-Main to start only Expert Mode
+
+#Main to start only Expert Mode
 import flet as ft
 from cellsepi.frontend.main_window.expert_mode.gui_builder import Builder
 
