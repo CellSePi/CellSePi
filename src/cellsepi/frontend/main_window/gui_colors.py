@@ -5,7 +5,7 @@ from flet_color_pickers import ColorPicker
 from enum import Enum
 
 from cellsepi.frontend.main_window.gui_page_overlay import PageOverlay
-#from cellsepi.frontend.main_window.expert_mode.expert_constants import ModuleType
+from cellsepi.frontend.main_window.expert_mode.expert_constants import ModuleType
 
 def hex_to_rgb(hex_color):
     """
@@ -45,7 +45,7 @@ class ColorSelection:
         color_outline = rgb_to_hex(self.config.get_outline_color())#rgb_to_hex((0, 255, 0))
 
         self.current_color = None
-        self.color_picker = ColorPicker(on_color_change=self.on_color_change)
+        self.color_picker = ColorPicker(on_color_change=self.on_color_change,enable_alpha=False)
         self.color_icon_mask = ft.IconButton(icon=ft.Icons.BRIGHTNESS_1_ROUNDED,icon_color=color_mask,disabled=True,mouse_cursor=ft.MouseCursor.CLICK)
         self.color_icon_outline = ft.IconButton(icon=ft.Icons.BRIGHTNESS_1_ROUNDED, icon_color=color_outline,disabled=True,mouse_cursor=ft.MouseCursor.CLICK)
         self.color_type = None
@@ -60,6 +60,7 @@ class ColorSelection:
         )
     def open_color_picker_mask(self,e):
         self.dialog.open()
+        self.color_picker.color = rgb_to_hex(self.config.get_mask_color())
         self.current_color = None
         self.color_type = ColorTypes.Mask
         e.control.page.update()
@@ -67,6 +68,7 @@ class ColorSelection:
 
     def open_color_picker_outline(self, e):
         self.dialog.open()
+        self.color_picker.color = rgb_to_hex(self.config.get_outline_color())
         self.current_color = None
         self.color_type = ColorTypes.Outline
         e.control.page.update()
@@ -86,11 +88,15 @@ class ColorSelection:
             self.config.set_mask_color(hex_to_rgb(self.current_color))
             self.gui.canvas.mask_color = hex_to_rgb(self.current_color)
             self.gui.canvas.update_mask_image()
+            ModuleType.REVIEW.value.mask_color = self.config.get_mask_color()
+            ModuleType.REVIEW.value.update_class()
         else:
             self.color_icon_outline.icon_color = self.current_color
             self.config.set_outline_color(hex_to_rgb(self.current_color))
             self.gui.canvas.outline_color = hex_to_rgb(self.current_color)
             self.gui.canvas.update_mask_image()
+            ModuleType.REVIEW.value.outline_color = self.config.get_outline_color()
+            ModuleType.REVIEW.value.update_class()
         self.dialog.close()
 
     def close_dialog(self, e):
@@ -111,3 +117,5 @@ class ColorOpacity:
     def opacity_change(self):
         self.gui.canvas.mask_opacity = self.slider.value
         self.gui.canvas.update_mask_image()
+        ModuleType.REVIEW.value.mask_opacity = self.slider.value
+        ModuleType.REVIEW.value.update_class()

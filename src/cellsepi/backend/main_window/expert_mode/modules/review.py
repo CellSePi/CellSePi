@@ -1,7 +1,7 @@
 from cellsepi.backend.main_window.data_util import convert_tiffs_to_png_parallel
 from cellsepi.backend.main_window.expert_mode.listener import ProgressEvent, OnPipelineChangeEvent
 from cellsepi.backend.main_window.expert_mode.module import *
-from cellsepi.backend.main_window.image_tuning import auto_adjust
+#from cellsepi.backend.main_window.image_tuning import auto_adjust
 
 
 class Review(Module, ABC):
