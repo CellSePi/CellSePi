@@ -170,7 +170,7 @@ class GUI:
         Handle the closing event of Flet GUI.
         """
         if e.type == ft.WindowEventType.CLOSE and not self.closing_event:
-            """
+
             if not self.builder_environment.pipeline_storage.check_saved() and not saved_checked:
                 def cancel_dialog(a):
                     cupertino_alert_dialog.open = False
@@ -195,7 +195,6 @@ class GUI:
                 cupertino_alert_dialog.open = True
                 self.page.update()
                 return
-            """
             self.closing_event = True
             overlay = PageOverlay(self.page,content=self.closing_sheet,modal=True)
             overlay.open()
@@ -209,13 +208,11 @@ class GUI:
             if self.csp.readout_running:
                 self.readout_event = multiprocessing.Event()
                 self.readout_event.wait()
-            """
             if self.builder_environment.pipeline_gui.pipeline.running:
                 self.builder_environment.cancel()
                 self.expert_running_event = multiprocessing.Event()
                 self.builder_environment.pipeline_running_event = self.expert_running_event
                 self.expert_running_event.wait()
-            """
             self.page.window.prevent_close = False
             self.page.window.on_event = None
             self.page.update()
