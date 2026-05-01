@@ -38,13 +38,16 @@ class ExpertEnvironment(ft.Container):
         if self.text.value == "Go To Expert Mode":
             self.go_to_expert_environment(e)
         else:
-            self.old_view = self.gui.builder_environment.interactive_view.get_transformation_data()
+            self.page.run_task(self._async_save_transformation_data)
             self.gui.ref_builder_environment.current.visible = False
             self.gui.ref_seg_environment.current.visible = True
             self.gui.ref_gallery_environment.current.visible = True
             self.page.title = "CellSePi"
             self.gui.page.update()
             self.text.value = "Go To Expert Mode"
+
+    async def _async_save_transformation_data(self):
+        self.old_view = await self.gui.builder_environment.interactive_view.get_transformation_data()
 
     def go_to_expert_environment(self, e):
         """
@@ -65,8 +68,8 @@ class ExpertEnvironment(ft.Container):
         """
         Loads the view of the expert environment, so its view has the original state when leaving the environment.
         """
-        await asyncio.sleep(0.1)
-        #self.gui.builder_environment.interactive_view.set_transformation_data(self.old_view[0], self.old_view[1],self.old_view[2],300)
+        await self.gui.builder_environment.interactive_view.set_transformation_data(self.old_view[0], self.old_view[1],self.old_view[2],"300")
+        self.page.run_task(self.gui.builder_environment.on_resize)
         self.gui.builder_environment.interactive_view.update()
 
 class PipelineStateListener(EventListener):

@@ -85,18 +85,18 @@ class Options(ft.Container):
                 [
                             ft.Container(
                                 content=self.color_opacity.text,
-                                padding=ft.padding.only(bottom=-10)
+                                padding=ft.Padding.only(bottom=-10)
                             ),
                             ft.Container(
                                 content=self.color_opacity.slider,
-                                padding=ft.padding.only(bottom=-8)
+                                padding=ft.Padding.only(bottom=-8)
                             ),
                         ],
                         spacing=0,
                         alignment=ft.MainAxisAlignment.CENTER,
                         horizontal_alignment=ft.CrossAxisAlignment.CENTER
                     ),
-                    padding=ft.padding.all(0),
+                    padding=ft.Padding.all(0),
                 ),
             )
         ]

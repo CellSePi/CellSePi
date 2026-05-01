@@ -550,7 +550,7 @@ class ModuleGUI(ft.GestureDetector):
         self.pipeline_gui.lines_gui.update_lines(self)
         self.update()
 
-    def drop(self,e: ft.DragEndEvent):
+    async def drop(self,e: ft.DragEndEvent):
         """
         Handles the drop event.
         """
@@ -559,7 +559,7 @@ class ModuleGUI(ft.GestureDetector):
             self.click_container.update()
             self.pipeline_gui.pipeline.event_manager.notify(DragAndDropEvent(False))
         # calc the left and top values in the pipeline_gui
-        offset_x, offset_y, scale = (0,0,1) #self.pipeline_gui.interactive_view.get_transformation_data()
+        offset_x, offset_y, scale = await self.pipeline_gui.interactive_view.get_transformation_data()
         check_left = self.left if not self.show_mode else (self.left - offset_x) / scale
         check_top = self.top if not self.show_mode else (self.top - offset_y) / scale
 

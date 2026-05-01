@@ -2,7 +2,7 @@ import asyncio
 from pathlib import Path
 from typing import cast
 
-#from flet_extended_interactive_viewer import FletExtendedInteractiveViewer
+from flet_extended_interactive_viewer import FletExtendedInteractiveViewer
 
 from cellsepi.frontend.main_window.expert_mode.gui_pipeline import PipelineGUI
 from cellsepi.frontend.main_window.expert_mode.expert_constants import *
@@ -401,7 +401,7 @@ class Builder:
         await self.interactive_view.zoom(1.0 - ZOOM_VALUE)
 
     async def reset_view(self, e):
-        await self.interactive_view.reset(400)
+        await self.interactive_view.reset("400") #TODO: fix interactive_viewer to allow again int's
 
     def click_save_file(self):
         """
@@ -628,6 +628,18 @@ class Builder:
 
         self.port_button.update()
 
+    async def on_resize(self):
+        """
+        Called when the resize-event is triggered.
+        Updates all relevant GUI elements.
+        """
+        self.interactive_view.height = self.page.window.height - 20
+        self.interactive_view.width = self.page.window.width
+        self.interactive_view.update()
+        self.pipeline_gui.update_show_room()
+        self.help_text.height = self.page.window.height
+        self.help_text.width = self.page.window.width
+        self.help_text.update()
 
     def setup(self):
         """
@@ -640,24 +652,11 @@ class Builder:
             bgcolor=ft.Colors.TRANSPARENT,
         )])
 
-        self.interactive_view = ft.InteractiveViewer(content=canvas, constrained=False,
+        self.interactive_view = FletExtendedInteractiveViewer(content=canvas, constrained=False,
                                                               height=self.page.window.height,
                                                               width=self.page.window.width, scale_enabled=False,)
 
-        def on_resize(e):
-            """
-            Called when the resize-event is triggered.
-            Updates all relevant GUI elements.
-            """
-            self.interactive_view.height = self.page.window.height - 20
-            self.interactive_view.width = self.page.window.width
-            self.interactive_view.update()
-            self.pipeline_gui.update_show_room()
-            self.help_text.height = self.page.window.height
-            self.help_text.width = self.page.window.width
-            self.help_text.update()
-
-        self.page.on_resize = on_resize
+        self.page.on_resize = lambda e: self.page.run_task(self.on_resize)
 
         self.builder_page_stack = ft.Stack([
                 self.interactive_view,

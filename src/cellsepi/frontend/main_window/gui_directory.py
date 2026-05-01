@@ -80,7 +80,7 @@ class DirectoryCard(ft.Card):
                 selected_index=index,
                 thumb_color=ft.Colors.BLUE_400,
                 on_change=self.update_view,
-                padding=ft.padding.symmetric(0, 0),
+                padding=ft.Padding.symmetric(vertical=0, horizontal=0),
                 controls=[
                     ft.Text("Tif"),
                     ft.Text("Lif")

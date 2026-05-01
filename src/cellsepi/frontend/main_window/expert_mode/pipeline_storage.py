@@ -81,7 +81,7 @@ class PipelineStorage:
         modules: List[Dict[str, Any]] = []
         pipes: List[Dict[str, Any]] = []
         if not without_view:
-            offset_x, offset_y, scale = 0,0,1 #self.pipeline_gui.interactive_view.get_transformation_data() #TODO: UNDO
+            offset_x, offset_y, scale = self.pipeline_gui.interactive_view.get_transformation_data()
             view = {"offset_x": offset_x, "offset_y": offset_y,"scale": scale}
         else:
             view = {"offset_x": 0, "offset_y": 0, "scale": 1}

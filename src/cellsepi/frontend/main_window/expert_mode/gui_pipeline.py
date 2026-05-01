@@ -76,7 +76,7 @@ class PipelineGUI(ft.Stack):
         offset_x = self.pipeline_dict["view"]["offset_x"]
         offset_y = self.pipeline_dict["view"]["offset_y"]
         scale = self.pipeline_dict["view"]["scale"]
-        #self.interactive_view.set_transformation_data(offset_x=offset_x, offset_y=offset_y, scale=scale)
+        self.interactive_view.set_transformation_data(offset_x=offset_x, offset_y=offset_y, scale=scale)
 
         self.page.show_dialog(
             ft.SnackBar(ft.Text(f"Pipeline successfully loaded.", color=ft.Colors.WHITE), bgcolor=ft.Colors.GREEN))
