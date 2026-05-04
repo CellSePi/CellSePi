@@ -91,7 +91,10 @@ jobs:
               gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 \
               gstreamer1.0-qt5 gstreamer1.0-pulseaudio pkg-config libsecret-1-0 libsecret-1-dev
             sudo apt-get clean
-
+            
+      - name: Install dependencies
+        run: uv sync
+  
       - name: Build app
         shell: bash
         run: |
