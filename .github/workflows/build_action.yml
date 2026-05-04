@@ -39,39 +39,6 @@ jobs:
             artifact_path: build/windows
             needs_linux_deps: false
 
-          # -------- Android --------
-          - name: aab
-            runner: ubuntu-latest
-            build_cmd: "flet build aab"
-            artifact_path: build/aab
-            needs_linux_deps: false
-
-          - name: apk
-            runner: ubuntu-latest
-            build_cmd: "flet build apk"
-            artifact_path: build/apk
-            needs_linux_deps: false
-
-          # -------- iOS --------
-          - name: ipa
-            runner: macos-latest
-            build_cmd: "flet build ipa"
-            artifact_path: build/ipa
-            needs_linux_deps: false
-
-          - name: ios-simulator
-            runner: macos-latest
-            build_cmd: "flet build ios-simulator"
-            artifact_path: build/ios-simulator
-            needs_linux_deps: false
-
-          # -------- Web --------
-          - name: web
-            runner: ubuntu-latest
-            build_cmd: "flet build web"
-            artifact_path: build/web
-            needs_linux_deps: false
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
