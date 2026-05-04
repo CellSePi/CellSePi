@@ -92,13 +92,14 @@ jobs:
               gstreamer1.0-qt5 gstreamer1.0-pulseaudio pkg-config libsecret-1-0 libsecret-1-dev
             sudo apt-get clean
             
+      - name: Install Poetry
+        run: pip install poetry
+
       - name: Install dependencies
-        run: uv sync
-  
+        run: poetry install
+
       - name: Build app
-        shell: bash
-        run: |
-          uv run ${{ matrix.build_cmd }} --yes --verbose
+        run: poetry run flet build ${{ matrix.name }} --yes --verbose
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v5.0.0
