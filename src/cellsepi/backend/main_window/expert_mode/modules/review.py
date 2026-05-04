@@ -92,7 +92,6 @@ class Review(Module, ABC):
     def finished(self):
         self.outputs["mask_paths"].data = self.inputs["mask_paths"].data
         self._text_field_mask_suffix.visible = False
-        self._text_field_mask_suffix.update()
         self._canvas.disable_editing()
 
     def run(self):
