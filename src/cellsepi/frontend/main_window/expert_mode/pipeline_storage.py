@@ -35,11 +35,11 @@ class PipelineStorage:
         self.version = "csp-1.0"
         self.schema = load_schema(schema_path=self.schema_directory)
 
-    def save_as_pipeline(self,file_path:str= ""):
+    async def save_as_pipeline(self,file_path:str= ""):
         """
         Saves the pipeline as a JSON file at a specified path.
         """
-        pipeline_dict = self.generate_pipline_dict()
+        pipeline_dict = await self.generate_pipline_dict()
 
         self.pipeline_gui.pipeline_directory = Path(file_path).parent
         self.pipeline_gui.pipeline_dict = pipeline_dict
@@ -53,11 +53,11 @@ class PipelineStorage:
         with open(file_path, "w", encoding="utf-8") as f:
             json.dump(pipeline_dict, f, indent=2, ensure_ascii=False)
 
-    def save_pipeline(self):
+    async def save_pipeline(self):
         """
         Saves the pipeline as a JSON file.
         """
-        pipeline_dict = self.generate_pipline_dict()
+        pipeline_dict = await self.generate_pipline_dict()
 
         self.pipeline_gui.pipeline_dict = pipeline_dict
         from pathlib import Path
@@ -74,14 +74,14 @@ class PipelineStorage:
 
         return file_path
 
-    def generate_pipline_dict(self,without_view:bool=False):
+    async def generate_pipline_dict(self,without_view:bool=False):
         """
         Generate a dictionary(dict) that represents the pipeline from a PipelineGUI instance.
         """
         modules: List[Dict[str, Any]] = []
         pipes: List[Dict[str, Any]] = []
         if not without_view:
-            offset_x, offset_y, scale = self.pipeline_gui.interactive_view.get_transformation_data()
+            offset_x, offset_y, scale = await self.pipeline_gui.interactive_view.get_transformation_data()
             view = {"offset_x": offset_x, "offset_y": offset_y,"scale": scale}
         else:
             view = {"offset_x": 0, "offset_y": 0, "scale": 1}
@@ -102,7 +102,7 @@ class PipelineStorage:
 
         return pipeline_dict
 
-    def check_saved(self):
+    async def check_saved(self):
         """
         Checks if the pipeline is still saved.
         Ignores module positions and view.
@@ -113,7 +113,7 @@ class PipelineStorage:
         if self.pipeline_gui.pipeline_dict == {}:
             return False
 
-        new_pipeline_dict = get_major_dict(self.generate_pipline_dict(without_view=True))
+        new_pipeline_dict = get_major_dict(await self.generate_pipline_dict(without_view=True))
         old_pipeline_dict = get_major_dict(self.pipeline_gui.pipeline_dict)
         return new_pipeline_dict==old_pipeline_dict
 

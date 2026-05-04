@@ -60,7 +60,7 @@ class ModuleGUI(ft.GestureDetector):
         self.options_button = ft.IconButton(icon=ft.Icons.TUNE, icon_color=ft.Colors.WHITE60,
                                             style=ft.ButtonStyle(
                                                           shape=ft.RoundedRectangleBorder(radius=12),
-                                                      ), on_click=lambda e: self.open_options(e),
+                                                      ), on_click=lambda e: self.page.run_task(self.open_options,e),
                                             tooltip="Options", hover_color=ft.Colors.WHITE12, visible=True if self.module.settings is not None else False,)
         self.copy_button = ft.IconButton(icon=ft.Icons.CONTENT_COPY, icon_color=ft.Colors.WHITE60,
                                             style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=12)),
@@ -799,7 +799,7 @@ class ModuleGUI(ft.GestureDetector):
         self.pipeline_gui.page.update()
         self.pipeline_gui.pipeline.event_manager.notify(OnPipelineChangeEvent("user_attr_change"))
 
-    def open_options(self,e):
+    async def open_options(self,e):
         """
         Open options overlay of the module.
         """

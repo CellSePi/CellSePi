@@ -36,7 +36,7 @@ class ExpertEnvironment(ft.Container):
         Changing between modes.
         """
         if self.text.value == "Go To Expert Mode":
-            self.go_to_expert_environment(e)
+            self.page.run_task(self.go_to_expert_environment,e)
         else:
             self.page.run_task(self._async_save_transformation_data)
             self.gui.ref_builder_environment.current.visible = False
@@ -49,7 +49,7 @@ class ExpertEnvironment(ft.Container):
     async def _async_save_transformation_data(self):
         self.old_view = await self.gui.builder_environment.interactive_view.get_transformation_data()
 
-    def go_to_expert_environment(self, e):
+    async def go_to_expert_environment(self, e):
         """
         Switching to expert mode.
         """
@@ -57,7 +57,7 @@ class ExpertEnvironment(ft.Container):
         self.gui.ref_gallery_environment.current.visible = False
         self.gui.ref_training_environment.current.visible = False
         self.gui.ref_seg_environment.current.visible = False
-        star = "*" if not self.gui.builder_environment.pipeline_storage.check_saved() else ""
+        star = "*" if not await self.gui.builder_environment.pipeline_storage.check_saved() else ""
         self.page.title = f"CellSePi - {self.gui.builder_environment.pipeline_gui.pipeline_name}{star}"
         self.gui.page.update()
         self.text.value = "Exit Expert Mode"

@@ -79,7 +79,7 @@ class Builder:
                                             tooltip="Save as pipeline\n[Ctrl + Shift + S]", hover_color=ft.Colors.WHITE12)
 
         self.page.on_keyboard_event = lambda e: self.on_keyboard(e)
-        self.save_button = ft.IconButton(icon=ft.Icons.SAVE_ROUNDED, on_click=lambda e: self.click_save_file(),
+        self.save_button = ft.IconButton(icon=ft.Icons.SAVE_ROUNDED, on_click=lambda e: self.page.run_task(self.click_save_file),
                                          icon_color=MAIN_ACTIVE_COLOR if self.pipeline_gui.pipeline_directory != "" else ft.Colors.WHITE24,
                                          disabled=False if self.pipeline_gui.pipeline_directory != "" else True,
                                          style=ft.ButtonStyle(
@@ -145,7 +145,7 @@ class Builder:
         self.progress_bar_module_text = ft.Text("0%", color=MAIN_ACTIVE_COLOR)
         self.progress_and_start = ft.Column([ft.Container(self.progress_stack,alignment=ft.Alignment.CENTER),
             ft.Container(
-                content=ft.Stack([self.start_button, self.resume_button,self.cancel_button]),alignment=ft.Alignment.CENTER)],width=110,spacing=20
+                content=ft.Stack([self.start_button, self.resume_button,self.cancel_button]),alignment=ft.Alignment.CENTER)],width=120,spacing=20
         )
         self.running_module = ft.Text("Module",color=ft.Colors.WHITE70,width=230,overflow=ft.TextOverflow.ELLIPSIS,max_lines=1,theme_style=ft.TextThemeStyle.HEADLINE_SMALL)
         self.info_text = ft.Text("Idle, waiting for start.", color=MAIN_ACTIVE_COLOR, width=250, overflow=ft.TextOverflow.ELLIPSIS, max_lines=2)
@@ -348,7 +348,7 @@ class Builder:
                 asyncio.create_task(self.click_save_as_file())
         if e.ctrl and e.key == "S" and not e.alt and not e.shift and not e.meta:
             if not self.save_button.disabled:
-                self.click_save_file()
+                self.page.run_task(self.click_save_file)
         if e.ctrl and e.key == "L" and not e.alt and not e.shift and not e.meta:
             if not self.load_button.disabled:
                 asyncio.create_task(self.click_load_file())
@@ -403,13 +403,13 @@ class Builder:
     async def reset_view(self, e):
         await self.interactive_view.reset("400") #TODO: fix interactive_viewer to allow again int's
 
-    def click_save_file(self):
+    async def click_save_file(self):
         """
         Called when clicked a file should be saved.
         """
         self.save_button.icon_color = ft.Colors.BLUE_400
         self.save_button.update()
-        path = self.pipeline_storage.save_pipeline()
+        path = await self.pipeline_storage.save_pipeline()
         self.pipeline_gui.page.show_dialog(
             ft.SnackBar(ft.Text(f"Pipeline saved at {path}", color=ft.Colors.WHITE), bgcolor=ft.Colors.GREEN))
         self.pipeline_gui.page.update()
@@ -428,7 +428,7 @@ class Builder:
         self.load_button.icon_color = ft.Colors.BLUE_400
         self.load_button.update()
         if files is not None and len(files) > 0:
-            if not self.pipeline_storage.check_saved():
+            if not await self.pipeline_storage.check_saved():
                 def cancel_dialog(a):
                     cupertino_alert_dialog.open = False
                     a.control.page.update()
@@ -447,7 +447,7 @@ class Builder:
                     try:
                         self.pipeline_storage.load_pipeline(files[0].path)
                         self.pipeline_gui.reset()
-                        self.pipeline_gui.load_pipeline()
+                        self.page.run_task(self.pipeline_gui.load_pipeline)
                     except Exception as exception2:
                         self.pipeline_gui.page.show_dialog(
                             ft.SnackBar(
@@ -482,7 +482,7 @@ class Builder:
                 try:
                     self.pipeline_storage.load_pipeline(files[0].path)
                     self.pipeline_gui.reset()
-                    self.pipeline_gui.load_pipeline()
+                    self.page.run_task(self.pipeline_gui.load_pipeline)
                 except Exception as exception1:
                     self.pipeline_gui.page.show_dialog(
                         ft.SnackBar(
@@ -499,8 +499,8 @@ class Builder:
         Called to save a file is at a specific location.
         """
         dir = await self.file_saver.save_file(file_type=ft.FilePickerFileType.CUSTOM, allowed_extensions=["csp"],
-                             dialog_title="Save Pipeline", file_name=self.pipeline_gui.pipeline_name,
-                             initial_directory=self.pipeline_gui.pipeline_directory)
+                             dialog_title="Save Pipeline", file_name=str(self.pipeline_gui.pipeline_name),
+                             initial_directory=str(self.pipeline_gui.pipeline_directory))
         self.save_as_button.icon_color = ft.Colors.BLUE_400
         self.save_as_button.update()
         if dir is not None:
@@ -513,7 +513,7 @@ class Builder:
                 self.save_as_button.icon_color = MAIN_ACTIVE_COLOR
                 self.page.update()
                 return
-            self.pipeline_storage.save_as_pipeline(dir)
+            self.page.run_task(self.pipeline_storage.save_as_pipeline,dir)
             self.pipeline_gui.page.show_dialog(ft.SnackBar(ft.Text(f"Pipeline saved at {dir}",color=ft.Colors.WHITE),bgcolor=ft.Colors.GREEN))
             self.pipeline_gui.page.update()
             self.page.title = f"CellSePi - {self.pipeline_gui.pipeline_name}"
@@ -567,7 +567,7 @@ class Builder:
             self.run_menu_button.icon_color = ft.Colors.BLUE_400
             self.run_menu_button.tooltip = f"Hide run menu\n[Ctrl + R]"
             self.run_menu_button.update()
-            self.run_menu.width = 450
+            self.run_menu.width = 460
             self.run_menu.opacity = 1
             self.run_menu.update()
 
@@ -650,7 +650,7 @@ class Builder:
             width=CANVAS_WIDTH,
             height=CANVAS_HEIGHT,
             bgcolor=ft.Colors.TRANSPARENT,
-        )])
+        )],expand=True)
 
         self.interactive_view = FletExtendedInteractiveViewer(content=canvas, constrained=False,
                                                               height=self.page.window.height,

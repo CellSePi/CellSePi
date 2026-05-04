@@ -1,3 +1,4 @@
+from flet_core import alignment
 from image_editing_view import ImageEditingView
 
 from cellsepi.backend.main_window.data_util import convert_tiffs_to_png_parallel
@@ -36,7 +37,7 @@ class Review(Module, ABC):
         self._text_field_segmentation_channel: ft.TextField | None = None
         self._text_field_mask_suffix: ft.TextField | None = None
         self._control_menu: ft.Container | None = None
-        self._main_image_view: ft.Card | None = None
+        self._canvas: ft.Card | None = None
         Review._instances.append(self)
 
     @property
@@ -80,41 +81,49 @@ class Review(Module, ABC):
             ), bgcolor=ft.Colors.BLUE_ACCENT, expand=True, border_radius=ft.border_radius.vertical(top=0, bottom=12),height=38,
             )
             )
-            self._main_image_view = ImageEditingView(on_mask_change=lambda img_id,mask_added_or_removed: self.mask_update(img_id,mask_added_or_removed))
-            self._main_image_view.height=700
-            self._main_image_view.auto_adjust=True
-            self._settings: ft.Stack = ft.Stack([ft.Row([
-                self._main_image_view,
-                ft.Card(content=ft.Column([ft.Container(self._image_gallery, width=600, height=700, expand=True, padding=20),self._control_menu],expand=True,height=700,width=640)),
-            ],alignment=ft.Alignment.CENTER, )],)
+            self._canvas = ImageEditingView(on_mask_change=lambda img_id, mask_added_or_removed: self.mask_update(img_id, mask_added_or_removed))
+            self._canvas.auto_adjust=True
+            self._settings: ft.Stack = ft.Stack([ft.Column([ft.Row([
+                self._canvas,
+                ft.Card(content=ft.Column([ft.Container(self._image_gallery, expand=True, padding=ft.Padding.only(top=20,left=20,right=20,bottom=10)),self._control_menu],spacing=0,expand=True,width=640)),
+            ],height=700,expand=True,margin=20)],alignment=ft.MainAxisAlignment.CENTER,horizontal_alignment=ft.CrossAxisAlignment.CENTER)])
         return self._settings
 
     def finished(self):
         self.outputs["mask_paths"].data = self.inputs["mask_paths"].data
         self._text_field_mask_suffix.visible = False
         self._text_field_mask_suffix.update()
-        self._main_image_view._edit_allowed = False
-        self._main_image_view._edit_button.icon_color = ft.Colors.BLACK12
-        self._main_image_view._edit_button.disabled = True
-        self._main_image_view._edit_button.update()
+        self._canvas.disable_editing()
 
     def run(self):
         self.event_manager.notify(ProgressEvent(percent=0, process=f"Preparing: starting"))
         #reset
-        self._window_image_id = ""
-        self._window_bf_channel = ""
-        self._window_channel_id = ""
-        self._window_mask_path = ""
         self._icon_x = {}
         self._icon_check = {}
         self.image_id = None
         self.channel_id = None
         self._image_gallery.controls.clear()
+        self._text_field_mask_suffix.visible = True
         #reset image_viewer
+        self._canvas.set_main_paths(self.inputs["image_paths"].data)
+        self._canvas.set_mask_paths(self.inputs["mask_paths"].data)
+        self._canvas.reset_image(without_update=True)
         self._edit_allowed = True
         self.event_manager.notify(ProgressEvent(percent=100, process=f"Preparing: finished"))
         self.event_manager.notify(ProgressEvent(percent=0, process=f"Loading Images: Starting"))
         src  = convert_tiffs_to_png_parallel(self.inputs["image_paths"].data)
+        async def select_image(img_id,c_id):
+            if self.image_id is not None and self.image_id in self._selected_images_visualise:
+                if self.channel_id is not None and self.channel_id in self._selected_images_visualise[
+                    self.image_id]:
+                    self._selected_images_visualise[self.image_id][self.channel_id].visible = False
+                    self._selected_images_visualise[self.image_id][self.channel_id].update()
+            self.image_id = img_id
+            self.channel_id = c_id
+            self._selected_images_visualise[img_id][c_id].visible = True
+            self._selected_images_visualise[img_id][c_id].update()
+            self._canvas.select_image(img_id, c_id,
+                                      self.user_segmentation_channel)
         n_series = len(src)
         for iN,image_id in enumerate(src):
             cur_image_paths = src[image_id]
@@ -137,9 +146,10 @@ class Review(Module, ABC):
                                 src=cur_image_paths[channel_id],
                                 height=150,
                                 width=150,
-                                fit=ft.ImageFit.CONTAIN
+                                fit=ft.BoxFit.CONTAIN,
+                                gapless_playback=True
                                 ),self._selected_images_visualise[image_id][channel_id]]),width=156,height=156),
-                                on_tap=lambda e, img_id=image_id, c_id=channel_id: self.update_main_image(img_id, c_id),
+                                on_tap=lambda e, img_id=image_id, c_id=channel_id: self._canvas.page.run_task(select_image, img_id, c_id)
                             ),
                             ft.Text(channel_id, size=10, text_align=ft.TextAlign.CENTER),
                         ],
@@ -156,7 +166,7 @@ class Review(Module, ABC):
             self._icon_check[image_id] = ft.Icon(ft.Icons.CHECK, color=ft.Colors.GREEN, size=17, visible=False,
                                                 tooltip="Mask is available")
             self._icon_x[image_id] = ft.Icon(ft.Icons.CLOSE, size=17, visible=True, tooltip="Mask not available")
-            self.update_mask_check(image_id)
+            self.update_mask_check(image_id,False)
             self._image_gallery.controls.append(ft.Column([ft.Row(
             [ft.Text(f"{image_id}", weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.CENTER), self._icon_check[image_id], self._icon_x[image_id]], spacing=2),
                                                       group_row], spacing=10, alignment=ft.MainAxisAlignment.CENTER))
@@ -166,12 +176,12 @@ class Review(Module, ABC):
 
         return True
 
-
-    def update_mask_check(self, image_id):
+    def update_mask_check(self, image_id,update=True):
         """
         Updates the symbol next to series number of image to a check or x, depending on if the corresponding image is available.
         Args:
             image_id: the id of the image to check mask availability
+            update: True to update the gui
         """
         if self.inputs["mask_paths"].data is not None and image_id in self.inputs["mask_paths"].data and self.user_segmentation_channel in self.inputs["mask_paths"].data[image_id]:
             self._icon_check[image_id].visible = True
@@ -179,7 +189,9 @@ class Review(Module, ABC):
         else:
             self._icon_check[image_id].visible = False
             self._icon_x[image_id].visible = True
-        self._image_gallery.update()
+        if update:
+            self._icon_check[image_id].update()
+            self._icon_x[image_id].update()
 
     def update_all_masks_check(self):
         """
@@ -204,6 +216,7 @@ class Review(Module, ABC):
             self.settings.page.update()
             return
         self.user_mask_suffix = str(e.control.value)
+        self._canvas.mask_suffix = str(e.control.value)
         self.event_manager.notify(OnPipelineChangeEvent("user_attr_change"))
 
     def on_change_sc(self,e):
@@ -219,15 +232,14 @@ class Review(Module, ABC):
         self.user_segmentation_channel = str(e.control.value)
         self.update_all_masks_check()
         if self.image_id is not None:
-            pass
-            #self.update_main_image(self.image_id, self.channel_id)
+            self._canvas.select_image(self.image_id, self.channel_id, self.user_segmentation_channel)
         self.event_manager.notify(OnPipelineChangeEvent("user_attr_change"))
 
     @classmethod
     def update_class(cls):
         for instance in cls._instances:
             if instance.image_id is not None:
-                instance.update_main_image(instance.image_id, instance.channel_id)
+                instance.select_image(instance.image_id, instance.channel_id,instance.user_segmentation_channel)
 
     def destroy(self):
         self._instances.remove(self)

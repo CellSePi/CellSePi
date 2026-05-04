@@ -36,7 +36,7 @@ class GUI:
         self.expert_running_event = None
         self.readout_event = None
         self.page.window.prevent_close = True
-        self.page.window.on_event = lambda e: self.handle_closing_event(e)
+        self.page.window.on_event = lambda e: self.page.run_task(self.handle_closing_event,e)
         self.page.window.width = 1440
         self.page.window.height = 800
         self.page.run_task(self.handle_window_centering)
@@ -46,6 +46,7 @@ class GUI:
         self.canvas = ImageEditingView(on_mask_change=lambda img_id,mask_added_or_removed: self.mask_update(img_id,mask_added_or_removed))
         self.canvas.mask_color=self.csp.config.get_mask_color()
         self.canvas.outline_color=self.csp.config.get_outline_color()
+        self.canvas.mask_suffix=self.csp.config.get_mask_suffix()
         self.op = Options(self)
         self.ex_mode = ExpertEnvironment(self)
         gui_config = GUIConfig(self)
@@ -167,13 +168,13 @@ class GUI:
         self.diameter_text.value = self.average_diameter.get_avg_diameter()
         self.diameter_text.update()
 
-    def handle_closing_event(self, e,saved_checked:bool=False):
+    async def handle_closing_event(self, e,saved_checked:bool=False):
         """
         Handle the closing event of Flet GUI.
         """
         if e.type == ft.WindowEventType.CLOSE and not self.closing_event:
 
-            if not self.builder_environment.pipeline_storage.check_saved() and not saved_checked:
+            if not await self.builder_environment.pipeline_storage.check_saved() and not saved_checked:
                 def cancel_dialog(a):
                     cupertino_alert_dialog.open = False
                     a.control.page.update()
@@ -181,16 +182,16 @@ class GUI:
                 def ok_dialog(a,gui):
                     cupertino_alert_dialog.open = False
                     a.control.page.update()
-                    gui.handle_closing_event(e,True)
+                    self.page.run_task(self.handle_closing_event,e,True)
 
                 cupertino_alert_dialog = ft.CupertinoAlertDialog(
                     title=ft.Text("Expert Mode:\nUnsaved Changes"),
                     content=ft.Text("Closing CellSePi will discard any unsaved changes to the currently opened pipeline."),
                     actions=[
                         ft.CupertinoDialogAction(
-                            "Cancel", is_default_action=True, on_click=cancel_dialog
+                            "Cancel", default=True, on_click=cancel_dialog
                         ),
-                        ft.CupertinoDialogAction(text="Ok", is_destructive_action=True, on_click=lambda a: ok_dialog(a,self)),
+                        ft.CupertinoDialogAction("Ok", destructive=True, on_click=lambda a: ok_dialog(a,self)),
                     ],
                 )
                 self.page.overlay.append(cupertino_alert_dialog)

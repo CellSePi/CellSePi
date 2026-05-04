@@ -54,7 +54,7 @@ class PipelineGUI(ft.Stack):
         self.update()
         self.loading = False
 
-    def load_pipeline(self):
+    async def load_pipeline(self):
         """
         Loads a pipeline from a dict to PipelineGUI.
         """
@@ -76,7 +76,7 @@ class PipelineGUI(ft.Stack):
         offset_x = self.pipeline_dict["view"]["offset_x"]
         offset_y = self.pipeline_dict["view"]["offset_y"]
         scale = self.pipeline_dict["view"]["scale"]
-        self.interactive_view.set_transformation_data(offset_x=offset_x, offset_y=offset_y, scale=scale)
+        await self.interactive_view.set_transformation_data(offset_x=offset_x, offset_y=offset_y, scale=scale)
 
         self.page.show_dialog(
             ft.SnackBar(ft.Text(f"Pipeline successfully loaded.", color=ft.Colors.WHITE), bgcolor=ft.Colors.GREEN))

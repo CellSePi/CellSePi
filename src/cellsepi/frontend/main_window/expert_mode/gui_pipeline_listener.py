@@ -26,7 +26,7 @@ class PipelineChangeListener(EventListener):
         if event.change_type == "user_attr_change":
             if len(self.builder.pipeline_gui.pipeline.modules)-len(self.builder.pipeline_gui.show_room_modules) > 0:
                 if self.builder.pipeline_gui.pipeline_directory != "":
-                    if self.builder.pipeline_storage.check_saved():
+                    if await self.builder.pipeline_storage.check_saved():
                         self.builder.page.title = f"CellSePi - {self.builder.pipeline_gui.pipeline_name}"
                         self.builder.save_button.icon_color = ft.Colors.WHITE24
                         self.builder.save_button.disabled = True
@@ -37,7 +37,7 @@ class PipelineChangeListener(EventListener):
                         self.builder.save_button.disabled = False
                         self.builder.page.update()
                 else:
-                    if self.builder.pipeline_storage.check_saved():
+                    if await self.builder.pipeline_storage.check_saved():
                         self.builder.page.title = f"CellSePi - {self.builder.pipeline_gui.pipeline_name}"
                         self.builder.page.update()
                     else:
@@ -51,7 +51,7 @@ class PipelineChangeListener(EventListener):
                 self.builder.save_as_button.disabled = False
                 self.builder.save_as_button.update()
                 if self.builder.pipeline_gui.pipeline_directory != "":
-                    if self.builder.pipeline_storage.check_saved():
+                    if await self.builder.pipeline_storage.check_saved():
                         self.builder.page.title = f"CellSePi - {self.builder.pipeline_gui.pipeline_name}"
                         self.builder.save_button.icon_color = ft.Colors.WHITE24
                         self.builder.save_button.disabled = True
@@ -62,7 +62,7 @@ class PipelineChangeListener(EventListener):
                         self.builder.save_button.disabled = False
                         self.builder.page.update()
                 else:
-                    if self.builder.pipeline_storage.check_saved():
+                    if await self.builder.pipeline_storage.check_saved():
                         self.builder.page.title = f"CellSePi - {self.builder.pipeline_gui.pipeline_name}"
                         self.builder.page.update()
                     else:
