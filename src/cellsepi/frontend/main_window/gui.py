@@ -157,9 +157,7 @@ class GUI:
             ),
         )
         #set the colors for the review module from the config file
-        ModuleType.REVIEW.value.mask_color = self.csp.config.get_mask_color()
-        ModuleType.REVIEW.value.outline_color = self.csp.config.get_outline_color()
-        ModuleType.REVIEW.value.update_class()
+        ModuleType.REVIEW.value.update_class(mask_color=self.csp.config.get_mask_color(),outline_color=self.csp.config.get_outline_color())
 
     def mask_update(self, image_id, mask_added_or_removed):
         if mask_added_or_removed:
@@ -173,7 +171,6 @@ class GUI:
         Handle the closing event of Flet GUI.
         """
         if e.type == ft.WindowEventType.CLOSE and not self.closing_event:
-
             if not await self.builder_environment.pipeline_storage.check_saved() and not saved_checked:
                 def cancel_dialog(a):
                     cupertino_alert_dialog.open = False

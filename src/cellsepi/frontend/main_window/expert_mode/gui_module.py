@@ -32,10 +32,10 @@ class ModuleGUI(ft.GestureDetector):
         self.old_top = None
         self.port_selection = False
         self.module = self.pipeline_gui.pipeline.add_module(module_type.value) if id_number is None else self.pipeline_gui.pipeline.add_module_with_id(module_type.value,module_type.value.gui_config().name + str(id_number))
+        self.module._page = self.pipeline_gui._page
+        self.pipeline_gui._page.run_task(self.create_options)
         if module_dict is not None:
             self.update_user_attr(module_dict)
-        if self.module.settings is None and hasattr(self.module, "_settings"):
-            self.module._settings = self.generate_options_overlay()
         if show_mode:
             if index is None:
                 self.pipeline_gui.show_room_modules.append(self)
@@ -48,7 +48,7 @@ class ModuleGUI(ft.GestureDetector):
         self.valid = False
         self.wrapped_description = "\n".join(textwrap.wrap(self.module.gui_config().description, width=40))
         self.click_container = ft.Container(on_click=self.add_connection,tooltip=self.wrapped_description if self.show_mode else None, height=MODULE_HEIGHT, width=MODULE_WIDTH,
-                                            visible=False if not show_mode else True,bgcolor=INVALID_COLOR if not show_mode else ft.Colors.TRANSPARENT,disabled=True if not show_mode else False,border_radius=ft.border_radius.all(10), ignore_interactions=True if not show_mode else False)
+                                            visible=False if not show_mode else True,bgcolor=INVALID_COLOR if not show_mode else ft.Colors.TRANSPARENT,disabled=True if not show_mode else False,border_radius=ft.border_radius.all(10))
         self.click_gesture = ft.GestureDetector(visible=False if not show_mode else True,disabled=True if not show_mode else False,content=self.click_container,on_enter=self.on_enter_click_module,on_exit=self.on_exit_click_module)
 
         self.connect_button = ft.IconButton(icon=ft.Icons.SHARE, icon_color=ft.Colors.WHITE60,
@@ -60,8 +60,8 @@ class ModuleGUI(ft.GestureDetector):
         self.options_button = ft.IconButton(icon=ft.Icons.TUNE, icon_color=ft.Colors.WHITE60,
                                             style=ft.ButtonStyle(
                                                           shape=ft.RoundedRectangleBorder(radius=12),
-                                                      ), on_click=lambda e: self.page.run_task(self.open_options,e),
-                                            tooltip="Options", hover_color=ft.Colors.WHITE12, visible=True if self.module.settings is not None else False,)
+                                                      ), on_click=lambda e: self.open_options(e),
+                                            tooltip="Options", hover_color=ft.Colors.WHITE12, visible=True if len(self.module.get_user_attributes) != 0 else False,)
         self.copy_button = ft.IconButton(icon=ft.Icons.CONTENT_COPY, icon_color=ft.Colors.WHITE60,
                                             style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=12)),
                                             on_click=self.copy_module,
@@ -170,7 +170,7 @@ class ModuleGUI(ft.GestureDetector):
             animate_opacity=ft.Animation(duration=300, curve=ft.AnimationCurve.LINEAR_TO_EASE_OUT),
             animate=ft.Animation(duration=300, curve=ft.AnimationCurve.LINEAR_TO_EASE_OUT),
         )
-        self.ignore_interactions_container = ft.Container(self.click_gesture, ignore_interactions=True if not show_mode else False)
+        self.ignore_interactions_container = ft.Container(self.click_gesture)
         self.content = ft.Stack([
             self.ports_container,
             ft.Column([ft.Stack([
@@ -321,7 +321,6 @@ class ModuleGUI(ft.GestureDetector):
         self.delete_button.update()
         self.content.update()
         self.connect_button.update()
-        self.pipeline_gui.page.update()
 
     def ports_in_out_clicked(self, update: bool = True,disable:bool = None):
         self.pipeline_gui.page.run_task(self.async_ports_in_out_clicked, update=update,disable=disable)
@@ -405,8 +404,10 @@ class ModuleGUI(ft.GestureDetector):
         """
         self.executing_button.visible = True
         self.waiting_button.visible = False
+        self.delete_button.visible = False
         self.executing_button.update()
         self.waiting_button.update()
+        self.delete_button.update()
 
     def get_ports_row(self):
         """
@@ -514,7 +515,7 @@ class ModuleGUI(ft.GestureDetector):
         self.pipeline_gui.lines_gui.update_gui()
         self.update()
 
-    def start_drag(self, e: ft.DragStartEvent):
+    async def start_drag(self, e: ft.DragStartEvent):
         """
         Handles the start of the drag event to save old location to make it possible to bounce back.
         """
@@ -523,7 +524,7 @@ class ModuleGUI(ft.GestureDetector):
         self.pipeline_gui.lines_gui.update_lines(self)
         self.update()
 
-    def drag(self, e: ft.DragUpdateEvent):
+    async def drag(self, e: ft.DragUpdateEvent):
         """
         Handles the drag event.
         """
@@ -554,10 +555,6 @@ class ModuleGUI(ft.GestureDetector):
         """
         Handles the drop event.
         """
-        if self.show_mode:
-            self.click_container.tooltip = self.wrapped_description
-            self.click_container.update()
-            self.pipeline_gui.pipeline.event_manager.notify(DragAndDropEvent(False))
         # calc the left and top values in the pipeline_gui
         offset_x, offset_y, scale = await self.pipeline_gui.interactive_view.get_transformation_data()
         check_left = self.left if not self.show_mode else (self.left - offset_x) / scale
@@ -566,8 +563,6 @@ class ModuleGUI(ft.GestureDetector):
         for module in self.pipeline_gui.modules.values():
             if module is self:
                 continue
-
-
 
             overlap = not (
                     check_left + MODULE_WIDTH < module.left or
@@ -611,7 +606,6 @@ class ModuleGUI(ft.GestureDetector):
             self.pipeline_gui.controls.append(self)
             self.click_container.disabled = True
             self.ignore_interactions_container.ignore_interactions = True
-            self.ignore_interactions_container.update()
             self.click_container.bgcolor = INVALID_COLOR
             self.click_container.visible = False
             self.click_container.tooltip = None
@@ -623,10 +617,14 @@ class ModuleGUI(ft.GestureDetector):
                 self.pipeline_gui.check_for_valid_all_modules()
             self.pipeline_gui.update()
 
-        e.control.update()
+        if self.show_mode:
+            self.click_container.tooltip = self.wrapped_description
+            self.pipeline_gui.pipeline.event_manager.notify(DragAndDropEvent(False))
+
+        self.update()
         self.pipeline_gui.lines_gui.update_lines(self)
 
-    def generate_options_overlay(self):
+    async def generate_options_overlay(self):
         """
         Generates with the user attributes tagged with the prefix 'user_' a gui overlay.
         """
@@ -749,7 +747,6 @@ class ModuleGUI(ft.GestureDetector):
             current_file_path.path = files[0].path
             text.value = format_directory_path(files[0].path,50)
             text.update()
-            self.pipeline_gui.page.update()
             self.pipeline_gui.pipeline.event_manager.notify(OnPipelineChangeEvent("user_attr_change"))
 
     async def on_select_dir(self,e: ft.Event[ft.Button],file_picker,attr_name,text):
@@ -761,7 +758,6 @@ class ModuleGUI(ft.GestureDetector):
             setattr(self.module, attr_name, FilePath(dir))
             text.value = format_directory_path(dir,50)
             text.update()
-            self.pipeline_gui.page.update()
             self.pipeline_gui.pipeline.event_manager.notify(OnPipelineChangeEvent("user_attr_change"))
 
     def on_change(self,e,attr_name,reference,typ:type):
@@ -776,16 +772,15 @@ class ModuleGUI(ft.GestureDetector):
                             color=ft.Colors.WHITE),
                     bgcolor=ft.Colors.RED))
             e.control.value = str(getattr(self.module, attr_name))
-            self.pipeline_gui.page.update()
+            e.control.update()
             return
         try:
             setattr(self.module, attr_name, typ(e.control.value))
-            self.pipeline_gui.page.update()
             self.pipeline_gui.pipeline.event_manager.notify(OnPipelineChangeEvent("user_attr_change"))
         except ValueError:
             self.pipeline_gui.page.show_dialog(ft.SnackBar(ft.Text(f"{attribute_name_without_prefix} only allows {typ.__name__}'s.",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
             reference.current.value = str(getattr(self.module, attr_name))
-            self.pipeline_gui.page.update()
+            reference.current.update()
 
     def update_bool(self,e,attr_name):
         """
@@ -796,18 +791,20 @@ class ModuleGUI(ft.GestureDetector):
         else:
             setattr(self.module, attr_name, False)
         getattr(self.module, "on_change_" + attr_name)()
-        self.pipeline_gui.page.update()
         self.pipeline_gui.pipeline.event_manager.notify(OnPipelineChangeEvent("user_attr_change"))
 
-    async def open_options(self,e):
+    async def create_options(self):
+        if self.module.settings is None:
+            self.module._settings = await self.generate_options_overlay()
+
+        if self.page_overlay is None:
+            page = self.pipeline_gui._page
+            self.page_overlay = PageOverlay(page, self.module._settings, self.close_options)
+
+    def open_options(self,e):
         """
         Open options overlay of the module.
         """
-        if self.page_overlay is None:
-            page = self.pipeline_gui.page
-            self.page_overlay = PageOverlay(page, self.module._settings, self.close_options)
-        if self.module._settings is None:
-            self.module._settings = self.generate_options_overlay()
         self.page_overlay.open()
         self.options_button.icon_color = ft.Colors.BLACK38
         self.options_button.update()

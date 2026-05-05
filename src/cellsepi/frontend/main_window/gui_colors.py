@@ -60,14 +60,15 @@ class ColorSelection:
         )
     def open_color_picker_mask(self,e):
         self.dialog.open()
-        self.color_picker.color = rgb_to_hex(self.config.get_mask_color())
+        self.color_picker.color=rgb_to_hex(self.config.get_mask_color())
+        self.color_picker.update()
         self.current_color = self.color_picker.color
         self.color_type = ColorTypes.Mask
         e.control.page.update()
 
     def open_color_picker_outline(self, e):
         self.dialog.open()
-        self.color_picker.color = rgb_to_hex(self.config.get_outline_color())
+        self.color_picker.color=rgb_to_hex(self.config.get_outline_color())
         self.color_picker.update()
         self.current_color = self.color_picker.color
         self.color_type = ColorTypes.Outline
@@ -87,16 +88,14 @@ class ColorSelection:
             self.color_icon_mask.icon_color = self.current_color
             self.config.set_mask_color(hex_to_rgb(self.current_color))
             self.gui.canvas.mask_color = hex_to_rgb(self.current_color)
-            self.gui.canvas.update_mask_image()
-            ModuleType.REVIEW.value.mask_color = self.config.get_mask_color()
-            ModuleType.REVIEW.value.update_class()
+            self.gui.page.run_task(self.gui.canvas.update_mask_image)
+            ModuleType.REVIEW.value.update_class(mask_color=self.config.get_mask_color())
         else:
             self.color_icon_outline.icon_color = self.current_color
             self.config.set_outline_color(hex_to_rgb(self.current_color))
             self.gui.canvas.outline_color = hex_to_rgb(self.current_color)
-            self.gui.canvas.update_mask_image()
-            ModuleType.REVIEW.value.outline_color = self.config.get_outline_color()
-            ModuleType.REVIEW.value.update_class()
+            self.gui.page.run_task(self.gui.canvas.update_mask_image)
+            ModuleType.REVIEW.value.update_class(outline_color=self.config.get_outline_color())
         self.dialog.close()
 
     def close_dialog(self, e):
@@ -116,6 +115,5 @@ class ColorOpacity:
 
     def opacity_change(self):
         self.gui.canvas.mask_opacity = self.slider.value
-        self.gui.canvas.update_mask_image()
-        ModuleType.REVIEW.value.mask_opacity = self.slider.value
-        ModuleType.REVIEW.value.update_class()
+        self.gui.page.run_task(self.gui.canvas.update_mask_image)
+        ModuleType.REVIEW.value.update_class(opacity=self.slider.value)

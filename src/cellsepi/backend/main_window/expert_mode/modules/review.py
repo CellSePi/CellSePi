@@ -1,5 +1,5 @@
-from flet_core import alignment
 from image_editing_view import ImageEditingView
+from poetry.console.commands import self
 
 from cellsepi.backend.main_window.data_util import convert_tiffs_to_png_parallel
 from cellsepi.backend.main_window.expert_mode.listener import ProgressEvent, OnPipelineChangeEvent
@@ -32,7 +32,7 @@ class Review(Module, ABC):
         self.image_id: str | None = None
         self.channel_id: str | None = None
         self._selected_images_visualise = {}
-        self._image_gallery = ft.ListView()
+        self._image_gallery = ft.ListView(expand=True)
         self._edit_allowed = False
         self._text_field_segmentation_channel: ft.TextField | None = None
         self._text_field_mask_suffix: ft.TextField | None = None
@@ -83,6 +83,9 @@ class Review(Module, ABC):
             )
             self._canvas = ImageEditingView(on_mask_change=lambda img_id, mask_added_or_removed: self.mask_update(img_id, mask_added_or_removed))
             self._canvas.auto_adjust=True
+            self._canvas.mask_color = self.mask_color
+            self._canvas.outline_color = self.outline_color
+            self._canvas.mask_opacity = self.mask_opacity
             self._settings: ft.Stack = ft.Stack([ft.Column([ft.Row([
                 self._canvas,
                 ft.Card(content=ft.Column([ft.Container(self._image_gallery, expand=True, padding=ft.Padding.only(top=20,left=20,right=20,bottom=10)),self._control_menu],spacing=0,expand=True,width=640)),
@@ -96,22 +99,23 @@ class Review(Module, ABC):
 
     def run(self):
         self.event_manager.notify(ProgressEvent(percent=0, process=f"Preparing: starting"))
-        #reset
+        # reset
         self._icon_x = {}
         self._icon_check = {}
         self.image_id = None
         self.channel_id = None
         self._image_gallery.controls.clear()
         self._text_field_mask_suffix.visible = True
-        #reset image_viewer
+        # reset image_viewer
         self._canvas.set_main_paths(self.inputs["image_paths"].data)
         self._canvas.set_mask_paths(self.inputs["mask_paths"].data)
         self._canvas.reset_image(without_update=True)
         self._edit_allowed = True
         self.event_manager.notify(ProgressEvent(percent=100, process=f"Preparing: finished"))
         self.event_manager.notify(ProgressEvent(percent=0, process=f"Loading Images: Starting"))
-        src  = convert_tiffs_to_png_parallel(self.inputs["image_paths"].data)
-        async def select_image(img_id,c_id):
+        src = convert_tiffs_to_png_parallel(self.inputs["image_paths"].data)
+
+        async def select_image(img_id, c_id):
             if self.image_id is not None and self.image_id in self._selected_images_visualise:
                 if self.channel_id is not None and self.channel_id in self._selected_images_visualise[
                     self.image_id]:
@@ -123,11 +127,12 @@ class Review(Module, ABC):
             self._selected_images_visualise[img_id][c_id].update()
             self._canvas.select_image(img_id, c_id,
                                       self.user_segmentation_channel)
+
         n_series = len(src)
-        for iN,image_id in enumerate(src):
+        for iN, image_id in enumerate(src):
             cur_image_paths = src[image_id]
             self._selected_images_visualise[image_id] = {}
-            for iN2,channel_id in enumerate(cur_image_paths):
+            for iN2, channel_id in enumerate(cur_image_paths):
                 self._selected_images_visualise[image_id][channel_id] = ft.Container(
                     width=154,
                     height=154,
@@ -139,16 +144,17 @@ class Review(Module, ABC):
             group_row = ft.Row(
                 [
                     ft.Column(
-                    [
+                        [
                             ft.GestureDetector(
                                 content=ft.Container(ft.Stack([ft.Image(
-                                src=cur_image_paths[channel_id],
-                                height=150,
-                                width=150,
-                                fit=ft.BoxFit.CONTAIN,
-                                gapless_playback=True
-                                ),self._selected_images_visualise[image_id][channel_id]]),width=156,height=156),
-                                on_tap=lambda e, img_id=image_id, c_id=channel_id: self._canvas.page.run_task(select_image, img_id, c_id)
+                                    src=cur_image_paths[channel_id],
+                                    height=150,
+                                    width=150,
+                                    fit=ft.BoxFit.CONTAIN,
+                                    gapless_playback=True
+                                ), self._selected_images_visualise[image_id][channel_id]]), width=156, height=156),
+                                on_tap=lambda e, img_id=image_id, c_id=channel_id: self._canvas.page.run_task(
+                                    select_image, img_id, c_id)
                             ),
                             ft.Text(channel_id, size=10, text_align=ft.TextAlign.CENTER),
                         ],
@@ -163,16 +169,18 @@ class Review(Module, ABC):
                 scroll=ft.ScrollMode.AUTO,
             )
             self._icon_check[image_id] = ft.Icon(ft.Icons.CHECK, color=ft.Colors.GREEN, size=17, visible=False,
-                                                tooltip="Mask is available")
+                                                 tooltip="Mask is available")
             self._icon_x[image_id] = ft.Icon(ft.Icons.CLOSE, size=17, visible=True, tooltip="Mask not available")
-            self.update_mask_check(image_id,False)
+            self.update_mask_check(image_id, False)
             self._image_gallery.controls.append(ft.Column([ft.Row(
-            [ft.Text(f"{image_id}", weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.CENTER), self._icon_check[image_id], self._icon_x[image_id]], spacing=2),
-                                                      group_row], spacing=10, alignment=ft.MainAxisAlignment.CENTER))
-            self.event_manager.notify(ProgressEvent(percent=int((iN+1) / n_series * 100), process=f"Loading Images: {iN+1}/{n_series}"))
+                [ft.Text(f"{image_id}", weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.CENTER),
+                 self._icon_check[image_id], self._icon_x[image_id]], spacing=2),
+                group_row], spacing=10, alignment=ft.MainAxisAlignment.CENTER))
+            self.event_manager.notify(
+                ProgressEvent(percent=int((iN + 1) / n_series * 100), process=f"Loading Images: {iN + 1}/{n_series}"))
+            self._image_gallery.update()
 
         self.event_manager.notify(ProgressEvent(percent=100, process=f"Loading Images: Finished"))
-
         return True
 
     def update_mask_check(self, image_id,update=True):
@@ -235,10 +243,13 @@ class Review(Module, ABC):
         self.event_manager.notify(OnPipelineChangeEvent("user_attr_change"))
 
     @classmethod
-    def update_class(cls):
+    def update_class(cls,mask_color=None,outline_color=None,opacity=None):
+        cls.mask_color = mask_color if mask_color is not None else cls.mask_color
+        cls.outline_color = outline_color if outline_color is not None else cls.outline_color
+        cls.mask_opacity = opacity if opacity is not None else cls.mask_opacity
         for instance in cls._instances:
             if instance.image_id is not None:
-                instance.select_image(instance.image_id, instance.channel_id,instance.user_segmentation_channel)
+                instance._canvas.set_colors(mask_color, outline_color, opacity)
 
     def destroy(self):
         self._instances.remove(self)

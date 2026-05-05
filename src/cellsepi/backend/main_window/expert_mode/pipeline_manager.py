@@ -239,6 +239,7 @@ class PipelineManager:
         Arguments:
             ignore_modules: List of modules to ignore.
         """
+        self.executing = ""
         self.modules_executed = 0
         self._continue_event.clear()
         try:
@@ -281,7 +282,6 @@ class PipelineManager:
                     self.running = False
                     self.event_manager.notify(PipelineStateChangeEvent(PipelineStates.IDLE))
                     self.event_manager.notify(ErrorEvent(e.error_type,e.description))
-                    self.executing = ""
                     self._cancel_event.clear()
                     return
             else:

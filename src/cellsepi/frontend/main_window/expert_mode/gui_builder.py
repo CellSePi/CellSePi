@@ -628,15 +628,6 @@ class Builder:
 
         self.port_button.update()
 
-    async def on_resize(self):
-        """
-        Called when the resize-event is triggered.
-        Updates all relevant GUI elements.
-        """
-        self.help_text.height = self.page.window.height
-        self.help_text.width = self.page.window.width
-        self.help_text.update()
-
     def setup(self):
         """
         Setup all the GUI elements.
@@ -650,8 +641,6 @@ class Builder:
         )],expand=True)
 
         self.interactive_view = FletExtendedInteractiveViewer(content=canvas, constrained=False,scale_enabled=False,expand=True)
-
-        self.page.on_resize = lambda e: self.page.run_task(self.on_resize)
 
         self.builder_page_stack = ft.Stack([
                 self.interactive_view,

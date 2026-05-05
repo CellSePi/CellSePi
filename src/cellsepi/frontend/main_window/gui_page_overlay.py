@@ -34,6 +34,7 @@ class PageOverlay(ft.Stack):
                                                                    curve=ft.AnimationCurve.LINEAR_TO_EASE_OUT),
                                       animate=ft.Animation(duration=300, curve=ft.AnimationCurve.LINEAR_TO_EASE_OUT), visible=False,opacity=0.0)
         page.overlay.append(self.container)
+        page.update()
 
     @property
     def content(self) -> ft.Stack | None:
@@ -55,7 +56,7 @@ class PageOverlay(ft.Stack):
 
     async def _open(self):
         self.container.visible = True
-        self.page.update()
+        self.container.update()
         await asyncio.sleep(0.14)
         self.container.opacity = 1.0
         self.container.update()
@@ -65,7 +66,7 @@ class PageOverlay(ft.Stack):
         self.container.update()
         await asyncio.sleep(0.14)
         self.container.visible = False
-        self.page.update()
+        self.container.update()
 
     def create_background(self):
         def bg_click(e):
