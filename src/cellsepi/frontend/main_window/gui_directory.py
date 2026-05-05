@@ -487,7 +487,7 @@ class DirectoryCard(ft.Card):
         #add the handlers to the page
         #self.gui.page.overlay.extend([ self.get_directory_dialog])
 
-    def update_view(self,e):
+    async def update_view(self,e):
         """
         Changes the visibility of the directory/file picking.
         """
@@ -502,7 +502,8 @@ class DirectoryCard(ft.Card):
             self.files_row.visible = False
             self.directory_row.visible = True
 
-        self.gui.page.update()
+        self.files_row.update()
+        self.directory_row.update()
 
 
 

@@ -791,6 +791,7 @@ class ModuleGUI(ft.GestureDetector):
         else:
             setattr(self.module, attr_name, False)
         getattr(self.module, "on_change_" + attr_name)()
+        self.module.settings.update()
         self.pipeline_gui.pipeline.event_manager.notify(OnPipelineChangeEvent("user_attr_change"))
 
     async def create_options(self):
@@ -799,7 +800,7 @@ class ModuleGUI(ft.GestureDetector):
 
         if self.page_overlay is None:
             page = self.pipeline_gui._page
-            self.page_overlay = PageOverlay(page, self.module._settings, self.close_options)
+            self.page_overlay = PageOverlay(page, self.module.settings, self.close_options)
 
     def open_options(self,e):
         """

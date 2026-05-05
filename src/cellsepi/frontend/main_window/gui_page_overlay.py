@@ -69,7 +69,7 @@ class PageOverlay(ft.Stack):
         self.container.update()
 
     def create_background(self):
-        def bg_click(e):
+        async def bg_click(e):
             if not self.modal:
                 self.close()
                 if self.on_dismiss is not None:
