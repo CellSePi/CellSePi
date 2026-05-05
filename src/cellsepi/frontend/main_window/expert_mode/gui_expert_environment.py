@@ -69,7 +69,6 @@ class ExpertEnvironment(ft.Container):
         Loads the view of the expert environment, so its view has the original state when leaving the environment.
         """
         await self.gui.builder_environment.interactive_view.set_transformation_data(self.old_view[0], self.old_view[1],self.old_view[2],"300")
-        self.page.run_task(self.gui.builder_environment.on_resize)
         self.gui.builder_environment.interactive_view.update()
 
 class PipelineStateListener(EventListener):

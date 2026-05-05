@@ -633,10 +633,6 @@ class Builder:
         Called when the resize-event is triggered.
         Updates all relevant GUI elements.
         """
-        self.interactive_view.height = self.page.window.height - 20
-        self.interactive_view.width = self.page.window.width
-        self.interactive_view.update()
-        self.pipeline_gui.update_show_room()
         self.help_text.height = self.page.window.height
         self.help_text.width = self.page.window.width
         self.help_text.update()
@@ -645,6 +641,7 @@ class Builder:
         """
         Setup all the GUI elements.
         """
+        ft.InteractiveViewer
         canvas = ft.Stack([self.help_text,ft.Container(
             content=self.pipeline_gui,
             width=CANVAS_WIDTH,
@@ -652,9 +649,7 @@ class Builder:
             bgcolor=ft.Colors.TRANSPARENT,
         )],expand=True)
 
-        self.interactive_view = FletExtendedInteractiveViewer(content=canvas, constrained=False,
-                                                              height=self.page.window.height,
-                                                              width=self.page.window.width, scale_enabled=False,)
+        self.interactive_view = FletExtendedInteractiveViewer(content=canvas, constrained=False,scale_enabled=False,expand=True)
 
         self.page.on_resize = lambda e: self.page.run_task(self.on_resize)
 
