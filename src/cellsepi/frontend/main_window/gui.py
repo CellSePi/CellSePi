@@ -16,7 +16,7 @@ from cellsepi.frontend.main_window.gui_config import GUIConfig
 from cellsepi.frontend.main_window.gui_directory import DirectoryCard, copy_to_clipboard
 from cellsepi.backend.main_window.cellsepi import CellSePi
 from cellsepi.frontend.main_window.gui_mask import error_banner, reset_mask
-from cellsepi.backend.main_window.image_tuning import AutoImageTuning
+from cellsepi.frontend.main_window.gui_image_tuning import GUIAutoImageTuning
 from cellsepi.frontend.main_window.gui_training_environment import Training
 from cellsepi.frontend.main_window.gui_page_overlay import PageOverlay
 from cellsepi.frontend.main_window.expert_mode.expert_constants import ModuleType
@@ -76,7 +76,7 @@ class GUI:
             on_change=lambda e: e.page.run_task(self.update_adjusted_image)
         )
 
-        self.auto_image_tuning = AutoImageTuning(self)
+        self.auto_image_tuning = GUIAutoImageTuning(self)
         self.auto_brightness_contrast = ft.IconButton(icon=ft.Icons.AUTO_FIX_HIGH,icon_color=ft.Colors.GREY_700,style=ft.ButtonStyle(
                     shape=ft.RoundedRectangleBorder(radius=12),
                 ),on_click=lambda e: e.page.run_task(self.auto_image_tuning.pressed),tooltip="Auto brightness and contrast")
