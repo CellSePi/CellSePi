@@ -201,18 +201,18 @@ class GUI:
             if self.csp.segmentation_running:
                 self.cancel_event = multiprocessing.Event()
                 self.cancel_segmentation()
-                self.cancel_event.wait()
+                await asyncio.to_thread(self.cancel_event.wait)
             if self.csp.training_running:
                 self.training_event = multiprocessing.Event()
-                self.training_event.wait()
+                await asyncio.to_thread(self.training_event.wait)
             if self.csp.readout_running:
                 self.readout_event = multiprocessing.Event()
-                self.readout_event.wait()
+                await asyncio.to_thread(self.readout_event.wait)
             if self.builder_environment.pipeline_gui.pipeline.running:
                 self.builder_environment.cancel()
                 self.expert_running_event = multiprocessing.Event()
                 self.builder_environment.pipeline_running_event = self.expert_running_event
-                self.expert_running_event.wait()
+                await asyncio.to_thread(self.expert_running_event.wait)
             self.page.window.prevent_close = False
             self.page.window.on_event = None
             self.page.update()
