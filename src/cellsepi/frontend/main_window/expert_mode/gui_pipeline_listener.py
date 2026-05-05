@@ -227,7 +227,6 @@ class ModuleProgressListener(EventListener):
         self.builder.page.run_task(self._update,event)
 
     async def _update(self, event: ProgressEvent) -> None:
-        print("hey",event.process)
         if self.builder.pipeline_gui.pipeline._cancel_event.is_set():
             self.builder.info_text.value = ""
             self.builder.info_text.spans = [

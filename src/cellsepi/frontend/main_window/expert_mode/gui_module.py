@@ -66,7 +66,6 @@ class ModuleGUI(ft.GestureDetector):
                                             style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=12)),
                                             on_click=self.copy_module,
                                             tooltip="Copy module", hover_color=ft.Colors.WHITE12,)
-        self.test_button = ft.IconButton(icon=ft.Icons.FORMAT_QUOTE_SHARP, on_hover= lambda e: print("test button clicked"))
 
         self.paused_button = ft.Stack([ft.Container(bgcolor=ft.Colors.BLACK26, width=30, height=30, top=5, right=5, border_radius=ft.border_radius.all(45)), ft.IconButton(icon=ft.Icons.PLAY_ARROW, icon_color=ft.Colors.WHITE, disabled=True,
                                                                                                                                                                            style=ft.ButtonStyle(
@@ -293,7 +292,6 @@ class ModuleGUI(ft.GestureDetector):
         """
         Handles the event when the connection button gets pressed.
         """
-        print("connect button clicked")
         self.pipeline_gui.toggle_all_module_detection(self.module_id)
         if not self.port_selection:
             if self.show_ports:
@@ -329,7 +327,6 @@ class ModuleGUI(ft.GestureDetector):
         """
         Handles the event when the show ports button gets pressed.
         """
-        print("show ports button clicked")
         async with self._ports_lock:
             if self.module_id not in self.pipeline_gui.modules:
                 return
@@ -823,7 +820,6 @@ class ModuleGUI(ft.GestureDetector):
         """
         Called when the copy button is clicked.
         """
-        print("copy button clicked")
         self.copy_button.icon_color = ft.Colors.BLACK38
         self.copy_button.update()
         copy_dict = self.to_dict()
