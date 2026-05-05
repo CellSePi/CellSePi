@@ -291,11 +291,11 @@ class Builder:
         self.load_button.update()
         for module in self.pipeline_gui.modules.values():
             self.pipeline_gui.lines_gui.update_delete_buttons(module,True)
+            module.disable_tools()
             module.waiting_button.visible = True
             module.delete_button.visible = False
             module.waiting_button.update()
             module.delete_button.update()
-            module.disable_tools()
             module.error_stack.visible = False
             module.error_stack.update()
             module.check_warning()
@@ -664,5 +664,5 @@ class Builder:
                 self.right_tools,
                 self.run_menu,
                 self.zoom_menu,
-             ]
+             ],expand=True
             )
