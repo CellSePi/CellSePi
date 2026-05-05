@@ -186,17 +186,6 @@ class PipelineGUI(ft.Stack):
                 module.visible = False
             module.update()
 
-    def update_show_room(self):
-        """
-        Updates the show_room position.
-        """
-        self.show_room_container.left = SPACING_X
-        self.show_room_container.top = SPACING_Y - SPACING_Y / 2
-        self.show_room_container.update()
-        for module in self.show_room_modules:
-            module.left = SPACING_X + SHOWROOM_PADDING_X / 2
-            module.update()
-
     def add_module(self,module_type: ModuleType,x: float = None,y: float = None,module_id: str = None,module_dict:dict=None):
         """
         Adds a module to the PipelineGUI.

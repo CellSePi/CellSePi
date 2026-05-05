@@ -62,12 +62,13 @@ class ExpertEnvironment(ft.Container):
         self.gui.page.update()
         self.text.value = "Exit Expert Mode"
         self.gui.training_environment.text.value = "Go To Training"
-        asyncio.create_task(self._update_view()) #self.page.run_task(self._update_view)
+        await self._update_view() #self.page.run_task(self._update_view)
 
     async def _update_view(self):
         """
         Loads the view of the expert environment, so its view has the original state when leaving the environment.
         """
+        await asyncio.sleep(0.1)
         await self.gui.builder_environment.interactive_view.set_transformation_data(self.old_view[0], self.old_view[1],self.old_view[2],"300")
         self.gui.builder_environment.interactive_view.update()
 

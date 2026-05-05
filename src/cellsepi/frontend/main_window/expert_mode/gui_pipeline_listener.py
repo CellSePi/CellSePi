@@ -248,6 +248,8 @@ class ModuleProgressListener(EventListener):
         self.builder.progress_bar_module.value = event.percent / 100
         self.builder.progress_bar_module.update()
         self.builder.progress_bar_module_text.value = f"{event.percent}%"
+        self.builder.progress_bar_module.update()
+        self.builder.progress_bar_module_text.update()
         self.builder.page.update()
 
 class ModuleErrorListener(EventListener):
