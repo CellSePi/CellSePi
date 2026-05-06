@@ -1,11 +1,3 @@
-import skimage
-import skimage.io
-import skimage.filters
-import skimage.color
-import skimage.measure
-import skimage.morphology
-_ = (skimage.io,skimage.filters,skimage.color,skimage.measure,skimage.morphology)
-
 import flet as ft
 from cellsepi.frontend.main_window.gui import GUI
 
