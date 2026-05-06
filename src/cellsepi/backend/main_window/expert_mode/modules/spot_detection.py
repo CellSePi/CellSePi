@@ -1,9 +1,8 @@
 import os
 from pathlib import Path
 
-from bigfish.detection.spot_detection import detect_spots
+from cellsepi.backend.main_window.expert_mode.modules.big_fish import  detect_spots
 import numpy as np
-import skimage
 import tifffile
 from scipy.ndimage import binary_dilation
 
