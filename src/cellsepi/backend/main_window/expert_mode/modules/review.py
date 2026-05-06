@@ -1,5 +1,4 @@
 from image_editing_view import ImageEditingView
-from poetry.console.commands import self
 
 from cellsepi.backend.main_window.data_util import convert_tiffs_to_png_parallel
 from cellsepi.backend.main_window.expert_mode.listener import ProgressEvent, OnPipelineChangeEvent

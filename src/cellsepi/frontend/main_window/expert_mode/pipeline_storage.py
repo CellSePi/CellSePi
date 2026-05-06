@@ -3,7 +3,6 @@ import os
 from pathlib import Path
 from typing import List, Dict, Any, cast
 
-from PIL.ImageChops import offset
 from jsonschema import validate, ValidationError
 
 def load_schema(schema_path: str) -> dict:
