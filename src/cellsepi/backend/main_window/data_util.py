@@ -1,3 +1,5 @@
+from collections import Counter
+
 import base64
 import os
 import pathlib
@@ -146,38 +148,45 @@ def load_lif3d_bioimage(lif3d_path):
     # See Readme at https://github.com/bioio-devs/bioio
     bio_img = BioImage(lif3d_path)
 
-    # test_data = np.squeeze(bio_img.get_stack(), axis=1)
-    images = []
-    series_ids = []
+    shapes = []
+
+    #Collect shapes
     for scene in bio_img.scenes:
         bio_img.set_scene(scene)
-        cur_data = bio_img.data
-        shape = cur_data.shape
+        current_shape = (bio_img.dims.X, bio_img.dims.Y, bio_img.dims.Z)
+        shapes.append(current_shape)
 
-        if shape[-1] != 1024 or shape[-2] != 1024:
-            # Special case of a single series in a .lif file having a resolution of 512 x 512
+    if not shapes:
+        return [], np.array([])
+
+    #get the primary shape in the image array
+    most_common_shape = Counter(shapes).most_common(1)[0][0]
+
+    images = []
+    series_ids = []
+
+    #only load the images that are comform with the most common shape
+    for scene, shape in zip(bio_img.scenes, shapes):
+        if shape == most_common_shape:
+            bio_img.set_scene(scene)
+            cur_data = bio_img.get_image_data("TCXYZ")
+            images.append(cur_data)
+            series_ids.append(scene)
+        else:
             continue
 
-        cur_data = cur_data.reshape((shape[0], -1, shape[-2], shape[-1])).reshape(shape[0], shape[2], shape[1],
-                                                                                  shape[-2], shape[-1])
-        shape = cur_data.shape
-        series_ids.append(scene)
-        images.append(cur_data)
-        # fig, axes = plt.subplots(ncols=shape[2], nrows=shape[1], sharex=True, sharey=True)
-        # for iR in range(shape[1]):
-        #    for iC in range(shape[2]):
-        #        axes[iR, iC].imshow(test_data[0, iR, iC])
-        # plt.tight_layout()
-        # plt.show()
+    if not images:
+        return series_ids, np.array([])
+
     images = np.stack(images)
-    images = np.squeeze(images)
+
     return series_ids, images
 
 
 def extract_from_lif3d_file(lif3d_path, target_dir, channel_prefix, event_manager: EventManager = None):
     series_ids, images = load_lif3d_bioimage(lif3d_path)
 
-    images = np.transpose(images, axes=(0, 2, 3, 4, 1))
+    trans_images = np.squeeze(images, axis=1)
     target_dir = pathlib.Path(target_dir)
     target_dir.mkdir(parents=True, exist_ok=True)
 
@@ -185,7 +194,7 @@ def extract_from_lif3d_file(lif3d_path, target_dir, channel_prefix, event_manage
     if event_manager is not None:
         event_manager.notify(
             event=ProgressEvent(0, process=f"Extracting Series: {0}/{total_scenes}"))
-    for s_idx, series in enumerate(images):
+    for s_idx, series in enumerate(trans_images):
         series_id = series_ids[s_idx]
         for c_idx, channel_3d in enumerate(series):
             file_name = f"{series_id}{channel_prefix}{c_idx + 1}.tif"
