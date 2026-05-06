@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 
 # ---------------------------------------------------------------------------
-# This file contains code adapted from the "big-fish" Python package.
+# This file contains code adapted from the "big-fish" Python package
+# (https://github.com/fish-quant/big-fish).
+#
 # Original Author: Arthur Imbert <arthur.imbert.pro@gmail.com>
 # Copyright (c) 2020, Arthur Imbert
 # License: BSD 3-Clause (https://github.com/fish-quant/big-fish/blob/master/LICENSE)
 #
-# Modifications made by: [Florian Hock / CellSePi]
+# Modifications made by: Florian Hock / CellSePi
 # - Replaced scikit-image dependency with scipy.ndimage in spot deduplication.
 # ---------------------------------------------------------------------------
 
@@ -14,12 +16,253 @@
 Functions to detect spots in 2-d and 3-d.
 """
 
+import inspect
 import warnings
-
-import scipy.ndimage as ndi
 import numpy as np
+import scipy.ndimage as ndi
 
-import bigfish.stack as stack
+def moving_average(array, n):
+    """Compute a trailing average.
+
+    Parameters
+    ----------
+    array : np.ndarray
+        Array used to compute moving average.
+    n : int
+        Window width of the moving average.
+
+    Returns
+    -------
+    results : np.ndarray
+        Moving average values.
+
+    """
+    # check parameter
+    check_parameter(n=int)
+    check_array(array, ndim=1)
+
+    # compute moving average
+    cumsum = [0]
+    results = []
+    for i, x in enumerate(array, 1):
+        cumsum.append(cumsum[i-1] + x)
+        if i >= n:
+            ma = (cumsum[i] - cumsum[i - n]) / n
+            results.append(ma)
+    results = np.array(results)
+
+    return results
+
+def centered_moving_average(array, n):
+    """Compute a centered moving average.
+
+    Parameters
+    ----------
+    array : np.ndarray
+        Array used to compute moving average.
+    n : int
+        Window width of the moving average.
+
+    Returns
+    -------
+    results : np.ndarray
+        Centered moving average values.
+
+    """
+    # check parameter
+    check_parameter(n=int)
+    check_array(array, ndim=1)
+
+    # pad array to keep the same length and centered the outcome
+    if n % 2 == 0:
+        r = int(n / 2)
+        n += 1
+    else:
+        r = int((n - 1) / 2)
+    array_padded = np.pad(array, pad_width=r, mode="reflect")
+
+    # compute centered moving average
+    results = moving_average(array_padded, n)
+
+    return results
+
+def log_filter(image, sigma):
+    """
+    Applies a Laplacian of Gaussian (LoG) filter.
+    Mimics the behavior of bigfish.stack.log_filter without the dependency.
+    """
+    check_array(
+        image,
+        ndim=[2, 3],
+        dtype=[np.uint8, np.uint16, np.float32, np.float64])
+    check_parameter(sigma=(float, int, tuple, list))
+
+    orig_dtype = image.dtype
+    if orig_dtype == np.uint8:
+        image_float = image.astype(np.float32)
+    elif orig_dtype == np.uint16:
+        image_float = image.astype(np.float64)
+    else:
+        image_float = image
+
+    if isinstance(sigma, (tuple, list)):
+        if len(sigma) != image.ndim:
+            raise ValueError("'sigma' must be a scalar or a sequence with {0} "
+                             "elements.".format(image.ndim))
+
+    image_filtered = ndi.gaussian_laplace(image_float, sigma=sigma)
+
+    image_filtered = np.clip(-image_filtered, a_min=0, a_max=None)
+
+    if orig_dtype == np.uint8:
+        image_filtered = np.clip(np.round(image_filtered), 0, 255).astype(np.uint8)
+    elif orig_dtype == np.uint16:
+        image_filtered = np.clip(np.round(image_filtered), 0, 65535).astype(np.uint16)
+    else:
+        pass
+
+    return image_filtered
+
+def check_parameter(**kwargs):
+    """Check dtype of the function's parameters.
+
+    Parameters
+    ----------
+    kwargs : Type or Tuple[Type]
+        Map of each parameter with its expected dtype.
+
+    Returns
+    -------
+    _ : bool
+        Assert if the array is well formatted.
+
+    """
+    # get the frame and the parameters of the function
+    frame = inspect.currentframe().f_back
+    _, _, _, values = inspect.getargvalues(frame)
+
+    # compare each parameter with its expected dtype
+    for arg in kwargs:
+        expected_dtype = kwargs[arg]
+        parameter = values[arg]
+        if not isinstance(parameter, expected_dtype):
+            actual = "'{0}'".format(type(parameter).__name__)
+            if isinstance(expected_dtype, tuple):
+                target = ["'{0}'".format(x.__name__) for x in expected_dtype]
+                target = "(" + ", ".join(target) + ")"
+            else:
+                target = expected_dtype.__name__
+            raise TypeError("Parameter {0} should be a {1}. It is a {2} "
+                            "instead.".format(arg, target, actual))
+
+    return True
+
+def _check_dim_array(array, ndim):
+    """Check that the array has the right number of dimensions.
+
+    Parameters
+    ----------
+    array : np.ndarray
+        Array to check.
+    ndim : int or List[int]
+        Number of dimensions expected
+
+    """
+    # enlist the number of expected dimensions
+    if isinstance(ndim, int):
+        ndim = [ndim]
+
+    # check the number of dimensions of the array
+    if array.ndim not in ndim:
+        raise ValueError("Array can't have {0} dimension(s). Expected "
+                         "dimensions are: {1}.".format(array.ndim, ndim))
+
+def _check_nan_array(array):
+    """Check that the array does not have missing values.
+
+    Parameters
+    ----------
+    array : np.ndarray
+        Array to check.
+
+    """
+    # count nan
+    mask = np.isnan(array)
+    x = mask.sum()
+
+    # check the NaN values of the array
+    if x > 0:
+        raise ValueError("Array has {0} NaN values.".format(x))
+
+def check_array(array, ndim=None, dtype=None, allow_nan=True):
+    """Full safety check of an array.
+
+    Parameters
+    ----------
+    array : np.ndarray
+        Array to check.
+    ndim : int or List[int]
+        Number of dimensions expected.
+    dtype : type or List[type]
+        Types expected.
+    allow_nan : bool
+        Allow NaN values or not.
+
+    Returns
+    -------
+    _ : bool
+        Assert if the array is well formatted.
+
+    """
+    # check parameters
+    check_parameter(
+        array=np.ndarray,
+        ndim=(int, list, type(None)),
+        dtype=(type, list, type(None)),
+        allow_nan=bool)
+
+    # check the dtype
+    if dtype is not None:
+        _check_dtype_array(array, dtype)
+
+    # check the number of dimension
+    if ndim is not None:
+        _check_dim_array(array, ndim)
+
+    # check NaN
+    if not allow_nan:
+        _check_nan_array(array)
+
+    return True
+
+
+def _check_dtype_array(array, dtype):
+    """Check that a np.ndarray has the right dtype.
+
+    Parameters
+    ----------
+    array : np.ndarray
+        Array to check
+    dtype : type or List[type]
+        Type expected.
+
+    """
+    # enlist the dtype expected
+    if isinstance(dtype, type):
+        dtype = [dtype]
+
+    # check the dtype of the array
+    error = True
+    for dtype_expected in dtype:
+        if array.dtype == dtype_expected:
+            error = False
+            break
+
+    if error:
+        raise TypeError("{0} is not supported yet. Use one of those dtypes "
+                        "instead: {1}.".format(array.dtype, dtype))
+
+
 
 #from big-fish utils
 def get_breaking_point(x, y):
@@ -46,11 +289,11 @@ def get_breaking_point(x, y):
 
     """
     # check parameters
-    stack.check_array(
+    check_array(
         x,
         ndim=1,
         dtype=[np.float32, np.float64, np.int32, np.int64])
-    stack.check_array(
+    check_array(
         y,
         ndim=1,
         dtype=[np.float32, np.float64, np.int32, np.int64])
@@ -101,7 +344,7 @@ def get_object_radius_pixel(voxel_size_nm, object_radius_nm, ndim):
 
     """
     # check parameters
-    stack.check_parameter(
+    check_parameter(
         voxel_size_nm=(int, float, tuple, list),
         object_radius_nm=(int, float, tuple, list),
         ndim=int)
@@ -194,7 +437,7 @@ def detect_spots(
 
     """
     # check parameters
-    stack.check_parameter(
+    check_parameter(
         threshold=(int, float, type(None)),
         remove_duplicate=bool,
         return_threshold=bool,
@@ -205,7 +448,7 @@ def detect_spots(
 
     # if one image is provided we enlist it
     if not isinstance(images, list):
-        stack.check_array(
+        check_array(
             images,
             ndim=[2, 3],
             dtype=[np.uint8, np.uint16, np.float32, np.float64])
@@ -215,7 +458,7 @@ def detect_spots(
     else:
         ndim = None
         for i, image in enumerate(images):
-            stack.check_array(
+            check_array(
                 image,
                 ndim=[2, 3],
                 dtype=[np.uint8, np.uint16, np.float32, np.float64])
@@ -383,7 +626,7 @@ def _detect_spots_from_images(
     masks = []
     for image in images:
         # filter image
-        image_filtered = stack.log_filter(image, log_kernel_size)
+        image_filtered = log_filter(image, log_kernel_size)
         images_filtered.append(image_filtered)
 
         # get pixels value
@@ -451,7 +694,7 @@ def local_maximum_detection(image, min_distance):
     local maximum is not unique.
 
     In order to make the detection robust, it should be applied to a
-    filtered image (using :func:`bigfish.stack.log_filter` for example).
+    filtered image (using log_filter for example).
 
     Parameters
     ----------
@@ -470,11 +713,11 @@ def local_maximum_detection(image, min_distance):
 
     """
     # check parameters
-    stack.check_array(
+    check_array(
         image,
         ndim=[2, 3],
         dtype=[np.uint8, np.uint16, np.float32, np.float64])
-    stack.check_parameter(min_distance=(int, float, tuple, list))
+    check_parameter(min_distance=(int, float, tuple, list))
 
     # compute the kernel size (centered around our pixel because it is uneven)
     if isinstance(min_distance, (tuple, list)):
@@ -506,7 +749,7 @@ def spots_thresholding(
     """Filter detected spots and get coordinates of the remaining spots.
 
     In order to make the thresholding robust, it should be applied to a
-    filtered image (using :func:`bigfish.stack.log_filter` for example). If
+    filtered image (using log_filter for example). If
     the local maximum is not unique (it can happen if connected pixels have
     the same value), a connected component algorithm is applied to keep only
     one coordinate per spot.
@@ -534,15 +777,15 @@ def spots_thresholding(
 
     """
     # check parameters
-    stack.check_array(
+    check_array(
         image,
         ndim=[2, 3],
         dtype=[np.uint8, np.uint16, np.float32, np.float64])
-    stack.check_array(
+    check_array(
         mask_local_max,
         ndim=[2, 3],
         dtype=bool)
-    stack.check_parameter(
+    check_parameter(
         threshold=(float, int, type(None)),
         remove_duplicate=bool)
 
@@ -606,7 +849,7 @@ def automated_threshold_setting(image, mask_local_max):
     """Automatically set the optimal threshold to detect spots.
 
     In order to make the thresholding robust, it should be applied to a
-    filtered image (using :func:`bigfish.stack.log_filter` for example). The
+    filtered image (using log_filter for example). The
     optimal threshold is selected based on the spots distribution. The latter
     should have an elbow curve discriminating a fast decreasing stage from a
     more stable one (a plateau).
@@ -625,11 +868,11 @@ def automated_threshold_setting(image, mask_local_max):
 
     """
     # check parameters
-    stack.check_array(
+    check_array(
         image,
         ndim=[2, 3],
         dtype=[np.uint8, np.uint16, np.float32, np.float64])
-    stack.check_array(
+    check_array(
         mask_local_max,
         ndim=[2, 3],
         dtype=bool)
@@ -702,7 +945,7 @@ def _get_spot_counts(thresholds, value_spots):
     # count spots for each threshold
     count_spots = np.log([np.count_nonzero(value_spots > t)
                           for t in thresholds])
-    count_spots = stack.centered_moving_average(count_spots, n=5)
+    count_spots = centered_moving_average(count_spots, n=5)
 
     # the tail of the curve unnecessarily flatten the slop
     count_spots = count_spots[count_spots > 2]
@@ -759,7 +1002,7 @@ def get_elbow_values(
 
     """
     # check parameters
-    stack.check_parameter(
+    check_parameter(
         voxel_size=(int, float, tuple, list, type(None)),
         spot_radius=(int, float, tuple, list, type(None)),
         log_kernel_size=(int, float, tuple, list, type(None)),
@@ -767,7 +1010,7 @@ def get_elbow_values(
 
     # if one image is provided we enlist it
     if not isinstance(images, list):
-        stack.check_array(
+        check_array(
             images,
             ndim=[2, 3],
             dtype=[np.uint8, np.uint16, np.float32, np.float64])
@@ -777,7 +1020,7 @@ def get_elbow_values(
     else:
         ndim = None
         for i, image in enumerate(images):
-            stack.check_array(
+            check_array(
                 image,
                 ndim=[2, 3],
                 dtype=[np.uint8, np.uint16, np.float32, np.float64])
@@ -865,7 +1108,7 @@ def get_elbow_values(
     masks = []
     for image in images:
         # filter image
-        image_filtered = stack.log_filter(image, log_kernel_size)
+        image_filtered = log_filter(image, log_kernel_size)
         images_filtered.append(image_filtered)
 
         # get pixels value
