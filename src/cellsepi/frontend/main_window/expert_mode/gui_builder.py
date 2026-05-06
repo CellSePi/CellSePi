@@ -401,7 +401,7 @@ class Builder:
         await self.interactive_view.zoom(1.0 - ZOOM_VALUE)
 
     async def reset_view(self, e):
-        await self.interactive_view.reset("400") #TODO: fix interactive_viewer to allow again int's
+        await self.interactive_view.reset(400)
 
     async def click_save_file(self):
         """
