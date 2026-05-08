@@ -419,7 +419,7 @@ class Builder:
         self.save_button.disabled = True
         self.page.update()
 
-    async def click_load_file(self, e: ft.Event[ft.Button]):
+    async def click_load_file(self, e: ft.Event[ft.Button] = None):
         """
         Handles if pipline file is selected.
         """
@@ -433,7 +433,7 @@ class Builder:
                     cupertino_alert_dialog.open = False
                     a.control.page.update()
 
-                def ok_dialog(a):
+                async def ok_dialog(a):
                     cupertino_alert_dialog.open = False
                     a.control.page.update()
                     if self.pipeline_gui.pipeline.running:
@@ -447,7 +447,7 @@ class Builder:
                     try:
                         self.pipeline_storage.load_pipeline(files[0].path)
                         self.pipeline_gui.reset()
-                        self.page.run_task(self.pipeline_gui.load_pipeline)
+                        await self.pipeline_gui.load_pipeline()
                     except Exception as exception2:
                         self.pipeline_gui.page.show_dialog(
                             ft.SnackBar(
@@ -482,7 +482,7 @@ class Builder:
                 try:
                     self.pipeline_storage.load_pipeline(files[0].path)
                     self.pipeline_gui.reset()
-                    self.page.run_task(self.pipeline_gui.load_pipeline)
+                    await self.pipeline_gui.load_pipeline()
                 except Exception as exception1:
                     self.pipeline_gui.page.show_dialog(
                         ft.SnackBar(
@@ -494,7 +494,7 @@ class Builder:
         self.load_button.icon_color = MAIN_ACTIVE_COLOR
         self.load_button.update()
 
-    async def click_save_as_file(self, e: ft.Event[ft.Button]):
+    async def click_save_as_file(self, e: ft.Event[ft.Button]=None):
         """
         Called to save a file is at a specific location.
         """

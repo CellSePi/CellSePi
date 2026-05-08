@@ -278,6 +278,7 @@ class GUI:
 
             for name, obj in inspect.getmembers(module, inspect.isclass):
                 if issubclass(obj, Module) and obj is not Module:
-                    MODULE_REGISTRY[obj.__name__] = obj
+                    unique_id = f"{path.stem}.{obj.__name__}"
+                    MODULE_REGISTRY[unique_id] = obj
 
         return errors_found

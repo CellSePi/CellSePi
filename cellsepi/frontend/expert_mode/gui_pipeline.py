@@ -60,7 +60,7 @@ class PipelineGUI(ft.Stack):
             if module_dict["module_name"] not in type_map:
                 self.loading = False
                 self.pipeline.event_manager.notify(OnPipelineChangeEvent(f"Pipeline {self.pipeline_name} loaded."))
-                raise ValueError(f"Module {module_dict['module_name']} not supported!")
+                raise ValueError(f"Module ’{module_dict['module_name']}’ not supported!")
             self.add_module(module_type=type_map[module_dict["module_name"]], x=module_dict["position"]["x"], y=module_dict["position"]["y"], module_id=module_dict["module_id"],module_dict=module_dict)
 
         for pipe in self.pipeline_dict["pipes"]:
@@ -186,7 +186,7 @@ class PipelineGUI(ft.Stack):
         """
         Adds a module to the PipelineGUI.
         """
-        id_number = int(module_id.removeprefix(module_type.value.gui_config().name)) if module_id is not None else None
+        id_number = int(module_id.removeprefix(module_type.gui_config().name)) if module_id is not None else None
         module_gui = ModuleGUI(self,module_type,x,y,id_number=id_number,module_dict=module_dict)
         self.controls.append(module_gui)
         self.update()
