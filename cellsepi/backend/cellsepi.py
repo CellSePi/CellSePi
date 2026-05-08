@@ -35,7 +35,6 @@ class CellSePi:
 
     def createDirectory(self):
         app_dir = Path(platformdirs.user_config_dir(APP_NAME))
-        print(app_dir)
 
         app_dir.mkdir(parents=True, exist_ok=True)
         models_dir = app_dir / "models"

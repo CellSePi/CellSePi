@@ -301,7 +301,7 @@ class Builder:
             module.check_warning()
         self.update_modules_executed(reset=True)
         await asyncio.to_thread(self.pipeline_gui.pipeline.run,show_room_module_ids)
-        if len(self.pipeline_gui.pipeline.modules) - len(ModuleType) * 2 != self.pipeline_gui.module_count or self.pipeline_gui.module_count != self.pipeline_gui.pipeline.modules_executed:
+        if len(self.pipeline_gui.pipeline.modules) - len(MODULE_REGISTRY) * 2 != self.pipeline_gui.module_count or self.pipeline_gui.module_count != self.pipeline_gui.pipeline.modules_executed:
             self.update_modules_executed(reset=True)
         self.start_button.visible = True
         self.start_button.update()
@@ -384,7 +384,7 @@ class Builder:
             self.pipeline_gui.pipeline.modules_executed = 0
         current =self.pipeline_gui.pipeline.modules_executed
         if not self.pipeline_gui.pipeline.running:
-            total = len(self.pipeline_gui.pipeline.modules) - len(ModuleType) * 2
+            total = len(self.pipeline_gui.pipeline.modules) - len(MODULE_REGISTRY) * 2
             self.progress_pipeline.value = (current / total) if total > 0 else 0
             self.pipeline_gui.module_count = total
             self.progress_text.value = f"{current}/{total}"
