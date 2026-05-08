@@ -80,9 +80,23 @@ jobs:
         shell: python
         run: |
           import shutil
-          archive_format = "zip" if "${{ matrix.name }}" == "windows" else "gztar"
-          shutil.make_archive("${{ matrix.name }}-build-cellsepi", archive_format, "${{ matrix.artifact_path }}")
+          import os
 
+          name = "${{ matrix.name }}"
+          base_path = "${{ matrix.artifact_path }}"
+          
+          if name == "linux":
+              bundle_path = os.path.join(base_path, "bundle")
+              if os.path.exists(bundle_path):
+                  source_dir = bundle_path
+              else:
+                  source_dir = base_path
+          else:
+              source_dir = base_path
+
+          archive_format = "zip" if name == "windows" else "gztar"
+          shutil.make_archive(f"{name}-build-cellsepi", archive_format, source_dir)
+          
       - name: Upload Artifact
         uses: actions/upload-artifact@v5.0.0
         with:
