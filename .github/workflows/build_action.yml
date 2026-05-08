@@ -98,29 +98,31 @@ jobs:
             mv cpu_reqs.txt requirements.txt
             
             python3 -c '
-            import os
-            with open("pyproject.toml", "r") as f:
-                lines = f.readlines()
-            new_lines = []
+import os
+with open("pyproject.toml", "r") as f:
+    lines = f.readlines()
+new_lines = []
+skip = False
+for line in lines:
+     if "[tool.poetry.dependencies]" in line or "[tool.poetry.group.dev.dependencies]" in line:
+        skip = True
+        continue
+    if line.startswith("[") and skip:
+       if "tool.poetry.dependencies" not in line and "tool.poetry.group" not in line:
             skip = False
-            for line in lines:
-                 if "[tool.poetry.dependencies]" in line or "[tool.poetry.group.dev.dependencies]" in line:
-                    skip = True
-                    continue
-                if line.startswith("[") and skip:
-                   if "tool.poetry.dependencies" not in line and "tool.poetry.group" not in line:
-                        skip = False
-                if not skip:
-                    new_lines.append(line)
-            with open("pyproject.toml", "w") as f:
-                f.writelines(new_lines)
-            '  
+    if not skip:
+        new_lines.append(line)
+with open("pyproject.toml", "w") as f:
+    f.writelines(new_lines)
+'  
             rm -rf .venv
           fi
           
       - name: Build app
         run: |
-          flet build ${{ runner.os == 'Linux' && 'linux' || matrix.name }} --yes --verbose
+          pip install flet flet-cli
+        
+          python3 -m flet build ${{ runner.os == 'Linux' && 'linux' || matrix.name }} --yes --verbose
           
       - name: Archive build
         shell: python
