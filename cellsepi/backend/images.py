@@ -10,13 +10,14 @@ from PIL import Image
 from cellpose import models, io
 from scipy.ndimage import binary_erosion
 from tifffile import tifffile
+import cv2
 
 from backend.data_util import load_image_to_numpy
 from backend.expert_mode.event_manager import EventManager
 from backend.expert_mode.listener import ProgressEvent
 from backend.notifier import Notifier
 from frontend.gui_mask import reset_mask
-
+from backend.CellposeV3 import modelsV3, ioV3
 
 class BatchImageSegmentation(Notifier):
     """
@@ -221,12 +222,23 @@ class BatchImageSegmentation(Notifier):
 
         device = torch.device(self.device)  # converts string to device object
 
-        io.logger_setup()  # configures logging system for Cellpose
-
         #if self._is_cellpose_model(segmentation_model):
-        model_type = 'cellpose'
-        #model = models.CellposeModel(device=device, pretrained_model=segmentation_model)
-        model = models.CellposeModel(device=device)
+        if self.gui.csp.model_type == "CustomV3":
+            model_type = 'CustomV3'
+            model = modelsV3.CellposeModel(device=device, pretrained_model=segmentation_model)
+            ioV3.logger_setup()
+        elif self.gui.csp.model_type == "Cellpose":
+            model_type = 'Cellpose'
+            model = modelsV3.CellposeModel(device=device, model_type="cyto3")
+            ioV3.logger_setup()
+        elif self.gui.csp.model_type == "CellposeSAM":
+            model_type = 'CellposeSAM'
+            model = models.CellposeModel(device=device)
+            io.logger_setup()
+        elif self.gui.csp.model_type == "CustomV4":
+            model_type = 'CustomV4'
+            model = models.CellposeModel(device=device, pretrained_model=segmentation_model)
+            io.logger_setup()
         """else:
             model_type = 'pytorch'
             model = maskrcnn_resnet50_fpn(weights="DEFAULT")
@@ -267,12 +279,27 @@ class BatchImageSegmentation(Notifier):
                 else:
                     image = np.zeros_like(image)
 
+                # Scale down image resolution to accelerate segmentation
+                """scale = 0.5
+                image = cv2.resize(
+                    image,
+                    (int(image.shape[1] * scale), int(image.shape[0] * scale)),
+                    interpolation=cv2.INTER_AREA
+                )"""
+
                 # model evaluates image
-                if model_type == 'cellpose':
+                if model_type == 'Cellpose' or model_type == 'CustomV3':
                     if image.ndim == 3: #x,y,z dimensions
                         res = model.eval(image, diameter=diameter, channels=[0, 0],z_axis=2,do_3D=False)
                     else:
                         res = model.eval(image, diameter=diameter, channels=[0, 0])
+                    mask, flow, style = res[:3]
+
+                elif model_type == 'CellposeSAM' or model_type == 'CustomV4':
+                    if image.ndim == 3: #x,y,z dimensions
+                        res = model.eval(image, diameter=diameter,z_axis=2,do_3D=False)
+                    else:
+                        res = model.eval(image, diameter=diameter)
                     mask, flow, style = res[:3]
 
                 elif model_type == 'pytorch':
@@ -315,7 +342,18 @@ class BatchImageSegmentation(Notifier):
                             os.remove(backup_path)
                         os.rename(default_suffix_path, backup_path)
                 # Save the segmentation results directly with the default name first
-                if model_type == 'cellpose':
+                if model_type == 'Cellpose' or model_type ==  'CustomV3':
+                    print(mask.dtype, mask.shape, np.unique(mask)[:10])
+                    ioV3.masks_flows_to_seg([image], [mask], [flow], [image_path])
+                    seg = np.load(default_suffix_path, allow_pickle=True).item()
+
+                    print(seg.keys())
+
+                    print(type(seg))
+
+                    print(seg["masks"].dtype)
+                    print(np.unique(seg["masks"])[:20])
+                elif model_type == 'CellposeSAM' or model_type == 'CustomV4':
                     io.masks_flows_to_seg([image], [mask], [flow], [image_path])
                 else:
                     H, W = image.shape[:2]

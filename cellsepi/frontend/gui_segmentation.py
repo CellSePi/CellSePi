@@ -27,7 +27,6 @@ class GUISegmentation:
         self.progress_bar_text = ft.Text("Waiting for Input")
 
 
-
     def create_segmentation_card(self):
         """
         This method creates a segmentation card for the GUI, which contains the progress bar and several buttons for
@@ -111,13 +110,16 @@ class GUISegmentation:
 
 
         def new_pick_model_result(e: ft.Event[ft.Button]):
-            print(model_drop_down.value)
-            if model_drop_down.value == "Custom model":
-                print("choose your own model selected")
+            if model_drop_down.value == "Custom Cellpose Model":
                 model_choose_button.visible = True
                 model_text.value = "Choose model"
                 model_text.color = None
-            #TODO save which non-custom model was selected and use that for segmentation
+                self.gui.csp.model_type = "CustomV3"
+            elif model_drop_down.value == "Custom CellposeSAM Model":
+                model_choose_button.visible = True
+                model_text.value = "Choose model"
+                model_text.color = None
+                self.gui.csp.model_type = "CustomV4"
             elif model_drop_down.value == "CellposeSAM":
                 if self.gui.ready_to_start:
                     self.progress_bar_text.value = "Ready to Start"
@@ -125,15 +127,15 @@ class GUISegmentation:
                 model_text.value = "Cellpose SAM"
                 model_text.color = None
                 model_choose_button.visible = False
-                self.gui.csp.model_path = "CellposeSAM"
-            elif model_drop_down.value == "MicroSAM":
+                self.gui.csp.model_type = "CellposeSAM"
+            elif model_drop_down.value == "Cellpose":
                 if self.gui.ready_to_start:
                     self.progress_bar_text.value = "Ready to Start"
                     start_button.disabled = False
-                model_text.value = "Microscopy SAM"
+                model_text.value = "Cellpose"
                 model_text.color = None
                 model_choose_button.visible = False
-                self.gui.csp.model_path = "MicroSAM"
+                self.gui.csp.model_type = "Cellpose"
             self.gui.page.update()
 
 
@@ -337,7 +339,7 @@ class GUISegmentation:
             if current_image is not None:
                 if current_image[
                     "image_id"] == self.gui.csp.image_id and self.segmentation.batch_image_segmentation.segmentation_channel == self.gui.csp.config.get_bf_channel():
-                    self.gui.canvas.update_mask_image()
+                    await self.gui.canvas.update_mask_image()
                 #else:
                     #reset_mask(self.gui, current_image["image_id"],self.segmentation.batch_image_segmentation.segmentation_channel) #TODO update to new drawing window functionality
 
@@ -423,9 +425,10 @@ class GUISegmentation:
                 width=220,
                 label="Choose model",
                 border_color=ft.Colors.BLUE_ACCENT,
-                options=[ft.dropdownm2.Option(key="CellposeSAM", text="CellposeSAM"),
-                     ft.dropdownm2.Option(key="MicroSAM", text="MicroSAM"),
-                     ft.dropdownm2.Option(key="Custom model", text="CCM",text_style=ft.TextStyle(weight=ft.FontWeight.BOLD))],
+                options=[ft.dropdownm2.Option(key="Cellpose", text="Cellpose"),
+                     ft.dropdownm2.Option(key="CellposeSAM", text="CellposeSAM"),
+                     ft.dropdownm2.Option(key="Custom CellposeSAM Model", text="CustomV4"),
+                     ft.dropdownm2.Option(key="Custom Cellpose Model", text="CustomV3")],
                 on_change=lambda e: new_pick_model_result(e))
 
         model_choose_button = ft.IconButton(

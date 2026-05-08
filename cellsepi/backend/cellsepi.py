@@ -7,12 +7,13 @@ APP_NAME = "CellSePi"
 class CellSePi:
     def __init__(self):
         super().__init__()
-        self.app_dir,self.models_dir,self.plugins_dir =self.createDirecotry()
+        self.app_dir,self.models_dir,self.plugins_dir =self.createDirectory()
         self.config: ConfigFile = ConfigFile(self.app_dir)
         self.segmentation_running = False
         self.segmentation_thread = None
         self.training_running = False
         self.model_path = None
+        self.model_type = None # Options are: "CustomV3", "CustomV4", "Cellpose", "CellposeSAM"
         self.re_train_model_path=None
         self.readout_running = False
         self.readout_thread = None
@@ -32,8 +33,9 @@ class CellSePi:
         self.mask_paths = None
         self.working_directory = None
 
-    def createDirecotry(self):
+    def createDirectory(self):
         app_dir = Path(platformdirs.user_config_dir(APP_NAME))
+        print(app_dir)
 
         app_dir.mkdir(parents=True, exist_ok=True)
         models_dir = app_dir / "models"
