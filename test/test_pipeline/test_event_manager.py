@@ -1,9 +1,5 @@
-import flet as ft
-
-from cellsepi.backend.main_window.expert_mode.module import Module, Port, ModuleGuiConfig
-from cellsepi.backend.main_window.expert_mode.pipeline_manager import PipelineManager, PipelineRunningException
-from cellsepi.backend.main_window.expert_mode.event_manager import *
-from cellsepi.backend.main_window.expert_mode.listener import *
+from backend.main_window import Module, ModuleGuiConfig
+from backend.main_window import PipelineManager, PipelineRunningException
 import pytest
 
 class DummyErrorModule(Module):

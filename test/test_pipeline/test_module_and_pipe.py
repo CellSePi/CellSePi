@@ -1,5 +1,5 @@
 from test.test_pipeline.dummy_modules import *
-from src.cellsepi.backend.main_window.expert_mode.pipe import Pipe, copy_data, IMMUTABLES
+from backend.main_window import Pipe, copy_data, IMMUTABLES
 import flet as ft
 import pytest
 

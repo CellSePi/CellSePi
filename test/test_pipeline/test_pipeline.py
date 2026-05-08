@@ -1,8 +1,8 @@
 import pytest
 
-from cellsepi.backend.main_window.expert_mode.module import IdNumberManager, FilePath, DirectoryPath
-from src.cellsepi.backend.main_window.expert_mode.pipe import Pipe
-from src.cellsepi.backend.main_window.expert_mode.pipeline_manager import PipelineManager
+from backend.main_window import FilePath, DirectoryPath
+from backend.main_window import Pipe
+from backend.main_window import PipelineManager
 from test.test_pipeline.dummy_modules import *
 from test.test_pipeline.test_event_manager import DummyPipelineErrorListener, DummyPauseListener
 

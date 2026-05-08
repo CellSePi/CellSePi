@@ -2,9 +2,9 @@ import ast
 
 import pytest
 
-from src.cellsepi.backend.main_window.config_file import ConfigFile
+from backend.main_window import ConfigFile
 
-from src.cellsepi.backend.main_window.config_file import create_default_config, DeletionForbidden
+from backend.main_window import create_default_config, DeletionForbidden
 
 
 @pytest.fixture

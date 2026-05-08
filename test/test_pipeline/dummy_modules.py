@@ -1,6 +1,6 @@
-from typing import Callable
-from cellsepi.backend.main_window.expert_mode.module import ModuleGuiConfig, OutputPort, InputPort
-from src.cellsepi.backend.main_window.expert_mode.module import Module,Port
+from backend.main_window import ModuleGuiConfig, OutputPort, InputPort
+from backend.main_window import Module
+
 
 class DummyModule1(Module):
     _gui_config = ModuleGuiConfig("test1", None, None)

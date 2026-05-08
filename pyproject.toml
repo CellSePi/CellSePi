@@ -1,5 +1,5 @@
 [tool.flet.app]
-path = "src"
+path = "cellsepi"
 
 [tool.poetry]
 name = "cellsepi"
@@ -10,7 +10,7 @@ license = "Apache-2.0"
 homepage = "https://github.com/PraiseTheDarkFlo/CellSePi"
 readme = "README.md"
 packages = [
-    { include = "cellsepi", from = "src" }
+    { include = "cellsepi", from = "cellsepi" }
 ]
 
 [tool.poetry.dependencies]
@@ -40,13 +40,13 @@ cellsepi = "cellsepi.main:main"
 
 
 [[tool.poetry.include]]
-path = "src/cellsepi/models/**/*"
+path = "cellsepi/models/**/*"
 [[tool.poetry.include]]
-path = "src/cellsepi/config.json"
+path = "cellsepi/config.json"
 [[tool.poetry.include]]
-path = "src/cellsepi/csp.schema.json"
+path = "cellsepi/csp.schema.json"
 [[tool.poetry.include]]
-path = "src/cellsepi/pyproject.toml"
+path = "cellsepi/pyproject.toml"
 
 [build-system]
 requires = ["poetry-core>=1.3.0"]
