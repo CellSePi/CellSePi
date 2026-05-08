@@ -2,7 +2,8 @@ name: Build Flet App
 
 on:
   push:
-  release:
+    tags: 
+      - "v*"
 
 env:
   UV_PYTHON: 3.12
@@ -10,6 +11,9 @@ env:
 
   # https://flet.dev/docs/reference/environment-variables
   FLET_CLI_NO_RICH_OUTPUT: 1
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -79,3 +83,11 @@ jobs:
           path: ${{ matrix.artifact_path }}
           if-no-files-found: error
           overwrite: false
+
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build/linux/**
+            build/windows/**
+            build/macos/**
