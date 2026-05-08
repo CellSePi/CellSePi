@@ -10,7 +10,7 @@ license = "Apache-2.0"
 homepage = "https://github.com/CellSePi/CellSePi"
 readme = "README.md"
 packages = [
-    { include = "cellsepi", from = "cellsepi" }
+    { include = "cellsepi"}
 ]
 
 [tool.poetry.dependencies]
