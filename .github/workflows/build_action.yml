@@ -24,32 +24,22 @@ jobs:
       matrix:
         include:
           # -------- Desktop --------
-          - name: linux-cpu
+          - name: linux
             runner: ubuntu-latest
             artifact_path: build/linux
             needs_linux_deps: true
-            is_gpu: false
-            archive_type: gztar
-
-          - name: linux-gpu
-            runner: ubuntu-latest
-            artifact_path: build/linux
-            needs_linux_deps: true
-            is_gpu: true
             archive_type: xztar
 
           - name: macos
             runner: macos-latest
             artifact_path: build/macos
             needs_linux_deps: false
-            is_gpu: false
             archive_type: gztar
 
           - name: windows
             runner: windows-latest
             artifact_path: build/windows
             needs_linux_deps: false
-            is_gpu: true
             archive_type: zip
 
     steps:
@@ -78,52 +68,14 @@ jobs:
           python-version: "3.12"
 
       - name: Install Poetry
-        run: pip install poetry poetry-plugin-export
+        run: pip install poetry
 
       - name: Install dependencies
         run: poetry install --only main
-
-      - name: Export & Prune TOML for CPU
-        shell: bash
-        run: |
-          poetry export -f requirements.txt --output requirements.txt --without-hashes
-          
-          sed '/triton/d' requirements.txt > tmp.txt && mv tmp.txt requirements.txt
-          
-          if [ "${{ matrix.is_gpu }}" == "false" ]; then
-            echo "Building CPU-only version..."
-            sed '/nvidia/d' requirements.txt > tmp.txt && mv tmp.txt requirements.txt
-            echo "--extra-index-url https://download.pytorch.org/whl/cpu" > cpu_reqs.txt
-            cat requirements.txt >> cpu_reqs.txt
-            mv cpu_reqs.txt requirements.txt
-            
-            python3 -c '
-import os
-with open("pyproject.toml", "r") as f:
-    lines = f.readlines()
-new_lines = []
-skip = False
-for line in lines:
-     if "[tool.poetry.dependencies]" in line or "[tool.poetry.group.dev.dependencies]" in line:
-        skip = True
-        continue
-    if line.startswith("[") and skip:
-       if "tool.poetry.dependencies" not in line and "tool.poetry.group" not in line:
-            skip = False
-    if not skip:
-        new_lines.append(line)
-with open("pyproject.toml", "w") as f:
-    f.writelines(new_lines)
-'  
-            rm -rf .venv
-          fi
-          
-      - name: Build app
-        run: |
-          pip install flet flet-cli
         
-          python3 -m flet build ${{ runner.os == 'Linux' && 'linux' || matrix.name }} --yes --verbose
-          
+      - name: Build app
+        run: poetry run flet build ${{matrix.name }} --yes --verbose
+        
       - name: Archive build
         shell: python
         run: |
@@ -133,7 +85,6 @@ with open("pyproject.toml", "w") as f:
           matrix_name = "${{ matrix.name }}"
           base_path = "${{ matrix.artifact_path }}"
           archive_format = "${{ matrix.archive_type }}" 
-          is_gpu = "${{ matrix.is_gpu }}" == "true"
           
           if "linux" in matrix_name:
               os_name = "linux"
@@ -141,10 +92,8 @@ with open("pyproject.toml", "w") as f:
               os_name = "macos"
           else:
               os_name = "windows"
-              
-          hw_type = "-gpu" if is_gpu else ""
           
-          final_name = f"cellsepi-{os_name}{hw_type}"
+          final_name = f"cellsepi-{os_name}-build"
           
           shutil.make_archive(final_name, archive_format, base_path)
           
