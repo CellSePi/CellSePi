@@ -80,14 +80,11 @@ jobs:
         uses: actions/upload-artifact@v5.0.0
         with:
           name: ${{ matrix.name }}-build-cellsepi
-          path: ${{ matrix.artifact_path }}
+          path: cellsepi-${{ matrix.name }}.zip
           if-no-files-found: error
           overwrite: false
 
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            build/linux/**
-            build/windows/**
-            build/macos/**
+          files: cellsepi-${{ matrix.name }}.zip
