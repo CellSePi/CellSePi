@@ -1,7 +1,8 @@
 from image_editing_view import ImageEditingView
 
-from backend.main_window import convert_tiffs_to_png_parallel
+from backend.data_util import convert_tiffs_to_png_parallel
 from backend.expert_mode.listener import ProgressEvent, OnPipelineChangeEvent
+from backend.expert_mode.module import *
 
 
 class Review(Module, ABC):

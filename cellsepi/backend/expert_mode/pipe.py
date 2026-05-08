@@ -1,6 +1,6 @@
 import copy
 
-from backend.main_window import Module
+from backend.expert_mode.module import Module
 from typing import List
 
 IMMUTABLES = (int, float, str, bool, type(None))

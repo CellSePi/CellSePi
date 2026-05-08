@@ -1,13 +1,14 @@
 import os
 from pathlib import Path
 
-from backend.main_window import  detect_spots
+from backend.expert_mode.modules.big_fish import  detect_spots
 import numpy as np
 import tifffile
 from scipy.ndimage import binary_dilation
 
 from backend.expert_mode.listener import ProgressEvent
-from backend.main_window import PipelineRunningException
+from backend.expert_mode.pipeline_manager import PipelineRunningException
+from backend.expert_mode.module import *
 
 
 class SpotDetectionModule(Module, ABC):

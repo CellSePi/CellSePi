@@ -6,12 +6,12 @@ import concurrent.futures
 import flet as ft
 import tifffile
 
-from backend.main_window import EventManager
+from backend.expert_mode.event_manager import EventManager
 from backend.expert_mode.listener import ProgressEvent
-from backend.main_window import PipelineRunningException
-from frontend.main_window import update_main_image
+from backend.expert_mode.pipeline_manager import PipelineRunningException
+from frontend.gui_canvas import update_main_image
 from frontend.gui_fluorescence import fluorescence_button
-from backend.main_window import extract_from_lif_file, copy_files_between_directories, load_directory, transform_image_path, \
+from backend.data_util import extract_from_lif_file, copy_files_between_directories, load_directory, transform_image_path, \
     convert_tiffs_to_png_parallel
 
 def format_directory_path(dir_path: str, max_length=30):

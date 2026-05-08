@@ -1,20 +1,28 @@
 import asyncio
 import multiprocessing
-import flet as ft
+import traceback
+from datetime import datetime
 
+import flet as ft
+import importlib.util
+import inspect
+import pathlib
+
+from backend.expert_mode.module import Module
 from image_editing_view import ImageEditingView
-from backend import AverageDiameter
-from frontend import Builder
-from frontend.main_window import ExpertEnvironment, PipelineStateListener
-from frontend.main_window import GUISegmentation
-from frontend.main_window import Options
-from frontend.main_window import GUIConfig
-from frontend.main_window import DirectoryCard, copy_to_clipboard
-from backend.main_window import CellSePi
-from frontend.main_window import GUIAutoImageTuning
+from backend.avg_diameter import AverageDiameter
+from frontend.expert_mode.gui_builder import Builder
+from frontend.expert_mode.gui_expert_environment import ExpertEnvironment, PipelineStateListener
+from frontend.gui_segmentation import GUISegmentation
+from frontend.gui_options import Options
+from frontend.gui_config import GUIConfig
+from frontend.gui_directory import DirectoryCard, copy_to_clipboard
+from backend.cellsepi import CellSePi
+from frontend.gui_image_tuning import GUIAutoImageTuning
 from frontend.gui_training_environment import Training
-from frontend.main_window import PageOverlay
-from frontend.main_window import ModuleType
+from frontend.gui_page_overlay import PageOverlay
+from frontend.expert_mode.expert_constants import MODULE_REGISTRY
+
 
 class GUI:
     """
@@ -22,6 +30,7 @@ class GUI:
     """
     def __init__(self,page: ft.Page):
         self.csp: CellSePi = CellSePi()
+        self.error_loading_plugin = self.load_plugins(self.csp.plugins_dir)
         self.page = page
         self.directory = DirectoryCard(self)
         self.average_diameter = AverageDiameter(self)
@@ -152,7 +161,19 @@ class GUI:
             ),
         )
         #set the colors for the review module from the config file
-        ModuleType.REVIEW.value.update_class(mask_color=self.csp.config.get_mask_color(),outline_color=self.csp.config.get_outline_color())
+        MODULE_REGISTRY["REVIEW"].update_class(mask_color=self.csp.config.get_mask_color(),outline_color=self.csp.config.get_outline_color())
+
+        if self.error_loading_plugin:
+            self.page.show_dialog(
+                ft.SnackBar(
+                    ft.Text(
+                        "Some plugins couldn't be loaded. Check 'plugin_errors.txt' in the plugins folder for details.",
+                        color=ft.Colors.WHITE
+                    ),
+                    bgcolor=ft.Colors.RED
+                )
+            )
+            self.page.update()
 
     def mask_update(self, image_id, mask_added_or_removed):
         if mask_added_or_removed:
@@ -231,3 +252,32 @@ class GUI:
         self.canvas.brightness =  round(self.brightness_slider.value, 2)
         self.canvas.contrast = round(self.contrast_slider.value, 2)
         await self.canvas.update_main_image_with_brightness_contrast(self.csp.image_paths[self.csp.image_id][self.csp.channel_id])
+
+
+    def load_plugins(self, directory):
+        plugin_dir = pathlib.Path(directory)
+        error_log_path = plugin_dir / "plugin_errors.txt"
+        errors_found = False
+
+        for path in pathlib.Path(directory).rglob("*.py"):
+            spec = importlib.util.spec_from_file_location(path.stem, path)
+            if spec is None or spec.loader is None:
+                continue
+            module = importlib.util.module_from_spec(spec)
+
+            try:
+                spec.loader.exec_module(module)
+            except Exception as e:
+                errors_found = True
+                with open(error_log_path, "a", encoding="utf-8") as f:
+                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    f.write(f"[{timestamp}] Error loading '{path.name}':\n")
+                    f.write(traceback.format_exc())
+                    f.write("-" * 50 + "\n")
+                continue
+
+            for name, obj in inspect.getmembers(module, inspect.isclass):
+                if issubclass(obj, Module) and obj is not Module:
+                    MODULE_REGISTRY[obj.__name__] = obj
+
+        return errors_found

@@ -1,5 +1,5 @@
-from backend.main_window import BatchImageReadout
-
+from backend.fluorescence import BatchImageReadout
+from backend.expert_mode.module import *
 
 class ImageReadoutModule(Module, ABC):
     _gui_config = ModuleGuiConfig("ImageReadout",Categories.OUTPUTS,"This module handles the readout of the segmented images and saves them in an .xlsx file.")

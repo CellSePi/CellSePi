@@ -1,6 +1,6 @@
 import flet as ft
 
-from frontend.main_window import update_main_image
+from frontend.gui_canvas import update_main_image
 
 class GUIAutoImageTuning:
     def __init__(self, gui):

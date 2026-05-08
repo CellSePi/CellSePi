@@ -5,7 +5,7 @@ from tifffile import tifffile
 from PIL import Image
 
 from backend.expert_mode.listener import ProgressEvent
-
+from backend.expert_mode.module import *
 
 class Project3dTo2d(Module, ABC):
     _gui_config = ModuleGuiConfig("Project3Dto2D",Categories.FILTERS,"This modules handles the conversion from 3D data to 2D data based on an max z projection.")

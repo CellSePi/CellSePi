@@ -11,11 +11,11 @@ from cellpose import models, io
 from scipy.ndimage import binary_erosion
 from tifffile import tifffile
 
-from backend import load_image_to_numpy
-from backend import EventManager
+from backend.data_util import load_image_to_numpy
+from backend.expert_mode.event_manager import EventManager
 from backend.expert_mode.listener import ProgressEvent
-from backend import Notifier
-from cellsepi.frontend.gui_mask import reset_mask
+from backend.notifier import Notifier
+from frontend.gui_mask import reset_mask
 
 
 class BatchImageSegmentation(Notifier):

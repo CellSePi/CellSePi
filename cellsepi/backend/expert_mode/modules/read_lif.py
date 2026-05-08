@@ -1,6 +1,6 @@
-from backend.main_window import load_directory, ReturnTypePath
-from frontend.main_window import DirectoryCard
-
+from backend.data_util import load_directory, ReturnTypePath
+from frontend.gui_directory import DirectoryCard
+from backend.expert_mode.module import *
 
 class ReadLif(Module,ABC):
     _gui_config = ModuleGuiConfig("ReadLif",Categories.INPUTS,"This module handles the read in of .lif files and if available reads in the mask of the images.")

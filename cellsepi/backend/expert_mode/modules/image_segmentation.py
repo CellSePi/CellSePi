@@ -1,6 +1,6 @@
-from backend.main_window import PipelineRunningException
-from backend.main_window import BatchImageSegmentation
-
+from backend.expert_mode.pipeline_manager import PipelineRunningException
+from backend.segmentation import BatchImageSegmentation
+from backend.expert_mode.module import *
 
 class ImageSegmentationModule(Module, ABC):
     _gui_config = ModuleGuiConfig("ImageSegmentation",Categories.SEGMENTATION,"This module handles the segmentation of cells for each series on the given segmentation_channel with the provided model in model_path.")

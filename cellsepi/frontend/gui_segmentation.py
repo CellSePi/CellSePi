@@ -6,9 +6,9 @@ import sys
 
 import flet as ft
 
-from backend.main_window import Fluorescence
+from backend.fluorescence import Fluorescence
 from frontend.gui_fluorescence import fluorescence_button
-from backend.main_window import Segmentation
+from backend.segmentation import Segmentation
 
 
 class GUISegmentation:

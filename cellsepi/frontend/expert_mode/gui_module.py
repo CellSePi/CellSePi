@@ -1,18 +1,20 @@
 import asyncio
 import textwrap
+import flet as ft
 from typing import List, Any, Dict, cast
 
 from backend.expert_mode.listener import DragAndDropEvent, OnPipelineChangeEvent
-from backend.main_window import FilePath, DirectoryPath
-from frontend.main_window import format_directory_path
-from frontend.main_window import PageOverlay
-
+from backend.expert_mode.module import FilePath, DirectoryPath
+from frontend.gui_directory import format_directory_path
+from frontend.gui_page_overlay import PageOverlay
+from frontend.expert_mode.expert_constants import *
+from frontend.expert_mode.gui_pipeline import *
 
 class ModuleGUI(ft.GestureDetector):
     """
     Manages the GUI parts of the module.
     """
-    def __init__(self, pipeline_gui,module_type: ModuleType,x: float = None,y: float = None,show_mode:bool=False,visible=True,index:int=None,id_number:int=None,module_dict:dict=None):
+    def __init__(self, pipeline_gui,module_type: type,x: float = None,y: float = None,show_mode:bool=False,visible=True,index:int=None,id_number:int=None,module_dict:dict=None):
         super().__init__()
         self.pipeline_gui = pipeline_gui
         self.detection: bool = True
@@ -30,7 +32,7 @@ class ModuleGUI(ft.GestureDetector):
         self.old_left = None
         self.old_top = None
         self.port_selection = False
-        self.module = self.pipeline_gui.pipeline.add_module(module_type.value) if id_number is None else self.pipeline_gui.pipeline.add_module_with_id(module_type.value,module_type.value.gui_config().name + str(id_number))
+        self.module = self.pipeline_gui.pipeline.add_module(module_type) if id_number is None else self.pipeline_gui.pipeline.add_module_with_id(module_type,module_type.gui_config().name + str(id_number))
         self.module._page = self.pipeline_gui._page
         self.pipeline_gui._page.run_task(self.create_options)
         if module_dict is not None:
@@ -822,7 +824,7 @@ class ModuleGUI(ft.GestureDetector):
         self.copy_button.icon_color = ft.Colors.BLACK38
         self.copy_button.update()
         copy_dict = self.to_dict()
-        self.pipeline_gui.add_module(ModuleType(type(self.module)),x=cast(float, self.left)+20,y=cast(float, self.top)+20,module_dict=copy_dict)
+        self.pipeline_gui.add_module(type(self.module),x=cast(float, self.left)+20,y=cast(float, self.top)+20,module_dict=copy_dict)
         self.copy_button.icon_color = ft.Colors.WHITE60
         self.copy_button.update()
 

@@ -1,9 +1,9 @@
 import threading
 
-from backend import BatchImageReadout
-from backend import CellSePi
-from backend import Notifier
-from cellsepi.frontend.gui_fluorescence import error_banner,fluorescence_button
+from backend.images import BatchImageReadout
+from backend.cellsepi import CellSePi
+from backend.notifier import Notifier
+from frontend.gui_fluorescence import error_banner,fluorescence_button
 
 class Fluorescence(Notifier):
     """

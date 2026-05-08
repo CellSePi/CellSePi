@@ -1,5 +1,5 @@
 import flet as ft
-from frontend.main_window import GUI
+from frontend.gui import GUI
 
 async def async_main(page: ft.Page):
     gui = GUI(page)

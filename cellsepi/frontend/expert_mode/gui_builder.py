@@ -5,9 +5,10 @@ from typing import cast
 from flet_extended_interactive_viewer import FletExtendedInteractiveViewer
 
 from frontend.expert_mode.gui_pipeline import PipelineGUI
-from frontend.main_window import PipelineChangeListener, ModuleExecutedListener, ModuleStartedListener, \
+from frontend.expert_mode.gui_pipeline_listener import PipelineChangeListener, ModuleExecutedListener, ModuleStartedListener, \
     ModuleProgressListener, ModuleErrorListener, DragAndDropListener, PipelinePauseListener, PipelineCancelListener, PipelineErrorListener
 from frontend.expert_mode.pipeline_storage import PipelineStorage
+from frontend.expert_mode.expert_constants import *
 
 def is_rendert(control):
     """
@@ -649,3 +650,5 @@ class Builder:
                 self.zoom_menu,
              ],expand=True
             )
+
+

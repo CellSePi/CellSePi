@@ -2,7 +2,7 @@ import flet as ft
 from cellpose import models, train, io
 import os
 
-from frontend.main_window import format_directory_path, copy_to_clipboard
+from frontend.gui_directory import format_directory_path, copy_to_clipboard
 
 class Training(ft.Container):
 
@@ -49,9 +49,7 @@ class Training(ft.Container):
         self.re_train_model_name = None
         self.color = ft.Colors.BLUE_400
         self.progress_bar_text = ft.Text("")
-
-        project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        self.model_directory = os.path.join(project_root, "models")
+        self.model_directory = self.gui.csp.models_dir
 
         # Changed from TextField to Dropdown for model type selection
         self.model_dropdown = ft.Dropdown(
@@ -110,7 +108,7 @@ class Training(ft.Container):
                                            on_change=lambda e: self.changed_input("diameter", e),expand=True)
         self.field_weights = ft.TextField(label="Weight Decay", value=self.weight, border_color=self.color,
                                           on_change=lambda e: self.changed_input("weight", e),expand=True)
-        self.field_directory = ft.TextField(label="Directory", value=format_directory_path(self.model_directory,max_length=60), border_color=self.color,
+        self.field_directory = ft.TextField(label="Directory", value=format_directory_path(str(self.model_directory),max_length=60), border_color=self.color,
                                             read_only=True,disabled=True,expand=True)
 
         self.directory_stack = ft.Stack([self.field_directory,ft.Container(

@@ -28,7 +28,7 @@ class PipelineStorage:
     """
     def __init__(self,pipeline_gui):
         self.schema_name = "csp.schema.json"
-        self.project_root = os.path.dirname(os.path.dirname(cast(str, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
+        self.project_root = os.path.dirname(cast(str, os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
         self.schema_directory = os.path.join(self.project_root, self.schema_name)
         self.pipeline_gui = pipeline_gui
         self.version = "csp-1.0"

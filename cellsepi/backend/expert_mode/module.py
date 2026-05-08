@@ -5,7 +5,7 @@ from typing import Dict,List
 
 import flet as ft
 
-from backend.main_window import EventManager
+from backend.expert_mode.event_manager import EventManager
 
 class FilePath:
     """

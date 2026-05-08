@@ -1,5 +1,3 @@
-import time
-
 import flet as ft
 
 def error_banner(gui,message):

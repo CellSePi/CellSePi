@@ -2,13 +2,13 @@ import math
 from enum import Enum
 import flet as ft
 
-from backend.main_window import ImageReadoutModule
+from backend.expert_mode.modules.image_readout import ImageReadoutModule
 from backend.expert_mode.modules.image_segmentation import ImageSegmentationModule
-from backend.main_window import Project3dTo2d
-from backend.main_window import ReadLif
+from backend.expert_mode.modules.project_3d_to_2d import Project3dTo2d
+from backend.expert_mode.modules.read_lif import ReadLif
 from backend.expert_mode.modules.read_tif import ReadTif
-from backend.main_window import Review
-from backend.main_window import SpotDetectionModule
+from backend.expert_mode.modules.review import Review
+from backend.expert_mode.modules.spot_detection import SpotDetectionModule
 
 #Constants used in the PipelineBuildingTool(ExpertMode)
 CANVAS_HEIGHT = 10000
@@ -34,17 +34,13 @@ MAIN_ACTIVE_COLOR = ft.Colors.WHITE60
 THROTTLE_UPDATE_LINES = 0.036 #~30FPS
 DEBUG = False
 
-class ModuleType(Enum):
-    """
-    Enum for all Modules.
-    Register new Modules here!
-    """
-    IMAGE_READOUT = ImageReadoutModule
-    IMAGE_SEGMENTATION = ImageSegmentationModule
-    SPOT_DETECTION = SpotDetectionModule
-    READ_LIF = ReadLif
-    READ_TIF = ReadTif
-    PROJECTION_3D_TO_2D = Project3dTo2d
-    REVIEW = Review
-
+MODULE_REGISTRY = {
+    "IMAGE_READOUT": ImageReadoutModule,
+    "IMAGE_SEGMENTATION": ImageSegmentationModule,
+    "SPOT_DETECTION": SpotDetectionModule,
+    "READ_LIF": ReadLif,
+    "READ_TIF": ReadTif,
+    "PROJECTION_3D_TO_2D": Project3dTo2d,
+    "REVIEW": Review
+}
 

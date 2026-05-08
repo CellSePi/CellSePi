@@ -2,8 +2,8 @@ import flet as ft
 from flet_color_pickers import ColorPicker
 from enum import Enum
 
-from frontend.main_window import PageOverlay
-from frontend.main_window import ModuleType
+from frontend.gui_page_overlay import PageOverlay
+from frontend.expert_mode.expert_constants import MODULE_REGISTRY
 
 def hex_to_rgb(hex_color):
     """
@@ -93,13 +93,13 @@ class ColorSelection:
             self.config.set_mask_color(hex_to_rgb(self.current_color))
             self.gui.canvas.mask_color = hex_to_rgb(self.current_color)
             self.gui.page.run_task(self.gui.canvas.update_mask_image)
-            ModuleType.REVIEW.value.update_class(mask_color=self.config.get_mask_color())
+            MODULE_REGISTRY["REVIEW"].update_class(mask_color=self.config.get_mask_color())
         else:
             self.color_icon_outline.icon_color = self.current_color
             self.config.set_outline_color(hex_to_rgb(self.current_color))
             self.gui.canvas.outline_color = hex_to_rgb(self.current_color)
             self.gui.page.run_task(self.gui.canvas.update_mask_image)
-            ModuleType.REVIEW.value.update_class(outline_color=self.config.get_outline_color())
+            MODULE_REGISTRY["REVIEW"].update_class(outline_color=self.config.get_outline_color())
         self.dialog.close()
 
     def close_dialog(self, e):
@@ -120,4 +120,4 @@ class ColorOpacity:
     def opacity_change(self):
         self.gui.canvas.mask_opacity = self.slider.value
         self.gui.page.run_task(self.gui.canvas.update_mask_image)
-        ModuleType.REVIEW.value.update_class(opacity=self.slider.value)
+        MODULE_REGISTRY["REVIEW"].update_class(opacity=self.slider.value)

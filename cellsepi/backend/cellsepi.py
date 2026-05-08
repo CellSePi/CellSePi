@@ -1,10 +1,14 @@
-from backend import ConfigFile
+from backend.config_file import ConfigFile
+from pathlib import Path
+import platformdirs
 
+APP_NAME = "CellSePi"
 
 class CellSePi:
     def __init__(self):
         super().__init__()
-        self.config: ConfigFile = ConfigFile()
+        self.app_dir,self.models_dir,self.plugins_dir =self.createDirecotry()
+        self.config: ConfigFile = ConfigFile(self.app_dir)
         self.segmentation_running = False
         self.segmentation_thread = None
         self.training_running = False
@@ -28,3 +32,12 @@ class CellSePi:
         self.mask_paths = None
         self.working_directory = None
 
+    def createDirecotry(self):
+        app_dir = Path(platformdirs.user_config_dir(APP_NAME))
+
+        app_dir.mkdir(parents=True, exist_ok=True)
+        models_dir = app_dir / "models"
+        plugins_dir = app_dir / "plugins"
+        models_dir.mkdir(parents=True, exist_ok=True)
+        plugins_dir.mkdir(parents=True, exist_ok=True)
+        return app_dir,models_dir,plugins_dir

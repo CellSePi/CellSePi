@@ -1,7 +1,7 @@
+import os
 from collections import Counter
 
 import base64
-import os
 import pathlib
 import platform
 import shutil
@@ -12,11 +12,13 @@ from io import BytesIO
 
 import numpy as np
 from PIL import Image
+from backend.expert_mode.event_manager import EventManager
+from backend.expert_mode.listener import ProgressEvent
+
 from bioio import BioImage
 import bioio_lif
 from tifffile import tifffile
 
-from backend import *
 
 
 def listdir(directory):

@@ -1,7 +1,7 @@
 import flet as ft
-from frontend.main_window import update_main_image
-from backend.main_window import ConfigFile, create_default_config
-from frontend.main_window import PageOverlay
+from frontend.gui_canvas import update_main_image
+from backend.config_file import ConfigFile, create_default_config
+from frontend.gui_page_overlay import PageOverlay
 
 
 class GUIConfig:

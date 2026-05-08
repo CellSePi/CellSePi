@@ -3,12 +3,12 @@ import threading
 from collections import deque
 from itertools import chain
 
-from backend.main_window import EventManager
+from backend.expert_mode.event_manager import EventManager
 from backend.expert_mode.listener import ErrorEvent, OnPipelineChangeEvent, ModuleExecutedEvent, \
     ModuleStartedEvent, PipelinePauseEvent, PipelineCancelEvent, PipelineErrorEvent, PipelineStateChangeEvent, \
     PipelineStates
-from backend.main_window import Module
-from backend.main_window import Pipe
+from backend.expert_mode.module import Module
+from backend.expert_mode.pipe import Pipe
 from typing import List, Dict, Type
 
 

@@ -1,9 +1,3 @@
-import asyncio
-
-import flet as ft
-import tifffile
-
-from image_editing_view import ImageEditingView
 
 async def update_main_image(img_id,channel_id,gui,on_click = True):
     #Method that handles what happens when the image is clicked or the main image need an update.

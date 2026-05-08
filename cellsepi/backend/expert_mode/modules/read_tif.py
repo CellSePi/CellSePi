@@ -1,6 +1,6 @@
-from backend.main_window import load_directory, ReturnTypePath
-from backend.main_window import *
-from frontend.main_window import DirectoryCard
+from backend.data_util import load_directory, ReturnTypePath
+from backend.expert_mode.module import *
+from frontend.gui_directory import DirectoryCard
 
 
 class ReadTif(Module,ABC):

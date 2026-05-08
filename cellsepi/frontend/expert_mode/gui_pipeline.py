@@ -2,11 +2,11 @@ from collections import deque
 from typing import List
 
 from backend.expert_mode.listener import OnPipelineChangeEvent
-from backend.main_window import Pipe
-from backend.main_window import PipelineManager
-from frontend.main_window import LinesGUI
-from frontend.main_window import ModuleGUI
-
+from backend.expert_mode.pipe import Pipe
+from backend.expert_mode.pipeline_manager import PipelineManager
+from frontend.expert_mode.gui_lines import LinesGUI
+from frontend.expert_mode.gui_module import ModuleGUI
+from frontend.expert_mode.expert_constants import *
 
 class PipelineGUI(ft.Stack):
     def __init__(self,page:ft.Page):
@@ -21,7 +21,7 @@ class PipelineGUI(ft.Stack):
         self.pipeline_dict = {} #last saved pipeline dict
         self._page = page
         self.modules = {} #without show_room modules, identifier is the module_id
-        self.show_room_size = len(ModuleType) if len(ModuleType) < SHOWROOM_MODULE_COUNT else SHOWROOM_MODULE_COUNT
+        self.show_room_size = len(MODULE_REGISTRY) if len(MODULE_REGISTRY) < SHOWROOM_MODULE_COUNT else SHOWROOM_MODULE_COUNT
         self.show_room_modules = [] #saves all modules within the show_room
         self.source_module: str = ""
         self.show_ports:bool = False
@@ -56,7 +56,7 @@ class PipelineGUI(ft.Stack):
         """
         self.loading = True
         for module_dict in self.pipeline_dict["modules"]:
-            type_map = {mt.value.gui_config().name: mt for mt in ModuleType}
+            type_map = {mod_class.gui_config().name: mod_class for mod_class in MODULE_REGISTRY.values()}
             if module_dict["module_name"] not in type_map:
                 self.loading = False
                 self.pipeline.event_manager.notify(OnPipelineChangeEvent(f"Pipeline {self.pipeline_name} loaded."))
@@ -152,7 +152,7 @@ class PipelineGUI(ft.Stack):
         Builds the show room for the PipelineBuildingTool(ExpertMode).
         It is placed at the top left corner to add modules to the pipeline.
         """
-        def _add_show_room_module(module_type: ModuleType, x: float, y: float, visible: bool = True, show_room_id: int = None):
+        def _add_show_room_module(module_type: type, x: float, y: float, visible: bool = True, show_room_id: int = None):
             module_gui = ModuleGUI(self, module_type, x, y, True, visible, id_number=show_room_id)
             self.page_stack.controls.insert(2, module_gui)
             return module_gui
@@ -162,8 +162,8 @@ class PipelineGUI(ft.Stack):
         y = SPACING_Y
         self.show_room_container = ft.Container(top=y - SPACING_Y / 2, left=SPACING_X, width=MODULE_WIDTH + SHOWROOM_PADDING_X, height=(self.show_room_size * MODULE_HEIGHT) + (self.show_room_size * SPACING_Y), bgcolor=MENU_COLOR, border_radius=ft.border_radius.all(10),blur=10)
         self.page_stack.controls.insert(1,self.show_room_container)
-        self.show_room_max_page_number = math.ceil(len(ModuleType) / SHOWROOM_MODULE_COUNT)
-        for i,module_type in enumerate(ModuleType):
+        self.show_room_max_page_number = math.ceil(len(MODULE_REGISTRY) / SHOWROOM_MODULE_COUNT)
+        for i,module_type in enumerate(MODULE_REGISTRY.values()):
             visible = i < SHOWROOM_MODULE_COUNT
             y_module = y+ (MODULE_HEIGHT + SPACING_Y) * (i%SHOWROOM_MODULE_COUNT)
             _add_show_room_module(module_type,x,y_module,visible,-1)
@@ -182,7 +182,7 @@ class PipelineGUI(ft.Stack):
                 module.visible = False
             module.update()
 
-    def add_module(self,module_type: ModuleType,x: float = None,y: float = None,module_id: str = None,module_dict:dict=None):
+    def add_module(self,module_type: type,x: float = None,y: float = None,module_id: str = None,module_dict:dict=None):
         """
         Adds a module to the PipelineGUI.
         """

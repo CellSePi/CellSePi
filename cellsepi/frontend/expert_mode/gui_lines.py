@@ -7,9 +7,9 @@ from typing import List, Dict, Any, cast
 
 import flet.canvas as cv
 
-from frontend.main_window import MODULE_WIDTH, ARROW_PADDING, MODULE_HEIGHT, \
+from frontend.expert_mode.expert_constants import MODULE_WIDTH, ARROW_PADDING, MODULE_HEIGHT, \
     ARROW_COLOR, ARROW_LENGTH, ARROW_ANGLE, VALID_COLOR, THROTTLE_UPDATE_LINES
-from frontend.main_window import ModuleGUI
+from frontend.expert_mode.gui_module import ModuleGUI
 
 
 def calc_angle(x1, y1, x2, y2):
