@@ -83,20 +83,45 @@ jobs:
       - name: Install dependencies
         run: poetry install --only main
 
-      - name: Export requirements for Flet
+      - name: Export & Prune TOML for CPU
         shell: bash
         run: |
           poetry export -f requirements.txt --output requirements.txt --without-hashes
           
-          sed -i '/^triton/d' requirements.txt
+          sed '/triton/d' requirements.txt > tmp.txt && mv tmp.txt requirements.txt
           
           if [ "${{ matrix.is_gpu }}" == "false" ]; then
-            sed -i '/^nvidia/d' requirements.txt
+            echo "Building CPU-only version..."
+            sed '/nvidia/d' requirements.txt > tmp.txt && mv tmp.txt requirements.txt
+            echo "--extra-index-url https://download.pytorch.org/whl/cpu" > cpu_reqs.txt
+            cat requirements.txt >> cpu_reqs.txt
+            mv cpu_reqs.txt requirements.txt
+            
+            python3 -c '
+            import os
+            with open("pyproject.toml", "r") as f:
+                lines = f.readlines()
+            new_lines = []
+            skip = False
+            for line in lines:
+                 if "[tool.poetry.dependencies]" in line or "[tool.poetry.group.dev.dependencies]" in line:
+                    skip = True
+                    continue
+                if line.startswith("[") and skip:
+                   if "tool.poetry.dependencies" not in line and "tool.poetry.group" not in line:
+                        skip = False
+                if not skip:
+                    new_lines.append(line)
+            with open("pyproject.toml", "w") as f:
+                f.writelines(new_lines)
+            '  
+            rm -rf .venv
           fi
-
+          
       - name: Build app
-        run: poetry run flet build ${{ runner.os == 'Linux' && 'linux' || matrix.name }} --yes --verbose
-
+        run: |
+          flet build ${{ runner.os == 'Linux' && 'linux' || matrix.name }} --yes --verbose
+          
       - name: Archive build
         shell: python
         run: |
@@ -115,9 +140,9 @@ jobs:
           else:
               os_name = "windows"
               
-          hw_type = "gpu" if is_gpu else ""
+          hw_type = "-gpu" if is_gpu else ""
           
-          final_name = f"cellsepi-{os_name}-{hw_type}"
+          final_name = f"cellsepi-{os_name}{hw_type}"
           
           shutil.make_archive(final_name, archive_format, base_path)
           
@@ -128,6 +153,7 @@ jobs:
           path: cellsepi-*.*
           if-no-files-found: error
           overwrite: false
+          retention-days: 1
           
   release:
       name: Publish GitHub Release
