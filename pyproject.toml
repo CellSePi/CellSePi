@@ -14,8 +14,9 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.11,<3.14"
-numpy = "2.1.0"
+python = ">=3.11,<=3.12"
+numpy = "1.26.4"
+numba = "0.61.0"
 scipy = "1.17.1"
 pillow = "12.2.0"
 pandas = "2.2.3"
