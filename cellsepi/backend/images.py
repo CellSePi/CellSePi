@@ -53,7 +53,7 @@ class BatchImageSegmentation(Notifier):
     def _is_cellpose_model(self, model_path):
         try:
             from cellpose import models
-            _ = models.CellposeModel(pretrained_model=model_path, device=torch.device(self.device),gpu=True if torch.cuda.is_available() else False)
+            _ = models.CellposeModel(pretrained_model=model_path, device=torch.device(self.device),gpu=self.gui.csp.gpu)
             return True
         except Exception:
             return False
@@ -225,19 +225,19 @@ class BatchImageSegmentation(Notifier):
         #if self._is_cellpose_model(segmentation_model):
         if self.gui.csp.model_type == "CustomV3":
             model_type = 'CustomV3'
-            model = modelsV3.CellposeModel(device=device, pretrained_model=segmentation_model,gpu=True if torch.cuda.is_available() else False)
+            model = modelsV3.CellposeModel(device=device, pretrained_model=segmentation_model,gpu=self.gui.csp.gpu)
             ioV3.logger_setup()
         elif self.gui.csp.model_type == "Cellpose":
             model_type = 'Cellpose'
-            model = modelsV3.CellposeModel(device=device, model_type="cyto3",gpu=True if torch.cuda.is_available() else False)
+            model = modelsV3.CellposeModel(device=device, model_type="cyto3",gpu=self.gui.csp.gpu)
             ioV3.logger_setup()
         elif self.gui.csp.model_type == "CellposeSAM":
             model_type = 'CellposeSAM'
-            model = models.CellposeModel(device=device,gpu=True if torch.cuda.is_available() else False)
+            model = models.CellposeModel(device=device,gpu=self.gui.csp.gpu)
             io.logger_setup()
         elif self.gui.csp.model_type == "CustomV4":
             model_type = 'CustomV4'
-            model = models.CellposeModel(device=device, pretrained_model=segmentation_model,gpu=True if torch.cuda.is_available() else False)
+            model = models.CellposeModel(device=device, pretrained_model=segmentation_model,gpu=self.gui.csp.gpu)
             io.logger_setup()
         """else:
             model_type = 'pytorch'

@@ -1,4 +1,5 @@
 import flet as ft
+import torch
 
 from frontend.gui_colors import ColorSelection, ColorOpacity
 
@@ -18,6 +19,37 @@ class Options(ft.Container):
         )
         self.color_selection = ColorSelection(gui)
         self.color_opacity= ColorOpacity(gui)
+        self.slider = ft.CupertinoSlidingSegmentedButton(
+            selected_index=1 if torch.cuda.is_available() else 0,
+            thumb_color=ft.Colors.BLUE_400,
+            disabled=True if not torch.cuda.is_available() else False,
+            on_change=self.gpu_slider_change,
+            padding=ft.padding.symmetric(0, 0),
+            controls=[
+                ft.Text("CPU"),
+                ft.Text("GPU")
+            ],
+        )
+        self.slider_blocker = ft.Container(
+            width=80,
+            height=30,
+            bgcolor=ft.Colors.TRANSPARENT,
+            on_click=None,
+            visible=False,
+            tooltip="GPU acceleration is unavailable.\nUse a CUDA-compatible NVIDIA card for faster segmentation,\nand ensure the required drivers are installed.",
+        )
+        if not torch.cuda.is_available():
+            self.slider.on_change = None
+            self.slider.thumb_color = ft.Colors.GREY_400
+            self.slider_blocker.visible = True
+            for control in self.slider.controls:
+                control.color = ft.Colors.GREY_700
+        else:
+            self.slider.on_change = self.gpu_slider_change
+            self.slider.thumb_color = ft.Colors.BLUE_400
+            self.slider_blocker.visible = False
+            for control in self.slider.controls:
+                control.color = None
         self.menu_button = ft.PopupMenuButton(
             items=self.create_appbar_items(),
             content=ft.Icon(ft.Icons.MENU),
@@ -27,6 +59,7 @@ class Options(ft.Container):
         self.content = self.menu_button
         self.padding = 10
         self.alignment = ft.Alignment.TOP_RIGHT
+
 
     async def theme_changed(self, e):
         """
@@ -98,6 +131,14 @@ class Options(ft.Container):
                     ),
                     padding=ft.Padding.all(0),
                 ),
+            ),
+            ft.PopupMenuItem(content=ft.Container(ft.Stack([self.slider,self.slider_blocker]),alignment=ft.Alignment.CENTER)
             )
         ]
+
+    async def gpu_slider_change(self,e):
+        if e.data == 1:
+            self.gui.csp.gpu = True
+        else:
+            self.gui.csp.gpu = False
 

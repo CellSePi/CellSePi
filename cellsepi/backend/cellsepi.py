@@ -1,3 +1,4 @@
+import torch
 from backend.config_file import ConfigFile
 from pathlib import Path
 import platformdirs
@@ -19,6 +20,7 @@ class CellSePi:
         self.readout_thread = None
         self.readout_path = None
         self.linux_or_3d = False
+        self.gpu = torch.cuda.is_available()
 
         self.image_id = None
         self.channel_id = None

@@ -331,11 +331,11 @@ class Training(ft.Container):
             # initializing variables, who differ if pretrained or not (Initialized with not pretrained)
             sgd_value = False
             model_name = self.model_name
-            model = models.CellposeModel(gpu=True if torch.cuda.is_available() else False)
+            model = models.CellposeModel(gpu=self.gui.csp.gpu)
             if self.re_train_model.value:
                 sgd_value = True
                 model_name = self.re_train_model_name
-                model = models.CellposeModel(pretrained_model=self.gui.csp.re_train_model_path,gpu=True if torch.cuda.is_available() else False)
+                model = models.CellposeModel(pretrained_model=self.gui.csp.re_train_model_path,gpu=self.gui.csp.gpu)
 
             # start the training epochs
             train.train_seg(model.net,
