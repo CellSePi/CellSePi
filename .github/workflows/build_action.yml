@@ -24,23 +24,33 @@ jobs:
       matrix:
         include:
           # -------- Desktop --------
-          - name: linux
+          - name: linux-cpu
             runner: ubuntu-latest
-            build_cmd: "flet build linux"
             artifact_path: build/linux
             needs_linux_deps: true
+            is_gpu: false
+            archive_type: gztar
+
+          - name: linux-gpu
+            runner: ubuntu-latest
+            artifact_path: build/linux
+            needs_linux_deps: true
+            is_gpu: true
+            archive_type: xztar
 
           - name: macos
             runner: macos-latest
-            build_cmd: "flet build macos"
             artifact_path: build/macos
             needs_linux_deps: false
+            is_gpu: false
+            archive_type: gztar
 
           - name: windows
             runner: windows-latest
-            build_cmd: "flet build windows"
             artifact_path: build/windows
             needs_linux_deps: false
+            is_gpu: true
+            archive_type: zip
 
     steps:
       - name: Checkout repository
@@ -71,10 +81,21 @@ jobs:
         run: pip install poetry
 
       - name: Install dependencies
-        run: poetry install
+        run: poetry install --only main
+
+      - name: Export requirements for Flet
+        shell: bash
+        run: |
+          poetry export -f requirements.txt --output requirements.txt --without-hashes
+          
+          sed -i '/^triton/d' requirements.txt
+          
+          if [ "${{ matrix.is_gpu }}" == "false" ]; then
+            sed -i '/^nvidia/d' requirements.txt
+          fi
 
       - name: Build app
-        run: poetry run flet build ${{ matrix.name }} --yes --verbose
+        run: poetry run flet build ${{ runner.os == 'Linux' && 'linux' || matrix.name }} --yes --verbose
 
       - name: Archive build
         shell: python
@@ -82,29 +103,32 @@ jobs:
           import shutil
           import os
 
-          name = "${{ matrix.name }}"
+          matrix_name = "${{ matrix.name }}"
           base_path = "${{ matrix.artifact_path }}"
+          archive_format = "${{ matrix.archive_type }}" 
+          is_gpu = "${{ matrix.is_gpu }}" == "true"
           
-          if name == "linux":
-              bundle_path = os.path.join(base_path, "bundle")
-              if os.path.exists(bundle_path):
-                  source_dir = bundle_path
-              else:
-                  source_dir = base_path
+          if "linux" in matrix_name:
+              os_name = "linux"
+          elif "macos" in matrix_name:
+              os_name = "macos"
           else:
-              source_dir = base_path
-
-          archive_format = "zip" if name == "windows" else "gztar"
-          shutil.make_archive(f"{name}-build-cellsepi", archive_format, source_dir)
+              os_name = "windows"
+              
+          hw_type = "gpu" if is_gpu else ""
+          
+          final_name = f"cellsepi-{os_name}-{hw_type}"
+          
+          shutil.make_archive(final_name, archive_format, base_path)
           
       - name: Upload Artifact
         uses: actions/upload-artifact@v5.0.0
         with:
           name: cellsepi-artifact-${{ matrix.name }}
-          path: ${{ matrix.name }}-build-cellsepi.*
+          path: cellsepi-*.*
           if-no-files-found: error
           overwrite: false
-
+          
   release:
       name: Publish GitHub Release
       runs-on: ubuntu-latest
