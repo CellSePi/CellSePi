@@ -116,7 +116,7 @@ class Training(ft.Container):
                                 content=ft.IconButton(
                                     icon=ft.Icons.COPY,
                                     tooltip="Copy to clipboard",
-                                    on_click=lambda e: e.page.run_task(copy_to_clipboard,self.gui.page,self.model_directory,"Model directory")
+                                    on_click=lambda e: e.page.run_task(copy_to_clipboard,self.gui.page,str(self.model_directory),"Model directory")
                                 ),
                                 alignment=ft.Alignment.TOP_RIGHT,
                             )
