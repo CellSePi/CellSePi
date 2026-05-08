@@ -78,7 +78,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install Poetry
-        run: pip install poetry
+        run: pip install poetry poetry-plugin-export
 
       - name: Install dependencies
         run: poetry install --only main
