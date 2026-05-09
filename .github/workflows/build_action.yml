@@ -72,7 +72,7 @@ jobs:
 
       - name: Install dependencies
         run: poetry install --only main
-        
+
       - name: Build app
         shell: bash
         run: |
@@ -102,6 +102,19 @@ jobs:
           final_name = f"cellsepi-{os_name}-build"
           
           shutil.make_archive(final_name, archive_format, base_path)
+
+      - name: Auto-Split if > 2GB
+        shell: bash
+        run: |
+          ARCHIVE_FILE=$(ls cellsepi-*-build.*)
+          FILE_SIZE=$(python3 -c "import os; print(os.path.getsize('$ARCHIVE_FILE'))")
+          
+          MAX_SIZE=1900000000 
+
+          if [ $FILE_SIZE -gt $MAX_SIZE ]; then
+            split -b 1500M "$ARCHIVE_FILE" "${ARCHIVE_FILE}.part"
+            rm "$ARCHIVE_FILE"
+          fi
           
       - name: Upload Artifact
         uses: actions/upload-artifact@v5.0.0
