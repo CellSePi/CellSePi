@@ -10,8 +10,7 @@ class Segmentation(Notifier):
         super().__init__()
         self.gui = gui
         self.gui_seg = gui_seg
-        self.device = "cpu"
-        self.batch_image_segmentation = BatchImageSegmentation(self, self.gui, self.device)
+        self.batch_image_segmentation = BatchImageSegmentation(self, self.gui)
         self.batch_image_segmentation.add_start_listener(listener=self.start)
         self.batch_image_segmentation.add_update_listener(listener=self.update)
         self.batch_image_segmentation.add_completion_listener(listener=self.finished)

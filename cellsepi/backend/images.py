@@ -26,7 +26,9 @@ class BatchImageSegmentation(Notifier):
     def __init__(self,
                  segmentation = None,
                  gui = None,
-                 device = "cpu",segmentation_channel:str = "", diameter:float = 125.0,suffix:str = "_seg"):
+                 segmentation_channel:str = "",
+                 diameter:float = 125.0,
+                 suffix:str = "_seg"):
         if gui is not None:
             super().__init__()
             self.segmentation = segmentation
@@ -40,7 +42,6 @@ class BatchImageSegmentation(Notifier):
             self.suffix = suffix
 
         self.masks_backup = {}
-        self.device = device
         self.prev_masks_exist = False
         self.num_seg_images = 0
         self.cancel_now = False
@@ -53,7 +54,7 @@ class BatchImageSegmentation(Notifier):
     def _is_cellpose_model(self, model_path):
         try:
             from cellpose import models
-            _ = models.CellposeModel(pretrained_model=model_path, device=torch.device(self.device),gpu=self.gui.csp.gpu)
+            _ = models.CellposeModel(pretrained_model=model_path,gpu=self.gui.csp.gpu)
             return True
         except Exception:
             return False
@@ -220,24 +221,24 @@ class BatchImageSegmentation(Notifier):
             segmentation_model = model_path
             event_manager.notify(ProgressEvent(0, f"Segmenting Images: 0/{n_images}"))
 
-        device = torch.device(self.device)  # converts string to device object
+        device = torch.device("gpu" if self.gui.gpu else "cpu")  # converts string to device object
 
         #if self._is_cellpose_model(segmentation_model):
         if self.gui.csp.model_type == "CustomV3":
             model_type = 'CustomV3'
-            model = modelsV3.CellposeModel(device=device, pretrained_model=segmentation_model,gpu=self.gui.csp.gpu)
+            model = modelsV3.CellposeModel(pretrained_model=segmentation_model,gpu=self.gui.csp.gpu)
             ioV3.logger_setup()
         elif self.gui.csp.model_type == "Cellpose":
             model_type = 'Cellpose'
-            model = modelsV3.CellposeModel(device=device, model_type="cyto3",gpu=self.gui.csp.gpu)
+            model = modelsV3.CellposeModel(model_type="cyto3",gpu=self.gui.csp.gpu)
             ioV3.logger_setup()
         elif self.gui.csp.model_type == "CellposeSAM":
             model_type = 'CellposeSAM'
-            model = models.CellposeModel(device=device,gpu=self.gui.csp.gpu)
+            model = models.CellposeModel(gpu=self.gui.csp.gpu)
             io.logger_setup()
         elif self.gui.csp.model_type == "CustomV4":
             model_type = 'CustomV4'
-            model = models.CellposeModel(device=device, pretrained_model=segmentation_model,gpu=self.gui.csp.gpu)
+            model = models.CellposeModel(pretrained_model=segmentation_model,gpu=self.gui.csp.gpu)
             io.logger_setup()
         """else:
             model_type = 'pytorch'
