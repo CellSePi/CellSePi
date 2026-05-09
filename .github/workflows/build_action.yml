@@ -122,7 +122,7 @@ jobs:
         shell: bash
         run: |
           ARCHIVE_FILE=$(ls cellsepi-*-build.*)
-          FILE_SIZE=$(stat -c%s "$ARCHIVE_FILE")
+          FILE_SIZE=$(python3 -c "import os; print(os.path.getsize('$ARCHIVE_FILE'))")
           
           MAX_SIZE=1900000000 
 
