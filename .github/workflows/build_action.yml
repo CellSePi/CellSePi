@@ -68,20 +68,31 @@ jobs:
           python-version: "3.12"
 
       - name: Install Poetry
-        run: pip install poetry
-
-      - name: Override PyTorch for CPU (Linux/Windows)
-        if: matrix.name != 'macos'
-        shell: bash
-        run: |
-          poetry source add --priority=explicit pytorch-cpu https://download.pytorch.org/whl/cpu
-            
-          poetry add --lock --source pytorch-cpu torch torchvision
-            
+        run: pip install poetry poetry-plugin-export
 
       - name: Install dependencies
         run: poetry install --only main
-        
+
+      - name: Generate requirements.txt for flet
+        run: poetry export --only main --without-hashes -f requirements.txt -o requirements.txt
+
+      - name: Patch PyTorch for CPU (Linux/Windows)
+        if: matrix.name != 'macos'
+        shell: python
+        run: |
+          import re
+          
+          with open('requirements.txt', 'r', encoding='utf-8') as f:
+              lines = f.readlines()
+          
+          with open('requirements.txt', 'w', encoding='utf-8') as f:
+              f.write('--extra-index-url https://download.pytorch.org/whl/cpun')
+          
+              for line in lines:
+                  if re.match(r'^(torch|torchvision|torchaudio)==', line):
+                      line = re.sub(r'==([0-9\.]+)', r'==\1+cpu', line)
+                  f.write(line)
+
       - name: Build app
         shell: bash
         run: |
