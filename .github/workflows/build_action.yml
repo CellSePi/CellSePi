@@ -28,7 +28,7 @@ jobs:
             runner: ubuntu-latest
             artifact_path: build/linux
             needs_linux_deps: true
-            archive_type: xztar
+            archive_type: gztar
 
           - name: macos
             runner: macos-latest
