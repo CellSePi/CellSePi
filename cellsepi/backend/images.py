@@ -16,8 +16,9 @@ from backend.data_util import load_image_to_numpy
 from backend.expert_mode.event_manager import EventManager
 from backend.expert_mode.listener import ProgressEvent
 from backend.notifier import Notifier
-from frontend.gui_mask import reset_mask
 from backend.CellposeV3 import modelsV3, ioV3
+from frontend.gui import GUI
+
 
 class BatchImageSegmentation(Notifier):
     """
@@ -120,13 +121,8 @@ class BatchImageSegmentation(Notifier):
             channels_to_delete.append((image_id, segmentation_channel))
             if image_id == self.gui.csp.image_id:
                 if self.segmentation_channel == segmentation_channel:
-                    self.gui.switch_mask.value = False  # sets the mask switch to False because there is no longer a mask
-                    self.gui.canvas.container_mask.visible = False  # and sets the mask picture invisible because it is no longer valid
-                    reset_mask(self.gui, image_id,segmentation_channel)
-                    self.gui.page.update()
-            if image_id == self.gui.csp.window_image_id:
-               if segmentation_channel == self.gui.csp.window_bf_channel:
-                   self.gui.queue.put("delete_mask")  # sends the info that the current image is deleted to the drawing window
+                    self.gui.canvas.reset_mask()
+                    return
             os.remove(path)
 
     def restore_backup(self):
@@ -143,13 +139,9 @@ class BatchImageSegmentation(Notifier):
                         backup_path = self.gui.csp.mask_paths[image_id].get(segmentation_channel)
                         if backup_path:
                             np.save(backup_path, mask)
-                            if image_id == self.gui.csp.window_image_id: #TODO update to new drawing window functionality
-                                if segmentation_channel == self.gui.csp.window_bf_channel:
-                                    self.gui.queue.put("refresh_mask")  # refreshes if the backup is the current selected image and the mask is the same channel
                             if image_id == self.gui.csp.image_id and segmentation_channel == self.gui.csp.config.get_bf_channel(): #refreshes or delete the current generated mask
-                                continue #handle_mask_update(self.gui) #TODO update to new drawing window functionality
-                            else:
-                                reset_mask(self.gui, image_id,segmentation_channel)
+                                self.gui.page.run_task(self.gui.canvas.update_mask_image)
+                                self.gui.mask_update(image_id,True)
                     else:
                         if segmentation_channel in self.gui.csp.mask_paths[image_id]:
                             path = self.gui.csp.mask_paths[image_id][segmentation_channel]
@@ -221,7 +213,7 @@ class BatchImageSegmentation(Notifier):
             segmentation_model = model_path
             event_manager.notify(ProgressEvent(0, f"Segmenting Images: 0/{n_images}"))
 
-        device = torch.device("gpu" if self.gui.gpu else "cpu")  # converts string to device object
+        device = torch.device("gpu" if self.gui.csp.gpu else "cpu")  # converts string to device object
 
         #if self._is_cellpose_model(segmentation_model):
         if self.gui.csp.model_type == "CustomV3":
