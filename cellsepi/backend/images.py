@@ -17,7 +17,6 @@ from backend.expert_mode.event_manager import EventManager
 from backend.expert_mode.listener import ProgressEvent
 from backend.notifier import Notifier
 from backend.CellposeV3 import modelsV3, ioV3
-from frontend.gui import GUI
 
 
 class BatchImageSegmentation(Notifier):
@@ -213,7 +212,7 @@ class BatchImageSegmentation(Notifier):
             segmentation_model = model_path
             event_manager.notify(ProgressEvent(0, f"Segmenting Images: 0/{n_images}"))
 
-        device = torch.device("gpu" if self.gui.csp.gpu else "cpu")  # converts string to device object
+        device = torch.device("cuda" if self.gui.csp.gpu else "cpu")  # converts string to device object
 
         #if self._is_cellpose_model(segmentation_model):
         if self.gui.csp.model_type == "CustomV3":
