@@ -139,7 +139,7 @@ class BatchImageSegmentation(Notifier):
                         if backup_path:
                             np.save(backup_path, mask)
                             if image_id == self.gui.csp.image_id and segmentation_channel == self.gui.csp.config.get_bf_channel(): #refreshes or delete the current generated mask
-                                self.gui.page.run_task(self.gui.canvas.update_mask_image)
+                                self.gui.page.run_task(self.gui.canvas.update_mask_image,True)
                                 self.gui.mask_update(image_id,True)
                     else:
                         if segmentation_channel in self.gui.csp.mask_paths[image_id]:

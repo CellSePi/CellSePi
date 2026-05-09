@@ -338,7 +338,7 @@ class GUISegmentation:
 
             if current_image is not None:
                 if current_image["image_id"] == self.gui.csp.image_id and self.segmentation.batch_image_segmentation.segmentation_channel == self.gui.csp.config.get_bf_channel():
-                    await self.gui.canvas.update_mask_image()
+                    await self.gui.canvas.update_mask_image(True)
 
             self.gui.page.update()
 
