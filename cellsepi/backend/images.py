@@ -153,10 +153,12 @@ class BatchImageSegmentation(Notifier):
                         self.delete_mask(path, channels_to_delete, image_id, segmentation_channel)
 
         for image_id, segmentation_channel in channels_to_delete:
-            del self.gui.csp.mask_paths[image_id][segmentation_channel]
+            if image_id in self.gui.csp.mask_paths and segmentation_channel in self.gui.csp.mask_paths[image_id]:
+                del self.gui.csp.mask_paths[image_id][segmentation_channel]
 
         for image_id, channel in channels_to_delete:
-            del self.gui.csp.mask_paths[image_id]
+            if image_id in self.gui.csp.mask_paths:
+                del self.gui.csp.mask_paths[image_id]
 
 
     # the following methods handle the different actions and handle accordingly
