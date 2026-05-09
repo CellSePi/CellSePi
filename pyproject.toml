@@ -13,6 +13,11 @@ packages = [
     { include = "cellsepi"}
 ]
 
+[[tool.poetry.source]]
+name = "pytorch"
+url = "https://download.pytorch.org/whl/cpu"
+priority = "explicit"
+
 [tool.poetry.dependencies]
 python = ">=3.11,<3.13"
 numpy = "2.1.0"
@@ -30,9 +35,18 @@ flet-color-pickers = "0.84.0"
 flet-extended-interactive-viewer = "0.2.1"
 bioio = "3.3.0"
 bioio-lif = "1.4.2"
-torchvision = "0.26.0"
 jsonschema = "4.25.1"
 cellsepi-drawing = { git = "https://github.com/CellSePi/CellSePiDrawing.git", branch = "master" }
+
+torch = [
+    { version = "2.6.0", source = "pytorch", markers = "sys_platform != 'darwin'" },
+    { version = "2.6.0", markers = "sys_platform == 'darwin'" }
+]
+
+torchvision = [
+    { version = "0.26.0", source = "pytorch", markers = "sys_platform != 'darwin'" },
+    { version = "0.26.0", markers = "sys_platform == 'darwin'" }
+]
 
 [tool.poetry.group.dev.dependencies]
 pytest = "8.3.4"
@@ -40,15 +54,10 @@ pytest = "8.3.4"
 [tool.poetry.scripts]
 cellsepi = "cellsepi.main:main"
 
-
 [[tool.poetry.include]]
 path = "cellsepi/models/**/*"
 [[tool.poetry.include]]
-path = "cellsepi/config.json"
-[[tool.poetry.include]]
 path = "cellsepi/csp.schema.json"
-[[tool.poetry.include]]
-path = "cellsepi/pyproject.toml"
 
 [build-system]
 requires = ["poetry-core>=1.3.0"]
