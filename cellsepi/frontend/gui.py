@@ -247,11 +247,17 @@ class GUI:
         self.canvas.contrast = round(self.contrast_slider.value, 2)
         await self.canvas.update_main_image_with_brightness_contrast(self.csp.image_paths[self.csp.image_id][self.csp.channel_id])
 
-
     def load_plugins(self, directory):
         plugin_dir = pathlib.Path(directory)
         error_log_path = plugin_dir / "plugin_errors.txt"
         errors_found = False
+
+        #collect gui names of the modules
+        used_gui_names = {
+            cls.gui_config().name
+            for cls in MODULE_REGISTRY.values()
+            if hasattr(cls, 'gui_config')
+        }
 
         for path in pathlib.Path(directory).rglob("*.py"):
             spec = importlib.util.spec_from_file_location(path.stem, path)
@@ -272,6 +278,22 @@ class GUI:
 
             for name, obj in inspect.getmembers(module, inspect.isclass):
                 if issubclass(obj, Module) and obj is not Module:
+
+                    try:
+                        gui_name = obj.gui_config().name
+                    except AttributeError:
+                        continue
+
+                    if gui_name in used_gui_names: #check if the new modules gui names are duplicates of already registered ones
+                        errors_found = True
+                        with open(error_log_path, "a", encoding="utf-8") as f:
+                            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                            f.write(
+                                f"[{timestamp}] Error: Duplicate GUI name '{gui_name}' found in '{path.name}' (Class: {obj.__name__}). Module skipped.\n")
+                            f.write("-" * 50 + "\n")
+                        continue
+
+                    used_gui_names.add(gui_name)
                     unique_id = f"{path.stem}.{obj.__name__}"
                     MODULE_REGISTRY[unique_id] = obj
 
