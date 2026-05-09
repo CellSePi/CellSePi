@@ -87,7 +87,6 @@ jobs:
         run: |
           import shutil
           import os
-          import glob
 
           matrix_name = "${{ matrix.name }}"
           base_path = "${{ matrix.artifact_path }}"
@@ -99,20 +98,6 @@ jobs:
               os_name = "macos"
           else:
               os_name = "windows"
-          
-          if "linux" in matrix_name or "windows" in matrix_name:
-              torch_paths = glob.glob(os.path.join(base_path, "**/site-packages/torch"), recursive=True)
-              for torch_path in torch_paths:
-                  for folder in ["include", "bin"]:
-                      p = os.path.join(torch_path, folder)
-                      if os.path.exists(p): shutil.rmtree(p)
-                  
-                  lib_dir = os.path.join(torch_path, "lib")
-                  if os.path.exists(lib_dir):
-                      for pattern in ["*.a", "*.lib", "libtorch_cuda_cpp.so"]:
-                          for f in glob.glob(os.path.join(lib_dir, pattern)):
-                              try: os.remove(f)
-                              except: pass
           
           final_name = f"cellsepi-{os_name}-build"
           
