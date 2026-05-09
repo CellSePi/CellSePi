@@ -43,9 +43,6 @@ class GUI:
         self.page.window.on_event = lambda e: self.page.run_task(self.handle_closing_event,e)
         self.page.window.width = 1440
         self.page.window.height = 800
-        self.page.run_task(self.handle_window_centering)
-        self.page.window.min_width = self.page.window.width
-        self.page.window.min_height = self.page.window.height
         self.page.title = "CellSePi"
         self.canvas = ImageEditingView(on_mask_change=lambda img_id,mask_added_or_removed: self.mask_update(img_id,mask_added_or_removed))
         self.canvas.mask_color=self.csp.config.get_mask_color()
@@ -244,9 +241,6 @@ class GUI:
 
     async def handle_window_closing(self):
         await self.page.window.close()
-
-    async def handle_window_centering(self):
-        await self.page.window.center()
 
     async def update_adjusted_image(self):
         self.canvas.brightness =  round(self.brightness_slider.value, 2)
