@@ -87,6 +87,7 @@ class BatchImageSegmentation(Notifier):
         This method creates a backup of the previously generated masks.
         """
         self.prev_masks_exist = False
+        self.masks_backup = {}
 
         for image_id, channels in self.gui.csp.mask_paths.items():
             for segmentation_channel, path in channels.items():
