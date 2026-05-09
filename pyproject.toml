@@ -13,11 +13,6 @@ packages = [
     { include = "cellsepi"}
 ]
 
-[[tool.poetry.source]]
-name = "pytorch"
-url = "https://download.pytorch.org/whl/cpu"
-priority = "explicit"
-
 [tool.poetry.dependencies]
 python = ">=3.11,<3.13"
 numpy = "2.1.0"
@@ -39,13 +34,15 @@ jsonschema = "4.25.1"
 cellsepi-drawing = { git = "https://github.com/CellSePi/CellSePiDrawing.git", branch = "master" }
 
 torch = [
-    { version = "2.6.0", source = "pytorch", markers = "sys_platform != 'darwin'" },
+    { url = "https://download.pytorch.org/whl/cpu/torch-2.6.0%2Bcpu-cp312-cp312-linux_x86_64.whl", markers = "sys_platform == 'linux'" },
+    { url = "https://download.pytorch.org/whl/cpu/torch-2.6.0%2Bcpu-cp312-cp312-win_amd64.whl", markers = "sys_platform == 'win32'" },
     { version = "2.6.0", markers = "sys_platform == 'darwin'" }
 ]
 
 torchvision = [
-    { version = "0.26.0", source = "pytorch", markers = "sys_platform != 'darwin'" },
-    { version = "0.26.0", markers = "sys_platform == 'darwin'" }
+    { url = "https://download.pytorch.org/whl/cpu/torchvision-0.21.0%2Bcpu-cp312-cp312-linux_x86_64.whl", markers = "sys_platform == 'linux'" },
+    { url = "https://download.pytorch.org/whl/cpu/torchvision-0.21.0%2Bcpu-cp312-cp312-win_amd64.whl", markers = "sys_platform == 'win32'" },
+    { version = "0.21.0", markers = "sys_platform == 'darwin'" }
 ]
 
 [tool.poetry.group.dev.dependencies]
