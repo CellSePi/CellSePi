@@ -6,7 +6,7 @@ on:
       - "v*"
 
 env:
-  UV_PYTHON: 3.11
+  UV_PYTHON: 3.12
   PYTHONUTF8: 1
 
   # https://flet.dev/docs/reference/environment-variables
@@ -65,7 +65,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - name: Install Poetry
         run: pip install poetry
