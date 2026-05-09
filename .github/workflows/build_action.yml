@@ -27,21 +27,18 @@ jobs:
           - name: linux
             runner: ubuntu-latest
             artifact_path: build/linux
-            needs_mac_deps: false
             needs_linux_deps: true
             archive_type: xztar
 
           - name: macos
             runner: macos-latest
             artifact_path: build/macos
-            needs_mac_deps: true
             needs_linux_deps: false
             archive_type: gztar
 
           - name: windows
             runner: windows-latest
             artifact_path: build/windows
-            needs_mac_deps: false
             needs_linux_deps: false
             archive_type: zip
 
@@ -64,16 +61,6 @@ jobs:
               gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 \
               gstreamer1.0-qt5 gstreamer1.0-pulseaudio pkg-config libsecret-1-0 libsecret-1-dev
             sudo apt-get clean
-            
-      - name: Install LLVM and CMake
-        if: matrix.needs_mac_deps
-        run: |
-          brew install llvm@14 cmake
-          echo "LLVM_CONFIG=$(brew --prefix llvm@14)/bin/llvm-config" >> $GITHUB_ENV
-          echo "CC=$(brew --prefix llvm@14)/bin/clang" >> $GITHUB_ENV
-          echo "CXX=$(brew --prefix llvm@14)/bin/clang++" >> $GITHUB_ENV
-          echo "LDFLAGS=-L$(brew --prefix llvm@14)/lib" >> $GITHUB_ENV
-          echo "CPPFLAGS=-I$(brew --prefix llvm@14)/include" >> $GITHUB_ENV
           
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -87,7 +74,13 @@ jobs:
         run: poetry install --only main
         
       - name: Build app
-        run: poetry run flet build ${{matrix.name }} --yes --verbose
+        shell: bash
+        run: |
+          if [ "${{ runner.os }}" == "macOS" ]; then
+            poetry run flet build ${{ matrix.name }} --arch arm64 --yes --verbose
+          else
+            poetry run flet build ${{ matrix.name }} --yes --verbose
+          fi
         
       - name: Archive build
         shell: python

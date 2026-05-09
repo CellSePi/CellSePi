@@ -30,18 +30,25 @@ class Options(ft.Container):
                 ft.Text("GPU")
             ],
         )
+        cuda_compiled = torch.version.cuda is not None
         self.slider_blocker = ft.Container(
             width=80,
             height=30,
             bgcolor=ft.Colors.TRANSPARENT,
             on_click=None,
-            visible=False,
-            tooltip="GPU acceleration is unavailable.\nUse a CUDA-compatible NVIDIA card for faster segmentation,\nand ensure the required drivers are installed.",
+            visible=False
         )
         if not torch.cuda.is_available():
             self.slider.on_change = None
             self.slider.thumb_color = ft.Colors.GREY_400
             self.slider_blocker.visible = True
+            if cuda_compiled:
+                self.slider_blocker.tooltip = f"GPU acceleration is unavailable.\n" \
+                                              f"Use a CUDA-compatible NVIDIA card for faster segmentation,\n" \
+                                              f"and ensure the required drivers are installed."
+            else:
+                self.slider_blocker.tooltip = f"GPU acceleration is unavailable.\n" \
+                                              f"This version of cellsepi is not capable of CUDA."
             for control in self.slider.controls:
                 control.color = ft.Colors.GREY_700
         else:
