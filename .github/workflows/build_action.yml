@@ -28,7 +28,7 @@ jobs:
             runner: ubuntu-latest
             artifact_path: build/linux
             needs_linux_deps: true
-            archive_type: gztar
+            archive_type: xztar
 
           - name: macos
             runner: macos-latest
@@ -68,30 +68,10 @@ jobs:
           python-version: "3.12"
 
       - name: Install Poetry
-        run: pip install poetry poetry-plugin-export
+        run: pip install poetry
 
       - name: Install dependencies
         run: poetry install --only main
-
-      - name: Generate requirements.txt for flet
-        run: poetry export --only main --without-hashes -f requirements.txt -o requirements.txt
-
-      - name: Patch PyTorch for CPU (Linux/Windows)
-        if: matrix.name != 'macos'
-        shell: python
-        run: |
-          import re
-          
-          with open('requirements.txt', 'r', encoding='utf-8') as f:
-              lines = f.readlines()
-          
-          with open('requirements.txt', 'w', encoding='utf-8') as f:
-              f.write('--extra-index-url https://download.pytorch.org/whl/cpun')
-          
-              for line in lines:
-                  if re.match(r'^(torch|torchvision|torchaudio)==', line):
-                      line = re.sub(r'==([0-9\.]+)', r'==\1+cpu', line)
-                  f.write(line)
 
       - name: Build app
         shell: bash
@@ -107,6 +87,7 @@ jobs:
         run: |
           import shutil
           import os
+          import glob
 
           matrix_name = "${{ matrix.name }}"
           base_path = "${{ matrix.artifact_path }}"
@@ -119,9 +100,36 @@ jobs:
           else:
               os_name = "windows"
           
+          if "linux" in matrix_name or "windows" in matrix_name:
+              torch_paths = glob.glob(os.path.join(base_path, "**/site-packages/torch"), recursive=True)
+              for torch_path in torch_paths:
+                  for folder in ["include", "bin"]:
+                      p = os.path.join(torch_path, folder)
+                      if os.path.exists(p): shutil.rmtree(p)
+                  
+                  lib_dir = os.path.join(torch_path, "lib")
+                  if os.path.exists(lib_dir):
+                      for pattern in ["*.a", "*.lib", "libtorch_cuda_cpp.so"]:
+                          for f in glob.glob(os.path.join(lib_dir, pattern)):
+                              try: os.remove(f)
+                              except: pass
+          
           final_name = f"cellsepi-{os_name}-build"
           
           shutil.make_archive(final_name, archive_format, base_path)
+
+      - name: Auto-Split if > 2GB
+        shell: bash
+        run: |
+          ARCHIVE_FILE=$(ls cellsepi-*-build.*)
+          FILE_SIZE=$(stat -c%s "$ARCHIVE_FILE")
+          
+          MAX_SIZE=1900000000 
+
+          if [ $FILE_SIZE -gt $MAX_SIZE ]; then
+            split -b 1500M "$ARCHIVE_FILE" "${ARCHIVE_FILE}.part"
+            rm "$ARCHIVE_FILE"
+          fi
           
       - name: Upload Artifact
         uses: actions/upload-artifact@v5.0.0
