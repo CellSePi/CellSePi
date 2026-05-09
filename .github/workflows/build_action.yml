@@ -72,6 +72,13 @@ jobs:
 
       - name: Install dependencies
         run: poetry install --only main
+
+      - name: Prepare flet Parser Fix
+        shell: bash
+        run: |
+          poetry export -f requirements.txt --output requirements.txt --without-hashes
+          
+          cp pyproject-flet.toml pyproject.toml
         
       - name: Build app
         shell: bash
