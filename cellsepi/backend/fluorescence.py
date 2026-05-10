@@ -44,6 +44,7 @@ class Fluorescence(Notifier):
 
 
             self.csp.readout_running=True
+            self.gui.readout_event.clear()
             fluorescence_button.disabled=True
 
             brightfield_channel = self.csp.config.get_bf_channel()

@@ -300,6 +300,7 @@ class Builder:
             module.error_stack.update()
             module.check_warning()
         self.update_modules_executed(reset=True)
+        self.pipeline_running_event.clear()
         await asyncio.to_thread(self.pipeline_gui.pipeline.run,show_room_module_ids)
         if len(self.pipeline_gui.pipeline.modules) - len(MODULE_REGISTRY) * 2 != self.pipeline_gui.module_count or self.pipeline_gui.module_count != self.pipeline_gui.pipeline.modules_executed:
             self.update_modules_executed(reset=True)
@@ -310,8 +311,7 @@ class Builder:
         self.load_button.disabled = False
         self.load_button.icon_color = MAIN_ACTIVE_COLOR
         self.load_button.update()
-        if self.pipeline_running_event is not None:
-            self.pipeline_running_event.set()
+        self.pipeline_running_event.set()
 
     def add_all_listeners(self):
         """

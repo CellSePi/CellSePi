@@ -27,6 +27,7 @@ class Segmentation(Notifier):
     def to_be_resumed(self):
         self.batch_image_segmentation.resume_action()
         self.gui.csp.segmentation_running = True
+        self.gui.cancel_event.clear()
 
     def is_resuming(self):
         self._call_resume_listeners()
@@ -58,6 +59,7 @@ class Segmentation(Notifier):
             return
 
         self.gui.csp.segmentation_running = True
+        self.gui.cancel_event.clear()
 
         self.batch_image_segmentation.run()
         self.gui.csp.segmentation_running = False
