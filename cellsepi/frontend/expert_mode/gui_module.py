@@ -32,7 +32,7 @@ class ModuleGUI(ft.GestureDetector):
         self.old_left = None
         self.old_top = None
         self.port_selection = False
-        self.module = self.pipeline_gui.pipeline.add_module(module_type) if id_number is None else self.pipeline_gui.pipeline.add_module_with_id(module_type,module_type.gui_config().name + str(id_number))
+        self.module = self.pipeline_gui.pipeline.add_module(module_type) if id_number is None else self.pipeline_gui.pipeline.add_module_with_id(module_type,module_type.gui_config().name+ "_" + str(id_number))
         self.module._page = self.pipeline_gui._page
         self.pipeline_gui._page.run_task(self.create_options)
         if module_dict is not None:

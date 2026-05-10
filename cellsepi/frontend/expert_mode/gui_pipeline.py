@@ -186,7 +186,7 @@ class PipelineGUI(ft.Stack):
         """
         Adds a module to the PipelineGUI.
         """
-        id_number = int(module_id.removeprefix(module_type.gui_config().name)) if module_id is not None else None
+        id_number = int(module_id.removeprefix(f"{module_type.gui_config().name}_")) if module_id is not None else None
         module_gui = ModuleGUI(self,module_type,x,y,id_number=id_number,module_dict=module_dict)
         self.controls.append(module_gui)
         self.update()
