@@ -31,7 +31,7 @@ class PipelineStorage:
         self.project_root = os.path.dirname(cast(str, os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
         self.schema_directory = os.path.join(self.project_root, self.schema_name)
         self.pipeline_gui = pipeline_gui
-        self.version = "csp-1.0"
+        self.version = "csp-2.0"
         self.schema = load_schema(schema_path=self.schema_directory)
 
     async def save_as_pipeline(self,file_path:str= ""):
@@ -132,6 +132,13 @@ class PipelineStorage:
                 pipeline_dict = json.load(f)
         else:
             raise FileNotFoundError("Pipeline json doesn't exist")
+
+        file_version = pipeline_dict.get("version")
+        if file_version != self.version:
+            raise ValueError(
+                f"Outdated pipeline file! "
+                f"Expected version '{self.version}', but the file is '{file_version}', which is no longer supported."
+            )
 
         try:
             validate(instance=pipeline_dict, schema=self.schema)
