@@ -300,6 +300,7 @@ class Builder:
             module.error_stack.update()
             module.check_warning()
         self.update_modules_executed(reset=True)
+        self.pipeline_running_event.clear()
         await asyncio.to_thread(self.pipeline_gui.pipeline.run,show_room_module_ids)
         if len(self.pipeline_gui.pipeline.modules) - len(MODULE_REGISTRY) * 2 != self.pipeline_gui.module_count or self.pipeline_gui.module_count != self.pipeline_gui.pipeline.modules_executed:
             self.update_modules_executed(reset=True)
@@ -310,8 +311,7 @@ class Builder:
         self.load_button.disabled = False
         self.load_button.icon_color = MAIN_ACTIVE_COLOR
         self.load_button.update()
-        if self.pipeline_running_event is not None:
-            self.pipeline_running_event.set()
+        self.pipeline_running_event.set()
 
     def add_all_listeners(self):
         """
@@ -392,7 +392,7 @@ class Builder:
             self.progress_pipeline.value = (current / self.pipeline_gui.module_count) if self.pipeline_gui.module_count > 0 else 0
             self.progress_text.value = f"{current}/{self.pipeline_gui.module_count}"
         self.progress_text.update()
-        self.page.update()
+        self.progress_pipeline.update()
 
     async def zoom_in(self, e):
         await self.interactive_view.zoom(1.0 + ZOOM_VALUE)
@@ -632,7 +632,6 @@ class Builder:
         """
         Setup all the GUI elements.
         """
-        ft.InteractiveViewer
         canvas = ft.Stack([self.help_text,ft.Container(
             content=self.pipeline_gui,
             width=CANVAS_WIDTH,

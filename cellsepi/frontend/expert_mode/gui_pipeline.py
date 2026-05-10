@@ -154,7 +154,8 @@ class PipelineGUI(ft.Stack):
         """
         def _add_show_room_module(module_type: type, x: float, y: float, visible: bool = True, show_room_id: int = None):
             module_gui = ModuleGUI(self, module_type, x, y, True, visible, id_number=show_room_id)
-            self.page_stack.controls.insert(2, module_gui)
+            if visible:
+                self.page_stack.controls.insert(2, module_gui)
             return module_gui
 
         self.page_stack = page_stack
@@ -178,9 +179,14 @@ class PipelineGUI(ft.Stack):
             module_page = (i//2) // SHOWROOM_MODULE_COUNT
             if module_page == self.show_room_page_number:
                 module.visible = True
+                if module not in self.page_stack.controls:
+                    self.page_stack.controls.insert(3, module)
             else:
                 module.visible = False
-            module.update()
+                if module in self.page_stack.controls:
+                    self.page_stack.controls.remove(module)
+
+        self.page_stack.update()
 
     def add_module(self,module_type: type,x: float = None,y: float = None,module_id: str = None,module_dict:dict=None):
         """

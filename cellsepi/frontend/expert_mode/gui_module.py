@@ -50,7 +50,7 @@ class ModuleGUI(ft.GestureDetector):
         self.wrapped_description = "\n".join(textwrap.wrap(self.module.gui_config().description, width=40))
         self.click_container = ft.Container(on_click=self.add_connection,tooltip=self.wrapped_description if self.show_mode else None, height=MODULE_HEIGHT, width=MODULE_WIDTH,
                                             visible=False if not show_mode else True,bgcolor=INVALID_COLOR if not show_mode else ft.Colors.TRANSPARENT,disabled=True if not show_mode else False,border_radius=ft.border_radius.all(10))
-        self.click_gesture = ft.GestureDetector(visible=False if not show_mode else True,disabled=True if not show_mode else False,content=self.click_container,on_enter=self.on_enter_click_module,on_exit=self.on_exit_click_module)
+        self.click_gesture = ft.GestureDetector(hover_interval=25,visible=False,disabled=True,content=self.click_container,on_enter=self.on_enter_click_module,on_exit=self.on_exit_click_module)
 
         self.connect_button = ft.IconButton(icon=ft.Icons.SHARE, icon_color=ft.Colors.WHITE60,
                                             style=ft.ButtonStyle(
@@ -519,7 +519,8 @@ class ModuleGUI(ft.GestureDetector):
         """
         self.old_left = self.left
         self.old_top = self.top
-        self.pipeline_gui.lines_gui.update_lines(self)
+        if not self.show_mode:
+            self.pipeline_gui.lines_gui.update_lines(self)
         self.update()
 
     async def drag(self, e: ft.DragUpdateEvent):
@@ -528,7 +529,6 @@ class ModuleGUI(ft.GestureDetector):
         """
         if self.show_mode:
             self.click_container.tooltip = None
-            self.click_container.update()
             overlap_show_room = not (
                     self.left + MODULE_WIDTH  < self.pipeline_gui.show_room_container.left or
                     self.left > self.pipeline_gui.show_room_container.left + self.pipeline_gui.show_room_container.width or
@@ -546,7 +546,8 @@ class ModuleGUI(ft.GestureDetector):
         else:
             self.top = min(max(0, self.top + e.local_delta.y), CANVAS_HEIGHT - MODULE_HEIGHT)
             self.left = min(max(0, self.left + e.local_delta.x), CANVAS_WIDTH - MODULE_WIDTH)
-        self.pipeline_gui.lines_gui.update_lines(self)
+            self.pipeline_gui.lines_gui.update_lines(self)
+
         self.update()
 
     async def drop(self,e: ft.DragEndEvent):

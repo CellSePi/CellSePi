@@ -290,6 +290,7 @@ class Training(ft.Container):
             self.page.update()
             return
         self.gui.csp.training_running = True
+        self.gui.training_event.clear()
         try:
             mask_filter = f"{self.gui.csp.current_mask_suffix}.npy"
 
@@ -310,8 +311,7 @@ class Training(ft.Container):
             self.enable_switch_environment()
             self.page.update()
             self.gui.csp.training_running = False
-            if self.gui.training_event is not None:
-                self.gui.training_event.set()
+            self.gui.training_event.set()
             return
         if len(images) == 0 or len(labels) == 0:
             self.page.show_dialog(ft.SnackBar(
@@ -324,8 +324,7 @@ class Training(ft.Container):
             self.enable_switch_environment()
             self.page.update()
             self.gui.csp.training_running = False
-            if self.gui.training_event is not None:
-                self.gui.training_event.set()
+            self.gui.training_event.set()
             return
         try:
             # initializing variables, who differ if pretrained or not (Initialized with not pretrained)
@@ -362,8 +361,7 @@ class Training(ft.Container):
         self.page.update()
         print("finished training")
         self.gui.csp.training_running = False
-        if self.gui.training_event is not None:
-            self.gui.training_event.set()
+        self.gui.training_event.set()
 
     def disable_switch_environment(self):
         self.switch_icon.color = ft.Colors.GREY_400

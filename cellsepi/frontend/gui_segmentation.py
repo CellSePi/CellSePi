@@ -287,8 +287,7 @@ class GUISegmentation:
             for image_id in self.gui.csp.image_paths:
                 self.gui.directory.update_mask_check(image_id)
             self.gui.page.update()
-            if self.gui.cancel_event is not None:
-                self.gui.cancel_event.set()
+            self.gui.cancel_event.set()
 
         def paused_segmentation():
             """
@@ -386,8 +385,7 @@ class GUISegmentation:
             model_title.disabled = False
             model_chooser.disabled = False
             self.gui.page.update()
-            if self.gui.readout_event is not None:
-                self.gui.readout_event.set()
+            self.gui.readout_event.set()
 
 
         fl_button.on_click = fluorescence_readout

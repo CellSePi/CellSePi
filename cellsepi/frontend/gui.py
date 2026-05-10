@@ -1,5 +1,6 @@
 import asyncio
-import multiprocessing
+import os
+import threading
 import traceback
 from datetime import datetime
 
@@ -34,11 +35,11 @@ class GUI:
         self.page = page
         self.directory = DirectoryCard(self)
         self.average_diameter = AverageDiameter(self)
-        self.cancel_event = None
+        self.cancel_event = threading.Event()
         self.closing_event = False
-        self.training_event = None
-        self.expert_running_event = None
-        self.readout_event = None
+        self.training_event = threading.Event()
+        self.expert_running_event = threading.Event()
+        self.readout_event = threading.Event()
         self.page.window.prevent_close = True
         self.page.window.on_event = lambda e: self.page.run_task(self.handle_closing_event,e)
         self.page.window.width = 1440
@@ -95,6 +96,7 @@ class GUI:
         self.ref_seg_environment = ft.Ref[ft.Column]()
         self.ref_training_environment = ft.Ref[ft.Column]()
         self.builder_environment = Builder(self.page)
+        self.builder_environment.pipeline_running_event = self.expert_running_event
         pipeline_state_listener = PipelineStateListener(self)
         self.builder_environment.pipeline_gui.pipeline.event_manager.subscribe(listener=pipeline_state_listener)
         self.ref_builder_environment = ft.Ref[ft.Column]()
@@ -212,19 +214,14 @@ class GUI:
             overlay = PageOverlay(self.page,content=self.closing_sheet,modal=True)
             overlay.open()
             if self.csp.segmentation_running:
-                self.cancel_event = multiprocessing.Event()
                 self.cancel_segmentation()
                 await asyncio.to_thread(self.cancel_event.wait)
             if self.csp.training_running:
-                self.training_event = multiprocessing.Event()
                 await asyncio.to_thread(self.training_event.wait)
             if self.csp.readout_running:
-                self.readout_event = multiprocessing.Event()
                 await asyncio.to_thread(self.readout_event.wait)
             if self.builder_environment.pipeline_gui.pipeline.running:
                 self.builder_environment.cancel()
-                self.expert_running_event = multiprocessing.Event()
-                self.builder_environment.pipeline_running_event = self.expert_running_event
                 await asyncio.to_thread(self.expert_running_event.wait)
             self.page.window.prevent_close = False
             self.page.window.on_event = None
@@ -240,7 +237,8 @@ class GUI:
         self.diameter_text.update()
 
     async def handle_window_closing(self):
-        await self.page.window.close()
+        await self.page.window.destroy()
+        os._exit(0)
 
     async def update_adjusted_image(self):
         self.canvas.brightness =  round(self.brightness_slider.value, 2)
