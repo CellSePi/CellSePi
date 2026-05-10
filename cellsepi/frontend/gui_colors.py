@@ -119,5 +119,5 @@ class ColorOpacity:
 
     async def opacity_change(self):
         self.gui.canvas.mask_opacity = self.slider.value
-        await self.gui.canvas.update_mask_image
+        await self.gui.canvas.update_mask_image()
         MODULE_REGISTRY["REVIEW"].update_class(opacity=self.slider.value)
