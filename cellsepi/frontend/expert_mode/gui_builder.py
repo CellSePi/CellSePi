@@ -392,7 +392,7 @@ class Builder:
             self.progress_pipeline.value = (current / self.pipeline_gui.module_count) if self.pipeline_gui.module_count > 0 else 0
             self.progress_text.value = f"{current}/{self.pipeline_gui.module_count}"
         self.progress_text.update()
-        self.page.update()
+        self.progress_pipeline.update()
 
     async def zoom_in(self, e):
         await self.interactive_view.zoom(1.0 + ZOOM_VALUE)
@@ -632,7 +632,6 @@ class Builder:
         """
         Setup all the GUI elements.
         """
-        ft.InteractiveViewer
         canvas = ft.Stack([self.help_text,ft.Container(
             content=self.pipeline_gui,
             width=CANVAS_WIDTH,
