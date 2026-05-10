@@ -237,7 +237,8 @@ class GUI:
         self.diameter_text.update()
 
     async def handle_window_closing(self):
-        await self.page.window.close()
+        await self.page.window.destroy()
+        os._exit(0)
 
     async def update_adjusted_image(self):
         self.canvas.brightness =  round(self.brightness_slider.value, 2)
