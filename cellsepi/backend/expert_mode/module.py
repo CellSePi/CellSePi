@@ -176,7 +176,7 @@ class Module(ABC):
         """
         if not hasattr(cls, "_id_number_manager"):
             cls._id_number_manager = IdNumberManager()
-        return cls.gui_config().name + str(cls._id_number_manager.get_id_number())
+        return cls.gui_config().name + "_" + str(cls._id_number_manager.get_id_number())
 
     @classmethod
     def occupy_id_number(cls,id_number: int):
@@ -215,7 +215,7 @@ class Module(ABC):
         """
         Occupies the currently module_id the module has in the id number manager.
         """
-        id_number = self.module_id.removeprefix(self.gui_config().name)
+        id_number = self.module_id.removeprefix(f"{self.gui_config().name}_")
         if id_number != "":
             number = int(id_number)
             self.occupy_id_number(number)
@@ -226,7 +226,7 @@ class Module(ABC):
         """
         Gets the module ID's number.
         """
-        id_number = self.module_id.removeprefix(self.gui_config().name)
+        id_number = self.module_id.removeprefix(f"{self.gui_config().name}_")
         return int(id_number)
 
     def destroy(self):
@@ -235,7 +235,7 @@ class Module(ABC):
         Raises:
             ValueError: If the module_id dosen't contain a number.
         """
-        id_number = self.module_id.removeprefix(self.gui_config().name)
+        id_number = self.module_id.removeprefix(f"{self.gui_config().name}_")
         if id_number != "":
             number = int(id_number)
             self.free_id_number(number)
