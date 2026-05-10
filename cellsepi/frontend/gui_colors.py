@@ -56,7 +56,7 @@ class ColorSelection:
             ),padding=20,alignment=ft.Alignment.CENTER)]),height=385,width=700)],horizontal_alignment=ft.CrossAxisAlignment.CENTER,alignment=ft.MainAxisAlignment.CENTER)],alignment=ft.MainAxisAlignment.CENTER)]),
             on_dismiss=self.close_dialog,
         )
-    def open_color_picker_mask(self,e):
+    async def open_color_picker_mask(self,e):
         self.picker_container.content = ColorPicker(
             color=rgb_to_hex(self.config.get_mask_color()),
             on_color_change=self.on_color_change,
@@ -67,7 +67,7 @@ class ColorSelection:
         self.color_type = ColorTypes.Mask
         e.control.page.update()
 
-    def open_color_picker_outline(self, e):
+    async def open_color_picker_outline(self, e):
         self.picker_container.content = ColorPicker(
             color=rgb_to_hex(self.config.get_outline_color()),
             on_color_change=self.on_color_change,
@@ -78,10 +78,10 @@ class ColorSelection:
         self.color_type = ColorTypes.Outline
         e.control.page.update()
 
-    def on_color_change(self,e):
+    async def on_color_change(self,e):
         self.current_color = e.data
 
-    def change_color(self, e):
+    async def change_color(self, e):
         """
         Standard color: Mask outline= green, Filling: red
             if it is reasonable, change the color to the liking
@@ -92,13 +92,13 @@ class ColorSelection:
             self.color_icon_mask.icon_color = self.current_color
             self.config.set_mask_color(hex_to_rgb(self.current_color))
             self.gui.canvas.mask_color = hex_to_rgb(self.current_color)
-            self.gui.page.run_task(self.gui.canvas.update_mask_image)
+            await self.gui.canvas.update_mask_image()
             MODULE_REGISTRY["REVIEW"].update_class(mask_color=self.config.get_mask_color())
         else:
             self.color_icon_outline.icon_color = self.current_color
             self.config.set_outline_color(hex_to_rgb(self.current_color))
             self.gui.canvas.outline_color = hex_to_rgb(self.current_color)
-            self.gui.page.run_task(self.gui.canvas.update_mask_image)
+            await self.gui.canvas.update_mask_image()
             MODULE_REGISTRY["REVIEW"].update_class(outline_color=self.config.get_outline_color())
         self.dialog.close()
 
@@ -117,7 +117,7 @@ class ColorOpacity:
             alignment=ft.Alignment.CENTER
         )
 
-    def opacity_change(self):
+    async def opacity_change(self):
         self.gui.canvas.mask_opacity = self.slider.value
-        self.gui.page.run_task(self.gui.canvas.update_mask_image)
+        await self.gui.canvas.update_mask_image
         MODULE_REGISTRY["REVIEW"].update_class(opacity=self.slider.value)

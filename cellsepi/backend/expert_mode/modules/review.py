@@ -36,7 +36,7 @@ class Review(Module, ABC):
         self._text_field_segmentation_channel: ft.TextField | None = None
         self._text_field_mask_suffix: ft.TextField | None = None
         self._control_menu: ft.Container | None = None
-        self._canvas: ft.Card | None = None
+        self._canvas: ImageEditingView | None = None
         Review._instances.append(self)
 
     @property
@@ -106,6 +106,8 @@ class Review(Module, ABC):
         self._image_gallery.controls.clear()
         self._text_field_mask_suffix.visible = True
         # reset image_viewer
+        if self.inputs["mask_paths"].data is None:
+            self.inputs["mask_paths"].data = {}
         self._canvas.set_main_paths(self.inputs["image_paths"].data)
         self._canvas.set_mask_paths(self.inputs["mask_paths"].data)
         self._canvas.reset_image(without_update=True)
