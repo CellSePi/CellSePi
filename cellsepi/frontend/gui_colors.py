@@ -110,7 +110,7 @@ class ColorOpacity:
         self.gui = gui
         self.slider = ft.Slider(
             min=10, max=128, value=128, width=142,
-            on_change=lambda _: self.opacity_change()
+            on_change=self.opacity_change
         )
         self.text = ft.Container(
             content=ft.Text("Mask Opacity"),
