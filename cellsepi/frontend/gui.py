@@ -71,11 +71,11 @@ class GUI:
 
         self.brightness_slider = ft.Slider(
             min=0, max=2.0, value=1.0, disabled= True,
-            on_change=lambda e: e.page.run_task(self.update_adjusted_image)
+            on_change_end=lambda e: e.page.run_task(self.update_adjusted_image)
         )
         self.contrast_slider = ft.Slider(
             min=0, max=2.0, value=1.0, disabled= True,
-            on_change=lambda e: e.page.run_task(self.update_adjusted_image)
+            on_change_end=lambda e: e.page.run_task(self.update_adjusted_image)
         )
 
         self.auto_image_tuning = GUIAutoImageTuning(self)
