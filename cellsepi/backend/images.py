@@ -285,14 +285,14 @@ class BatchImageSegmentation(Notifier):
                 # model evaluates image
                 if model_type == 'Cellpose' or model_type == 'CustomV3':
                     if image.ndim == 3: #x,y,z dimensions
-                        res = model.eval(image, diameter=diameter, channels=[0, 0],z_axis=2,do_3D=False)
+                        res = model.eval(image, diameter=diameter, channels=[0, 0],z_axis=2,do_3D=False,stitch_threshold=0.5)
                     else:
                         res = model.eval(image, diameter=diameter, channels=[0, 0])
                     mask, flow, style = res[:3]
 
                 elif model_type == 'CellposeSAM' or model_type == 'CustomV4':
                     if image.ndim == 3: #x,y,z dimensions
-                        res = model.eval(image, diameter=diameter,z_axis=2,do_3D=False)
+                        res = model.eval(image, diameter=diameter,z_axis=2,do_3D=False,stitch_threshold=0.5)
                     else:
                         res = model.eval(image, diameter=diameter)
                     mask, flow, style = res[:3]
