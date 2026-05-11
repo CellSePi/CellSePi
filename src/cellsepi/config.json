@@ -51,7 +51,7 @@
         "outline": "(0, 255, 0)"
     },
     "States": {
-        "auto_button": true,
+        "auto_button": false,
         "file_type_slider": "LIF"
     }
 }

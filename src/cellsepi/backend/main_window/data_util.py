@@ -1,4 +1,5 @@
 import base64
+import hashlib
 import os
 import pathlib
 import platform
@@ -17,7 +18,7 @@ from bioio_base.dimensions import Dimensions
 from bioio_base.transforms import reshape_data
 from tifffile import tifffile
 
-from backend.main_window.constants import ReturnTypePath
+from backend.main_window.constants import ReturnTypePath, FileType
 from cellsepi.backend.main_window.expert_mode.event_manager import *
 
 
@@ -268,7 +269,7 @@ def extract_from_lif_file(lif_path, target_dir, channel_prefix, event_manager: E
     # ToDo EK: Create similar methods for ND2 and CZI
     lif_path = pathlib.Path(lif_path)
     target_dir = pathlib.Path(target_dir)
-    if lif_path.suffix == ".lif":
+    if any([lif_path.suffix == f".{ext}" for ext in FileType.LIF.value.extension]):
         bio_image = BioImage(lif_path, reader=bioio_lif.Reader)  # Specify the backend explicitly
         data = np.squeeze(bio_image.data)
         is_3d = (data.ndim >= 4 and data.shape[1] > 1)
@@ -277,8 +278,7 @@ def extract_from_lif_file(lif_path, target_dir, channel_prefix, event_manager: E
             extract_from_lif3d_file(lif_path, target_dir, channel_prefix, event_manager)
             return
 
-        # Create the target directory if it doesn't exist
-        target_dir.mkdir(parents=True, exist_ok=True)
+
 
         # get all series in the lif file
         scenes = bio_image.scenes
@@ -286,6 +286,9 @@ def extract_from_lif_file(lif_path, target_dir, channel_prefix, event_manager: E
         if event_manager is not None:
             event_manager.notify(
                 event=ProgressEvent(0, process=f"Extracting Series: {0}/{total_scenes}"))
+
+        # Create the target directory if it doesn't exist
+        target_dir.mkdir(parents=True, exist_ok=True)
 
         for index, scene_id in enumerate(scenes):
             scene = scene_id
@@ -331,85 +334,170 @@ def extract_from_lif_file(lif_path, target_dir, channel_prefix, event_manager: E
                 event=ProgressEvent(100, process=f"Finished extracting Series!"))
 
 
-def extract_from_czi_file(czi_path, target_dir, channel_prefix, event_manager: EventManager = None):
+# Never tested
+# def extract_from_czi_file(path, target_dir, channel_prefix, event_manager: EventManager = None):
+#     """
+#     Extracts all series from the lif file using the bioio-lif library and
+#     copies the images to the target directory.
+#     Arguments:
+#           lif_path {str} -- The path to the lif file.
+#           target_dir {str} -- The path to the target directory.
+#     """
+#
+#     # ToDo EK: Create similar methods for ND2 and CZI
+#     path = pathlib.Path(path)
+#     target_dir = pathlib.Path(target_dir)
+#     if any([path.suffix == f".{ext}" for ext in FileType.CZI.value.extension]):
+#         bio_image = CellSePiImage(path, reader=bioio_czi.Reader)  # Specify the backend explicitly
+#
+#         data = np.squeeze(bio_image.data)
+#         # ToDo EK: Continue here
+#
+#         is_3d = (data.ndim >= 4 and data.shape[1] > 1)
+#         # ToDo EK Long Term: Unify 2D and 3D loading to prevent double loading in 3D Case
+#         if is_3d:
+#             extract_from_czi3d_file(path, target_dir, channel_prefix, event_manager)
+#             return
+#
+#         # get all series in the lif file
+#         scenes = bio_image.scenes
+#         total_scenes = len(scenes)
+#         if event_manager is not None:
+#             event_manager.notify(
+#                 event=ProgressEvent(0, process=f"Extracting Series: {0}/{total_scenes}"))
+#
+#         # ----------------
+#
+#         # Create the target directory if it doesn't exist
+#         target_dir.mkdir(parents=True, exist_ok=True)
+#
+#         for index, scene_id in enumerate(scenes):
+#             scene = scene_id
+#
+#             # remove the unnecessary data in the array
+#             bio_image.set_scene(scene)
+#             # TCZXY 5D array
+#             npy_array = bio_image.data
+#             # ToDo EK: Only works in the 2D case -> Generalize to 3D
+#             squeezed_img = np.squeeze(npy_array)
+#
+#             # get the amount of channels
+#             n_channels = squeezed_img.shape[0]
+#
+#             for channel_id in range(n_channels):
+#                 # Extract the height and width of the image
+#                 image = squeezed_img[channel_id]
+#                 img = Image.fromarray(image)  # doesnt work # ToDo EK: What doesn't work here?
+#
+#                 # Construct file name and path
+#                 file_name = f"{scene}{channel_prefix}{channel_id + 1}.tif"
+#                 target_path = target_dir / file_name
+#
+#                 try:
+#                     # Handle existing files
+#                     if target_path.exists():
+#                         if platform.system() == "Windows":
+#                             os.chmod(target_path, stat.S_IWRITE)  # Set writable on Windows
+#                         else:
+#                             target_path.chmod(0o777)  # Set writable on Unix
+#                         target_path.unlink()  # Remove the existing file
+#
+#                     # Save the image to the target path using pillows save function
+#                     img.save(str(target_path))
+#
+#                 except Exception as e:
+#                     print(f"Error processing {file_name}: {e}")
+#                     continue
+#             if event_manager is not None:
+#                 event_manager.notify(event=ProgressEvent(int((index + 1) / total_scenes * 100),
+#                                                          process=f"Extracted Series: {index + 1}/{total_scenes}"))
+#         if event_manager is not None:
+#             event_manager.notify(
+#                 event=ProgressEvent(100, process=f"Finished extracting Series!"))
+
+
+def extract_from_file(
+        path,
+        target_dir,
+        channel_prefix,
+        event_manager: EventManager = None
+):
     """
-    Extracts all series from the lif file using the bioio-lif library and
+    Extracts all series from the provided file using the bioio library and
     copies the images to the target directory.
     Arguments:
-          lif_path {str} -- The path to the lif file.
+          path {str} -- The path to the lif file.
           target_dir {str} -- The path to the target directory.
     """
 
     # ToDo EK: Create similar methods for ND2 and CZI
-    czi_path = pathlib.Path(czi_path)
+    path = pathlib.Path(path)
     target_dir = pathlib.Path(target_dir)
-    if czi_path.suffix == ".czi":
-        bio_image = CellSePiImage(czi_path, reader=bioio_czi.Reader)  # Specify the backend explicitly
+    # if not any([path.suffix == f".{ext}" for ext in FileType.LIF.value.extension]):
+    #     return
 
-        data = np.squeeze(bio_image.data)
-        # ToDo EK: Continue here
+    bio_image = CellSePiImage(path)
+    data = np.squeeze(bio_image.data)
+    is_3d = (data.ndim >= 4 and data.shape[1] > 1)
+    # ToDo EK Long Term: Unify 2D and 3D loading to prevent double loading in 3D Case
+    if is_3d:
+        extract_from_lif3d_file(path, target_dir, channel_prefix, event_manager)
+        return
 
-        is_3d = (data.ndim >= 4 and data.shape[1] > 1)
-        # ToDo EK Long Term: Unify 2D and 3D loading to prevent double loading in 3D Case
-        if is_3d:
-            extract_from_lif3d_file(czi_path, target_dir, channel_prefix, event_manager)
-            return
 
-        # get all series in the lif file
-        scenes = bio_image.scenes
-        total_scenes = len(scenes)
+
+    # get all series in the lif file
+    scenes = bio_image.scenes
+    total_scenes = len(scenes)
+    if event_manager is not None:
+        event_manager.notify(
+            event=ProgressEvent(0, process=f"Extracting Series: {0}/{total_scenes}"))
+
+    # Create the target directory if it doesn't exist
+    target_dir.mkdir(parents=True, exist_ok=True)
+
+    for index, scene_id in enumerate(scenes):
+        scene = scene_id
+
+        # remove the unnecessary data in the array
+        bio_image.set_scene(scene)
+        # TCZXY 5D array
+        npy_array = bio_image.data
+        squeezed_img = np.squeeze(npy_array)
+
+        # get the amount of channels
+        n_channels = squeezed_img.shape[0]
+
+        for channel_id in range(n_channels):
+            # Extract the height and width of the image
+            image = squeezed_img[channel_id]
+            img = Image.fromarray(image)  # doesnt work # ToDo EK: What doesn't work here?
+
+            # Construct file name and path
+            file_name = f"{scene}{channel_prefix}{channel_id + 1}.tif"
+            target_path = target_dir / file_name
+
+            try:
+                # Handle existing files
+                if target_path.exists():
+                    if platform.system() == "Windows":
+                        os.chmod(target_path, stat.S_IWRITE)  # Set writable on Windows
+                    else:
+                        target_path.chmod(0o777)  # Set writable on Unix
+                    target_path.unlink()  # Remove the existing file
+
+                # Save the image to the target path using pillows save function
+                img.save(str(target_path))
+
+            except Exception as e:
+                print(f"Error processing {file_name}: {e}")
+                continue
         if event_manager is not None:
-            event_manager.notify(
-                event=ProgressEvent(0, process=f"Extracting Series: {0}/{total_scenes}"))
-
-        # ----------------
-
-        # Create the target directory if it doesn't exist
-        target_dir.mkdir(parents=True, exist_ok=True)
-
-        for index, scene_id in enumerate(scenes):
-            scene = scene_id
-
-            # remove the unnecessary data in the array
-            bio_image.set_scene(scene)
-            # TCZXY 5D array
-            npy_array = bio_image.data
-            # ToDo EK: Only works in the 2D case -> Generalize to 3D
-            squeezed_img = np.squeeze(npy_array)
-
-            # get the amount of channels
-            n_channels = squeezed_img.shape[0]
-
-            for channel_id in range(n_channels):
-                # Extract the height and width of the image
-                image = squeezed_img[channel_id]
-                img = Image.fromarray(image)  # doesnt work # ToDo EK: What doesn't work here?
-
-                # Construct file name and path
-                file_name = f"{scene}{channel_prefix}{channel_id + 1}.tif"
-                target_path = target_dir / file_name
-
-                try:
-                    # Handle existing files
-                    if target_path.exists():
-                        if platform.system() == "Windows":
-                            os.chmod(target_path, stat.S_IWRITE)  # Set writable on Windows
-                        else:
-                            target_path.chmod(0o777)  # Set writable on Unix
-                        target_path.unlink()  # Remove the existing file
-
-                    # Save the image to the target path using pillows save function
-                    img.save(str(target_path))
-
-                except Exception as e:
-                    print(f"Error processing {file_name}: {e}")
-                    continue
-            if event_manager is not None:
-                event_manager.notify(event=ProgressEvent(int((index + 1) / total_scenes * 100),
-                                                         process=f"Extracted Series: {index + 1}/{total_scenes}"))
-        if event_manager is not None:
-            event_manager.notify(
-                event=ProgressEvent(100, process=f"Finished extracting Series!"))
+            event_manager.notify(event=ProgressEvent(int((index + 1) / total_scenes * 100),
+                                                     process=f"Extracted Series: {index + 1}/{total_scenes}"))
+    if event_manager is not None:
+        event_manager.notify(
+            event=ProgressEvent(100, process=f"Finished extracting Series!"))
 
 
 def load_image_to_numpy(path):
@@ -565,3 +653,9 @@ def convert_tiffs_to_png(image_paths):
         return png_images
     else:
         return None
+
+
+def consistent_hash(data):
+    data_bytes = data.encode('utf-8')
+    c_hash =  hashlib.sha256(data_bytes).hexdigest()
+    return c_hash

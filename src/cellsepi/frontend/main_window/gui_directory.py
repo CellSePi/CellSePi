@@ -8,8 +8,9 @@ import flet as ft
 import numpy as np
 import tifffile
 
-from backend.main_window.constants import FileType, SourceType
-from cellsepi.backend.main_window.data_util import extract_from_lif_file, copy_files_between_directories, \
+from backend.main_window.constants import FileType, SourceType, DirectoryManager
+from backend.main_window.data_util import consistent_hash
+from cellsepi.backend.main_window.data_util import extract_from_file, copy_files_between_directories, \
     load_directory, transform_image_path, convert_tiffs_to_png_parallel
 from cellsepi.backend.main_window.expert_mode.event_manager import EventManager
 from cellsepi.backend.main_window.expert_mode.listener import ProgressEvent
@@ -102,11 +103,19 @@ class DirectoryCard(ft.Card):
                 on_click=None,
                 visible=False,
             )
-            self.lif_row = ft.Row([ft.Stack([self.file_type_slider, self.lif_slider_blocker]),
-                                   self.directory_row,
-                                   self.files_row
-                                   ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN
-                                  )
+            self.lif_row = ft.Row(
+                [
+                    ft.Stack(
+                        [
+                            self.file_type_slider,
+                            self.lif_slider_blocker
+                        ]
+                    ),
+                    self.directory_row,
+                    self.files_row
+                ],
+                alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+            )
             self.content = self.create_directory_container()
             self.output_dir = False
             self.is_supported_lif = True
@@ -215,7 +224,7 @@ class DirectoryCard(ft.Card):
 
     def select_directory_parallel(
             self,
-            directory_path,
+            path,
             file_type: FileType,
             channel_prefix: str,
             event_manager: EventManager = None
@@ -224,7 +233,7 @@ class DirectoryCard(ft.Card):
             Gets the working directory and copies the images in there.
 
             Args:
-                directory_path (str): the selected directory_path
+                path (str): the selected path
                 file_type (FileType): the type of the image (lif, tiff, nd2, czi, etc.)
                 channel_prefix (str): the channel prefix
                 event_manager (EventManager): the event manager which is used when the methode gets started as a module.
@@ -232,102 +241,92 @@ class DirectoryCard(ft.Card):
         is_supported_tif = True
         if event_manager is None:
             self.is_supported_lif = True
-        path = pathlib.Path(directory_path)
+        path = pathlib.Path(path)
+
+        image_source_identifier = consistent_hash(str(path.absolute()))
+        working_directory = (DirectoryManager()
+                             .get_cache_dir_path(f"tmp_{file_type.name}_{image_source_identifier}/"))
 
         # ToDo EK: Update working directory to a more hidden directory and which is dependend on the actual file/directory opened
+        match file_type:
+            case FileType.LIF | FileType.ND2 | FileType.CZI:  # Lif Case
 
-        # Lif Case
-        if file_type == FileType.LIF:
-            if event_manager is None:
-                self.output_dir = False
-            # ToDo EK: Change here working directory
-            working_directory = path.parent / "output/"
+                if event_manager is None:
+                    self.output_dir = False
 
-            os.makedirs(working_directory, exist_ok=True)
-            if path.suffix.lower() == ".lif":
-                # Extract from a lif file all the single series images and extract to .tif, .tiff and .npy files into subdirectory
-                extract_from_lif_file(lif_path=path, target_dir=working_directory, channel_prefix=channel_prefix,
-                                      event_manager=event_manager)
-            else:
-                if event_manager is not None:
-                    raise PipelineRunningException("Type Error", "Expected .lif!")
+                if any([path.suffix.lower() == f".{ext}"
+                        for file_type in FileType
+                        for ext in file_type.value.extensions
+                        if file_type.value.source == SourceType.FILE]):
+                    # Extract from the file all the single series images and extract to .tif, .tiff and .npy files into subdirectory
+                    extract_from_file(
+                        path=path,
+                        target_dir=working_directory,
+                        channel_prefix=channel_prefix,
+                        event_manager=event_manager
+                    )
                 else:
-                    self.is_supported_lif = False
-        elif file_type == FileType.LIF:
-            if event_manager is None:
-                self.output_dir = False
-            # ToDo EK: Change here working directory
-            working_directory = path.parent / "output/"
+                    if event_manager is not None:
+                        raise PipelineRunningException("Type Error", "Expected .lif!")
+                    else:
+                        self.is_supported_lif = False
+            case FileType.TIFF:  # Tiff Case
+                if path.name == "output":
+                    if event_manager is not None:
+                        raise PipelineRunningException("Directory Error", "Directory ’output’ is not supported!")
+                    else:
+                        self.gui.page.show_dialog(ft.SnackBar(ft.Text("The directory path output is not allowed!")))
+                        self.output_dir = True
+                        self.gui.page.update()
+                        self.gui.csp.image_paths = {}
+                        self.gui.csp.linux_images = {}
+                        self.gui.csp.mask_paths = {}
+                        self.gui.ready_to_start = False
+                        self.gui.progress_ring.visible = False
+                        return None
+                if event_manager is None:
+                    self.output_dir = False
+                # Copy .tif, .tiff and .npy files into subdirectory
 
-            os.makedirs(working_directory, exist_ok=True)
-            if path.suffix.lower() == ".lif":
-                # Extract from a lif file all the single series images and extract to .tif, .tiff and .npy files into subdirectory
-                extract_from_lif_file(lif_path=path, target_dir=working_directory, channel_prefix=channel_prefix,
-                                      event_manager=event_manager)
-            else:
+                os.makedirs(working_directory, exist_ok=True)
+                copy_files_between_directories(path, working_directory, file_types=[".tif", ".tiff", ".npy"],
+                                               event_manager=event_manager)
+                tiff_paths = [p for p in working_directory.iterdir() if
+                              p.suffix.lower() in [".tif", ".tiff"] and p.is_file()]
+                total = len(tiff_paths)
+                converted_count = 0
+                failed = False
+
                 if event_manager is not None:
-                    raise PipelineRunningException("Type Error", "Expected .lif!")
+                    event_manager.notify(ProgressEvent(percent=0, process=f"Convert TIFFs: {converted_count}/{total}"))
+
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    futures = {executor.submit(self.convert_tiffs_to_8_bit, path): path for path in tiff_paths}
+                    for future in concurrent.futures.as_completed(futures):
+                        result = future.result()
+                        if not result:
+                            failed = True
+                        converted_count += 1
+                        if event_manager is not None:
+                            event_manager.notify(
+                                ProgressEvent(percent=int(converted_count / total * 100),
+                                              process=f"Convert Tiff's: {converted_count}/{total}")
+                            )
+
+                if failed:
+                    if event_manager is not None:
+                        raise PipelineRunningException("Type Error",
+                                                       "The directory contains an unsupported file type. Only 8 or 16 bit .tiff files allowed.")
+                    else:
+                        is_supported_tif = False
                 else:
-                    self.is_supported_lif = False
-
-        # Tiff Case
-        elif file_type == FileType.TIFF:
-            if path.name == "output":
-                if event_manager is not None:
-                    raise PipelineRunningException("Directory Error", "Directory ’output’ is not supported!")
-                else:
-                    self.gui.page.show_dialog(ft.SnackBar(ft.Text("The directory path output is not allowed!")))
-                    self.output_dir = True
-                    self.gui.page.update()
-                    self.gui.csp.image_paths = {}
-                    self.gui.csp.linux_images = {}
-                    self.gui.csp.mask_paths = {}
-                    self.gui.ready_to_start = False
-                    self.gui.progress_ring.visible = False
-                    return None
-            if event_manager is None:
-                self.output_dir = False
-            # Copy .tif, .tiff and .npy files into subdirectory
-            working_directory = path / "output/"
-            os.makedirs(working_directory, exist_ok=True)
-            copy_files_between_directories(path, working_directory, file_types=[".tif", ".tiff", ".npy"],
-                                           event_manager=event_manager)
-            tiff_paths = [p for p in working_directory.iterdir() if
-                          p.suffix.lower() in [".tif", ".tiff"] and p.is_file()]
-            total = len(tiff_paths)
-            converted_count = 0
-            failed = False
-
-            if event_manager is not None:
-                event_manager.notify(ProgressEvent(percent=0, process=f"Convert TIFFs: {converted_count}/{total}"))
-
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                futures = {executor.submit(self.convert_tiffs_to_8_bit, path): path for path in tiff_paths}
-                for future in concurrent.futures.as_completed(futures):
-                    result = future.result()
-                    if not result:
-                        failed = True
-                    converted_count += 1
                     if event_manager is not None:
                         event_manager.notify(
-                            ProgressEvent(percent=int(converted_count / total * 100),
-                                          process=f"Convert Tiff's: {converted_count}/{total}")
+                            ProgressEvent(percent=100,
+                                          process=f"Finished converting Tiff's!")
                         )
-
-            if failed:
-                if event_manager is not None:
-                    raise PipelineRunningException("Type Error",
-                                                   "The directory contains an unsupported file type. Only 8 or 16 bit .tiff files allowed.")
-                else:
-                    is_supported_tif = False
-            else:
-                if event_manager is not None:
-                    event_manager.notify(
-                        ProgressEvent(percent=100,
-                                      process=f"Finished converting Tiff's!")
-                    )
-        else:
-            raise Exception(f"File type {file_type} currently not supported!")
+            case _:
+                raise Exception(f"File type {file_type} currently not supported!")
 
         if event_manager is not None:
             return working_directory
@@ -442,9 +441,13 @@ class DirectoryCard(ft.Card):
                     ft.Column(
                         [
                             ft.GestureDetector(
-                                content=ft.Container(ft.Stack([get_image(cur_image_paths[channel_id]),
-                                                               self.selected_images_visualise[image_id][channel_id]]),
-                                                     width=156, height=156),
+                                content=ft.Container(
+                                    ft.Stack(
+                                        [
+                                            get_image(cur_image_paths[channel_id]),
+                                            self.selected_images_visualise[image_id][channel_id]
+                                        ]),
+                                    width=156, height=156),
                                 on_tap=lambda e, img_id=image_id, c_id=channel_id: e.page.run_task(update_main_image,
                                                                                                    img_id, c_id,
                                                                                                    self.gui),
@@ -466,10 +469,18 @@ class DirectoryCard(ft.Card):
                                                 tooltip="Mask is available")
             self.icon_x[image_id] = ft.Icon(ft.Icons.CLOSE, size=17, visible=True, tooltip="Mask not available")
             self.update_mask_check(image_id, False)
-            self.image_gallery.controls.append(ft.Column([ft.Row(
-                [ft.Text(f"{image_id}", weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.CENTER),
-                 self.icon_check[image_id], self.icon_x[image_id]], spacing=2),
-                group_row], spacing=10, alignment=ft.MainAxisAlignment.CENTER))
+            self.image_gallery.controls.append(
+                ft.Column(
+                    [
+                        ft.Row(
+                            [
+                                ft.Text(f"{image_id}", weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.CENTER),
+                                self.icon_check[image_id],
+                                self.icon_x[image_id]
+                            ], spacing=2),
+                        group_row
+                    ], spacing=10, alignment=ft.MainAxisAlignment.CENTER)
+            )
             self.page.update()
 
         self.gui.progress_ring.visible = False

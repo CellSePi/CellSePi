@@ -2,6 +2,8 @@ import flet as ft
 from cellsepi.frontend.main_window.gui import GUI
 
 async def async_main(page: ft.Page):
+    page.title = "CellSePi"
+    # page.window.icon = "assets/icon.png"
     gui = GUI(page)
     gui.build()
 
