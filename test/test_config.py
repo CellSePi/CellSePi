@@ -2,6 +2,7 @@ import ast
 
 import pytest
 
+from backend.main_window.constants import FileType
 from src.cellsepi.backend.main_window.config_file import ConfigFile
 
 from src.cellsepi.backend.main_window.config_file import create_default_config, DeletionForbidden
@@ -70,10 +71,9 @@ def test_states(config):
     assert config.get_auto_button() == True, "The auto_button is not right"
     config.set_auto_button(False)
     assert config.get_auto_button() == False, "The auto_button is not right"
-    config.set_lif_slider(True)
-    assert config.get_lif_slider() == True, "The auto_button is not right"
-    config.set_lif_slider(False)
-    assert config.get_lif_slider() == False, "The auto_button is not right"
+    for file_type in FileType:
+        config.set_file_type_slider(file_type)
+        assert config.get_file_type_slider() == file_type, "The auto_button is not right"
 
 def test_attribute_getter(config):
     assert config.get_bf_channel() == create_default_config()["Profiles"]["Lif"]["bf_channel"], "bf_channel is wrong"

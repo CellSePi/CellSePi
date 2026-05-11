@@ -52,6 +52,6 @@
     },
     "States": {
         "auto_button": true,
-        "lif_slider": true
+        "file_type_slider": "LIF"
     }
 }

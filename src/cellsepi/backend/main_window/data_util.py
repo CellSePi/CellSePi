@@ -8,12 +8,16 @@ from concurrent.futures import ThreadPoolExecutor
 from enum import Enum, auto
 from io import BytesIO
 
+import bioio_czi
 import numpy as np
 from PIL import Image
 from bioio import BioImage
 import bioio_lif
+from bioio_base.dimensions import Dimensions
+from bioio_base.transforms import reshape_data
 from tifffile import tifffile
 
+from backend.main_window.constants import ReturnTypePath
 from cellsepi.backend.main_window.expert_mode.event_manager import *
 
 
@@ -40,30 +44,27 @@ def organize_files(files, channel_prefix, mask_suffix=""):
 
             id_to_file[image_id][channel_id] = str(file)
 
-    #sorting the Channel IDs
+    # sorting the Channel IDs
     for image_id in id_to_file:
         id_to_file[image_id] = dict(sorted(id_to_file[image_id].items()))
-    #sorting the Image IDs
+    # sorting the Image IDs
     id_to_file = dict(sorted(id_to_file.items()))
 
     return id_to_file
 
-class ReturnTypePath(Enum):
-    IMAGE_PATHS = auto()
-    MASK_PATHS = auto()
-    BOTH_PATHS = auto()
 
-def load_directory(directory, channel_prefix=None, mask_suffix=None,return_type: ReturnTypePath=ReturnTypePath.BOTH_PATHS,event_manager: EventManager=None):
+def load_directory(directory, channel_prefix=None, mask_suffix=None,
+                   return_type: ReturnTypePath = ReturnTypePath.BOTH_PATHS, event_manager: EventManager = None):
     assert directory is not None
 
     total_steps = 4 if return_type == ReturnTypePath.BOTH_PATHS else 3
     step = 0
 
-    def notifier(process:str):
+    def notifier(process: str):
         nonlocal step
         step += 1
         if event_manager is not None:
-            event_manager.notify(event=ProgressEvent(int(step/total_steps*100), process=process))
+            event_manager.notify(event=ProgressEvent(int(step / total_steps * 100), process=process))
 
     if channel_prefix is None:
         channel_prefix = "c"
@@ -78,35 +79,35 @@ def load_directory(directory, channel_prefix=None, mask_suffix=None,return_type:
     paths = [directory / name for name in names]
     file_paths = [path for path in paths if path.is_file()]
 
-
     notifier("Organizing: Filtering Directory for Images")
     tiff_files = [path for path in file_paths if path.suffix == ".tif" or path.suffix == ".tiff"]
 
     match return_type:
-            case ReturnTypePath.IMAGE_PATHS:
-                notifier( "Organizing: Image Files")
-                id_to_image = organize_files(tiff_files, channel_prefix=channel_prefix)
-                notifier( "Finished Organizing Files")
-                return id_to_image
-            case ReturnTypePath.MASK_PATHS:
-                notifier( "Organizing: Mask Files")
-                mask_files = [path for path in file_paths if path.suffix == ".npy" and path.stem.endswith(mask_suffix)]
-                id_to_mask = organize_files(mask_files, channel_prefix=channel_prefix, mask_suffix=mask_suffix)
-                notifier( "Finished Organizing Files")
-                return id_to_mask
-            case ReturnTypePath.BOTH_PATHS:
-                notifier( "Organizing: Image Files")
-                id_to_image = organize_files(tiff_files, channel_prefix=channel_prefix)
-                notifier( "Organizing: Mask Files")
-                mask_files = [path for path in file_paths if path.suffix == ".npy" and path.stem.endswith(mask_suffix)]
-                id_to_mask = organize_files(mask_files, channel_prefix=channel_prefix, mask_suffix=mask_suffix)
-                notifier( "Finished Organizing Files!")
-                return id_to_image, id_to_mask
+        case ReturnTypePath.IMAGE_PATHS:
+            notifier("Organizing: Image Files")
+            id_to_image = organize_files(tiff_files, channel_prefix=channel_prefix)
+            notifier("Finished Organizing Files")
+            return id_to_image
+        case ReturnTypePath.MASK_PATHS:
+            notifier("Organizing: Mask Files")
+            mask_files = [path for path in file_paths if path.suffix == ".npy" and path.stem.endswith(mask_suffix)]
+            id_to_mask = organize_files(mask_files, channel_prefix=channel_prefix, mask_suffix=mask_suffix)
+            notifier("Finished Organizing Files")
+            return id_to_mask
+        case ReturnTypePath.BOTH_PATHS:
+            notifier("Organizing: Image Files")
+            id_to_image = organize_files(tiff_files, channel_prefix=channel_prefix)
+            notifier("Organizing: Mask Files")
+            mask_files = [path for path in file_paths if path.suffix == ".npy" and path.stem.endswith(mask_suffix)]
+            id_to_mask = organize_files(mask_files, channel_prefix=channel_prefix, mask_suffix=mask_suffix)
+            notifier("Finished Organizing Files!")
+            return id_to_image, id_to_mask
     return None
 
-def copy_files_between_directories(source_dir, target_dir, file_types = None, event_manager: EventManager=None):
-    file_filter = lambda file_path: file_path.is_file() and (True if file_types is None else file_path.suffix in file_types)
 
+def copy_files_between_directories(source_dir, target_dir, file_types=None, event_manager: EventManager = None):
+    file_filter = lambda file_path: file_path.is_file() and (
+        True if file_types is None else file_path.suffix in file_types)
 
     files = listdir(source_dir)
     files_to_copy = [file for file in files if file_filter(file)]
@@ -133,13 +134,15 @@ def copy_files_between_directories(source_dir, target_dir, file_types = None, ev
         except Exception as e:
             print(f"Something went wrong while processing {src_path.name}: {str(e)}")
         finally:
-            copied_files+=1
+            copied_files += 1
             if event_manager is not None:
-                event_manager.notify(event=ProgressEvent(int(copied_files/total_files*100), process=f"Copy Files: {copied_files}/{total_files}"))
+                event_manager.notify(event=ProgressEvent(int(copied_files / total_files * 100),
+                                                         process=f"Copy Files: {copied_files}/{total_files}"))
 
     if event_manager is not None:
         event_manager.notify(
             event=ProgressEvent(100, process="Finished copy Files!"))
+
 
 def load_lif3d_bioimage(lif3d_path):
     lif3d_path = pathlib.Path(lif3d_path)
@@ -174,6 +177,60 @@ def load_lif3d_bioimage(lif3d_path):
     return series_ids, images
 
 
+class CellSePiImage:
+    def __init__(self, file_path, reader=None, *args, **kwargs):
+        self._img = BioImage(file_path, reader=reader, *args, **kwargs)
+        self.has_s = "S" in self._img.dims.order and self._img.dims.S > 1
+        # print(f"Loaded image with dimensions: {self._img.dims.order} ({self._img.dims.C} channels, {self._img.dims.S} slices)")
+        if "M" in self._img.dims.order:
+            print(f"Warning: Image has M dimension, which is not supported.")
+            raise Exception("Image has M dimension, which is not supported. (Mosaic or tiling images)")
+        self.has_s = "S" in self._img.dims.order and self._img.dims.S > 1
+
+    @property
+    def dims(self):
+        """Returns a fresh Dimensions object reflecting the merged C and S."""
+        d = self._img.dims
+        if self.has_s:
+            # Create a new Dimensions object from scratch.
+            d = Dimensions(dims=["T", "C", "Z", "Y", "X"], shape=(d.T, d.C * d.S, d.Z, d.Y, d.X))
+        return d
+
+    @property
+    def shape(self):
+        """Returns the shape tuple matching the new dimensions (TCZYX)."""
+        d = self.dims
+        return (d.T, d.C, d.Z, d.Y, d.X)
+
+    @property
+    def data(self):
+        """Returns the 5D TCZYX array with S merged into C."""
+        return self.get_image_data("TCZYX")
+
+    def get_image_data(self, out_dims="TCZYX", **kwargs):
+        """Retrieves data and automatically handles S-to-C merging."""
+        if not self.has_s:  # We don't have to do anything in the default case
+            return self._img.get_image_data(out_dims, **kwargs)
+
+        # Force retrieve with S to perform the merge
+        raw = self._img.get_image_data("TCZYXS", **kwargs)
+
+        # Reshape: (T, C, Z, Y, X, S) -> (T, C, S, Z, Y, X) -> (T, C*S, Z, Y, X)
+        # We move S next to C then flatten them
+        t, c, z, y, x, s = raw.shape
+        merged = raw.transpose(0, 1, 5, 2, 3, 4).reshape(t, c * s, z, y, x)
+
+        return reshape_data(
+            data=merged,
+            given_dims="TCZYX",
+            return_dims=out_dims
+        )
+
+    def __getattr__(self, name):
+        """Delegate other common attributes to the internal BioImage object"""
+        return getattr(self._img, name)
+
+
 def extract_from_lif3d_file(lif3d_path, target_dir, channel_prefix, event_manager: EventManager = None):
     series_ids, images = load_lif3d_bioimage(lif3d_path)
 
@@ -199,7 +256,7 @@ def extract_from_lif3d_file(lif3d_path, target_dir, channel_prefix, event_manage
             event=ProgressEvent(100, process=f"Finished extracting Series!"))
 
 
-def extract_from_lif_file(lif_path, target_dir,channel_prefix,event_manager: EventManager=None):
+def extract_from_lif_file(lif_path, target_dir, channel_prefix, event_manager: EventManager = None):
     """
     Extracts all series from the lif file using the bioio-lif library and
     copies the images to the target directory.
@@ -208,13 +265,14 @@ def extract_from_lif_file(lif_path, target_dir,channel_prefix,event_manager: Eve
           target_dir {str} -- The path to the target directory.
     """
 
+    # ToDo EK: Create similar methods for ND2 and CZI
     lif_path = pathlib.Path(lif_path)
     target_dir = pathlib.Path(target_dir)
     if lif_path.suffix == ".lif":
-        bio_image = BioImage(lif_path,reader=bioio_lif.Reader)  # Specify the backend explicitly
+        bio_image = BioImage(lif_path, reader=bioio_lif.Reader)  # Specify the backend explicitly
         data = np.squeeze(bio_image.data)
         is_3d = (data.ndim >= 4 and data.shape[1] > 1)
-
+        # ToDo EK Long Term: Unify 2D and 3D loading to prevent double loading in 3D Case
         if is_3d:
             extract_from_lif3d_file(lif_path, target_dir, channel_prefix, event_manager)
             return
@@ -223,28 +281,28 @@ def extract_from_lif_file(lif_path, target_dir,channel_prefix,event_manager: Eve
         target_dir.mkdir(parents=True, exist_ok=True)
 
         # get all series in the lif file
-        scenes= bio_image.scenes
+        scenes = bio_image.scenes
         total_scenes = len(scenes)
         if event_manager is not None:
             event_manager.notify(
                 event=ProgressEvent(0, process=f"Extracting Series: {0}/{total_scenes}"))
 
-        for index,scene_id in enumerate(scenes):
-            scene= scene_id
+        for index, scene_id in enumerate(scenes):
+            scene = scene_id
 
-            #remove the unnecessary data in the array
+            # remove the unnecessary data in the array
             bio_image.set_scene(scene)
-            #TCZXY 5D array
-            npy_array= bio_image.data
-            squeezed_img= np.squeeze(npy_array)
+            # TCZXY 5D array
+            npy_array = bio_image.data
+            squeezed_img = np.squeeze(npy_array)
 
-            #get the amount of channels
+            # get the amount of channels
             n_channels = squeezed_img.shape[0]
 
             for channel_id in range(n_channels):
                 # Extract the height and width of the image
-                image= squeezed_img[channel_id]
-                img = Image.fromarray(image)#doesnt work
+                image = squeezed_img[channel_id]
+                img = Image.fromarray(image)  # doesnt work # ToDo EK: What doesn't work here?
 
                 # Construct file name and path
                 file_name = f"{scene}{channel_prefix}{channel_id + 1}.tif"
@@ -266,14 +324,92 @@ def extract_from_lif_file(lif_path, target_dir,channel_prefix,event_manager: Eve
                     print(f"Error processing {file_name}: {e}")
                     continue
             if event_manager is not None:
-                event_manager.notify(event=ProgressEvent(int((index+1) / total_scenes * 100),
-                                                         process=f"Extracted Series: {index+1}/{total_scenes}"))
+                event_manager.notify(event=ProgressEvent(int((index + 1) / total_scenes * 100),
+                                                         process=f"Extracted Series: {index + 1}/{total_scenes}"))
         if event_manager is not None:
             event_manager.notify(
                 event=ProgressEvent(100, process=f"Finished extracting Series!"))
 
 
+def extract_from_czi_file(czi_path, target_dir, channel_prefix, event_manager: EventManager = None):
+    """
+    Extracts all series from the lif file using the bioio-lif library and
+    copies the images to the target directory.
+    Arguments:
+          lif_path {str} -- The path to the lif file.
+          target_dir {str} -- The path to the target directory.
+    """
 
+    # ToDo EK: Create similar methods for ND2 and CZI
+    czi_path = pathlib.Path(czi_path)
+    target_dir = pathlib.Path(target_dir)
+    if czi_path.suffix == ".czi":
+        bio_image = CellSePiImage(czi_path, reader=bioio_czi.Reader)  # Specify the backend explicitly
+
+        data = np.squeeze(bio_image.data)
+        # ToDo EK: Continue here
+
+        is_3d = (data.ndim >= 4 and data.shape[1] > 1)
+        # ToDo EK Long Term: Unify 2D and 3D loading to prevent double loading in 3D Case
+        if is_3d:
+            extract_from_lif3d_file(czi_path, target_dir, channel_prefix, event_manager)
+            return
+
+        # get all series in the lif file
+        scenes = bio_image.scenes
+        total_scenes = len(scenes)
+        if event_manager is not None:
+            event_manager.notify(
+                event=ProgressEvent(0, process=f"Extracting Series: {0}/{total_scenes}"))
+
+        # ----------------
+
+        # Create the target directory if it doesn't exist
+        target_dir.mkdir(parents=True, exist_ok=True)
+
+        for index, scene_id in enumerate(scenes):
+            scene = scene_id
+
+            # remove the unnecessary data in the array
+            bio_image.set_scene(scene)
+            # TCZXY 5D array
+            npy_array = bio_image.data
+            # ToDo EK: Only works in the 2D case -> Generalize to 3D
+            squeezed_img = np.squeeze(npy_array)
+
+            # get the amount of channels
+            n_channels = squeezed_img.shape[0]
+
+            for channel_id in range(n_channels):
+                # Extract the height and width of the image
+                image = squeezed_img[channel_id]
+                img = Image.fromarray(image)  # doesnt work # ToDo EK: What doesn't work here?
+
+                # Construct file name and path
+                file_name = f"{scene}{channel_prefix}{channel_id + 1}.tif"
+                target_path = target_dir / file_name
+
+                try:
+                    # Handle existing files
+                    if target_path.exists():
+                        if platform.system() == "Windows":
+                            os.chmod(target_path, stat.S_IWRITE)  # Set writable on Windows
+                        else:
+                            target_path.chmod(0o777)  # Set writable on Unix
+                        target_path.unlink()  # Remove the existing file
+
+                    # Save the image to the target path using pillows save function
+                    img.save(str(target_path))
+
+                except Exception as e:
+                    print(f"Error processing {file_name}: {e}")
+                    continue
+            if event_manager is not None:
+                event_manager.notify(event=ProgressEvent(int((index + 1) / total_scenes * 100),
+                                                         process=f"Extracted Series: {index + 1}/{total_scenes}"))
+        if event_manager is not None:
+            event_manager.notify(
+                event=ProgressEvent(100, process=f"Finished extracting Series!"))
 
 
 def load_image_to_numpy(path):
@@ -289,7 +425,6 @@ def write_numpy_to_image(array, path):
 
 
 def remove_gradient(img):
-
     """
     The method evens out the background of the images to prone microscopy errors
 
@@ -297,6 +432,8 @@ def remove_gradient(img):
         img {PIL.Image} -- The image to be corrected
 
     """
+    # ToDo EK: Currently not used and likely not compatible to recent version. Optionally to adapt to new version and allow user based application, or just provide in expert mode as module.
+
     top = np.median(img[100:200, 400: -400])
     bottom = np.median(img[-200:-100, 400: -400])
 
@@ -365,6 +502,7 @@ def process_channel(channel_id, channel_path):
 
     return channel_id, base64.b64encode(buffer.getvalue()).decode('utf-8')
 
+
 def convert_series_parallel(image_id, cur_image_paths):
     png_images = {image_id: {}}
     with ThreadPoolExecutor() as executor:
@@ -377,6 +515,7 @@ def convert_series_parallel(image_id, cur_image_paths):
             png_images[image_id][channel_id] = encoded_image
 
     return png_images
+
 
 def convert_tiffs_to_png_parallel(image_paths):
     """
@@ -399,6 +538,7 @@ def convert_tiffs_to_png_parallel(image_paths):
         return png_images
     else:
         return None
+
 
 def convert_tiffs_to_png(image_paths):
     """
