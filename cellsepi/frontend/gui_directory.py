@@ -80,7 +80,9 @@ class DirectoryCard(ft.Card):
                 padding=ft.Padding.symmetric(vertical=0, horizontal=0),
                 controls=[
                     ft.Text("Tif"),
-                    ft.Text("Lif")
+                    ft.Text("Lif"),
+                    ft.Text("Czi"),
+                    ft.Text("N2d")
                 ],
             )
             self.image_gallery = ft.ListView()
@@ -489,16 +491,31 @@ class DirectoryCard(ft.Card):
         """
         Changes the visibility of the directory/file picking.
         """
-        if int(e.data) == 1:
+        if int(e.data) == 1: # case lif
             self.is_lif = True
             self.gui.csp.config.set_lif_slider(True)
             self.files_row.visible = True
             self.directory_row.visible = False
-        else:
+        elif int(e.data) == 0 : # case tif
             self.is_lif = False
             self.gui.csp.config.set_lif_slider(False)
             self.files_row.visible = False
             self.directory_row.visible = True
+        elif int(e.data) == 2:
+            self.is_lif = True
+            #self.gui.csp.config.set_lif_slider(True) #here change the config, as soon as backend ready
+            self.files_row.visible = True
+            self.directory_row.visible = False
+            #case czi
+            pass
+        elif int(e.data) == 3: #case n2d
+            self.is_lif = True
+            #self.gui.csp.config.set_lif_slider(True) #here change the config, as soon as backend ready
+            self.files_row.visible = True
+            self.directory_row.visible = False
+            pass
+        else :
+            pass
 
         self.files_row.update()
         self.directory_row.update()
