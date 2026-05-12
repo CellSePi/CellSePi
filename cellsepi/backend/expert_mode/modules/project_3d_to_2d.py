@@ -28,13 +28,13 @@ class Project3dTo2d(Module, ABC):
             for channel in images[series]:
                 image_path = images[series][channel]
                 image = tifffile.imread(image_path) #dimensions are: X, Y, Z
-                image_max = np.max(image,axis=2)
+                image_max = np.max(image,axis=0)
                 base_dir = os.path.dirname(image_path)
                 proj_dir = os.path.join(base_dir, "projections")
                 os.makedirs(proj_dir, exist_ok=True)
                 name =os.path.basename(image_path)
                 new_path = os.path.join(proj_dir, name)
-                image_max_8bit = ((image_max - image_max.min()) / (image_max.max() - image_max.min()) * 255).astype(np.uint8)
+                image_max_8bit = ((image_max - image_max.min()) / (image_max.max() - image_max.min()) * 65535).astype(np.uint16)
                 img8 = Image.fromarray(image_max_8bit)
                 img8.save(new_path, format="TIFF")
                 outputs_images[series][channel] = new_path
