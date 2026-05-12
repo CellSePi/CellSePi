@@ -368,7 +368,7 @@ def transform_image_path(image_path, output_path):
 def process_channel(channel_id, channel_path):
     image = tifffile.imread(channel_path)
     if image.ndim == 3:
-        image = np.max(image, axis=2)
+        image = np.max(image, axis=0)
     img = Image.fromarray(image)
     buffer = BytesIO()
     img.save(buffer, format="PNG")

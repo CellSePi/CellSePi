@@ -113,7 +113,6 @@ class SpotDetectionModule(Module, ABC):
                         "outlines": np.zeros(image.shape, dtype=np.uint32)
                     }
                 else:
-                    mask_shape = np.transpose(image, (2, 0, 1)).shape #Z,X,Y for cellpose masks
                     empty_mask = {
                         "masks": np.zeros(mask_shape, dtype=np.uint32),
                         "outlines": np.zeros(mask_shape, dtype=np.uint32)
@@ -193,7 +192,7 @@ def create_spot_mask(spots:list, mask:dict,mask_seg:dict, radius:float, thicknes
         else:
             z, y, x = coordinates
             z, y, x = int(round(z)), int(round(y)), int(round(x))
-            d, h, w = masks.shape #Z,X,Y
+            d, h, w = masks.shape #Z,Y,X
 
             z_min = int(max(z - radius - thickness, 0))
             z_max = int(min(z + radius + thickness + 1, d))#end is exclusive
