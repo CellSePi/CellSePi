@@ -6,15 +6,12 @@ import platform
 import shutil
 import stat
 from concurrent.futures import ThreadPoolExecutor
-from enum import Enum, auto
 from io import BytesIO
 from typing import Any
 
-import bioio_czi
 import numpy as np
 from PIL import Image
 from bioio import BioImage
-import bioio_lif
 from bioio_base.dimensions import Dimensions
 from bioio_base.transforms import reshape_data
 from tifffile import tifffile
@@ -260,8 +257,6 @@ class CellSePiImage:
         """Returns the 5D TCZYX array with S merged into C."""
         return self.get_image_data("TCZYX")
 
-
-
     def get_image_data(self, out_dims="TCZYX", **kwargs):
         """Retrieves data and automatically handles S-to-C merging."""
         if not self._has_s:  # We don't have to do anything in the default case
@@ -311,16 +306,18 @@ class CellSePiImage:
             A transformed array with the same shape as the input, but with its bit
             depth adjusted to the target defined by `BIT_DEPTH`.
         """
-        arr16 = (data.astype(np.uint16) << (BIT_DEPTH - self.bit_depth)) | (data >> (2 * self.bit_depth - BIT_DEPTH)).astype(np.uint16)
+        arr16 = (data.astype(np.uint16) << (BIT_DEPTH - self.bit_depth)) | (
+                data >> (2 * self.bit_depth - BIT_DEPTH)).astype(np.uint16)
         arr16 = arr16.astype(np.uint16)
         return arr16
 
-    # def __getattr__(self, name):
-    #     """Delegate other common attributes to the internal BioImage object"""
-    #     return getattr(self._img, name)
+    def __getattr__(self, name):
+        """Delegate other common attributes to the internal BioImage object"""
+        return getattr(self._img, name)
 
 
 def extract_from_lif3d_file(lif3d_path, target_dir, channel_prefix, event_manager: EventManager = None):
+    raise Exception("Deprecated")
     series_ids, images = load_lif3d_bioimage(lif3d_path)
 
     images = np.transpose(images, axes=(0, 2, 3, 4, 1))
@@ -345,83 +342,7 @@ def extract_from_lif3d_file(lif3d_path, target_dir, channel_prefix, event_manage
             event=ProgressEvent(100, process=f"Finished extracting Series!"))
 
 
-def extract_from_lif_file(lif_path, target_dir, channel_prefix, event_manager: EventManager = None):
-    """
-    Extracts all series from the lif file using the bioio-lif library and
-    copies the images to the target directory.
-    Arguments:
-          lif_path {str} -- The path to the lif file.
-          target_dir {str} -- The path to the target directory.
-    """
-
-    # ToDo EK: Create similar methods for ND2 and CZI
-    lif_path = pathlib.Path(lif_path)
-    target_dir = pathlib.Path(target_dir)
-    if any([lif_path.suffix == f".{ext}" for ext in FileType.LIF.value.extension]):
-        bio_image = BioImage(lif_path, reader=bioio_lif.Reader)  # Specify the backend explicitly
-        data = np.squeeze(bio_image.data)
-        is_3d = (data.ndim >= 4 and data.shape[1] > 1)
-        # ToDo EK Long Term: Unify 2D and 3D loading to prevent double loading in 3D Case
-        if is_3d:
-            extract_from_lif3d_file(lif_path, target_dir, channel_prefix, event_manager)
-            return
-
-        # get all series in the lif file
-        scenes = bio_image.scenes
-        total_scenes = len(scenes)
-        if event_manager is not None:
-            event_manager.notify(
-                event=ProgressEvent(0, process=f"Extracting Series: {0}/{total_scenes}"))
-
-        # Create the target directory if it doesn't exist
-        target_dir.mkdir(parents=True, exist_ok=True)
-
-        for index, scene_id in enumerate(scenes):
-            scene = scene_id
-
-            # remove the unnecessary data in the array
-            bio_image.set_scene(scene)
-            # TCZXY 5D array
-            npy_array = bio_image.data
-            squeezed_img = np.squeeze(npy_array)
-
-            # get the amount of channels
-            n_channels = squeezed_img.shape[0]
-
-            for channel_id in range(n_channels):
-                # Extract the height and width of the image
-                image = squeezed_img[channel_id]
-                img = Image.fromarray(image)  # doesnt work # ToDo EK: What doesn't work here?
-
-                # Construct file name and path
-                file_name = f"{scene}{channel_prefix}{channel_id + 1}.tif"
-                target_path = target_dir / file_name
-
-                try:
-                    # Handle existing files
-                    if target_path.exists():
-                        if platform.system() == "Windows":
-                            os.chmod(target_path, stat.S_IWRITE)  # Set writable on Windows
-                        else:
-                            target_path.chmod(0o777)  # Set writable on Unix
-                        target_path.unlink()  # Remove the existing file
-
-                    # Save the image to the target path using pillows save function
-                    img.save(str(target_path))
-
-                except Exception as e:
-                    print(f"Error processing {file_name}: {e}")
-                    continue
-            if event_manager is not None:
-                event_manager.notify(event=ProgressEvent(int((index + 1) / total_scenes * 100),
-                                                         process=f"Extracted Series: {index + 1}/{total_scenes}"))
-        if event_manager is not None:
-            event_manager.notify(
-                event=ProgressEvent(100, process=f"Finished extracting Series!"))
-
-
-# Never tested
-# def extract_from_czi_file(path, target_dir, channel_prefix, event_manager: EventManager = None):
+# def extract_from_lif_file(lif_path, target_dir, channel_prefix, event_manager: EventManager = None):
 #     """
 #     Extracts all series from the lif file using the bioio-lif library and
 #     copies the images to the target directory.
@@ -431,18 +352,16 @@ def extract_from_lif_file(lif_path, target_dir, channel_prefix, event_manager: E
 #     """
 #
 #     # ToDo EK: Create similar methods for ND2 and CZI
-#     path = pathlib.Path(path)
+#     lif_path = pathlib.Path(lif_path)
 #     target_dir = pathlib.Path(target_dir)
-#     if any([path.suffix == f".{ext}" for ext in FileType.CZI.value.extension]):
-#         bio_image = CellSePiImage(path, reader=bioio_czi.Reader)  # Specify the backend explicitly
+#     if any([lif_path.suffix == f".{ext}" for ext in FileType.LIF.value.extension]):
+#         bio_image = BioImage(lif_path, reader=bioio_lif.Reader)  # Specify the backend explicitly
 #
 #         data = np.squeeze(bio_image.data)
-#         # ToDo EK: Continue here
-#
 #         is_3d = (data.ndim >= 4 and data.shape[1] > 1)
 #         # ToDo EK Long Term: Unify 2D and 3D loading to prevent double loading in 3D Case
 #         if is_3d:
-#             extract_from_czi3d_file(path, target_dir, channel_prefix, event_manager)
+#             extract_from_lif3d_file(lif_path, target_dir, channel_prefix, event_manager)
 #             return
 #
 #         # get all series in the lif file
@@ -451,8 +370,6 @@ def extract_from_lif_file(lif_path, target_dir, channel_prefix, event_manager: E
 #         if event_manager is not None:
 #             event_manager.notify(
 #                 event=ProgressEvent(0, process=f"Extracting Series: {0}/{total_scenes}"))
-#
-#         # ----------------
 #
 #         # Create the target directory if it doesn't exist
 #         target_dir.mkdir(parents=True, exist_ok=True)
@@ -464,7 +381,6 @@ def extract_from_lif_file(lif_path, target_dir, channel_prefix, event_manager: E
 #             bio_image.set_scene(scene)
 #             # TCZXY 5D array
 #             npy_array = bio_image.data
-#             # ToDo EK: Only works in the 2D case -> Generalize to 3D
 #             squeezed_img = np.squeeze(npy_array)
 #
 #             # get the amount of channels
@@ -516,20 +432,16 @@ def extract_from_file(
           path {str} -- The path to the lif file.
           target_dir {str} -- The path to the target directory.
     """
-
-    # ToDo EK: Create similar methods for ND2 and CZI
     path = pathlib.Path(path)
     target_dir = pathlib.Path(target_dir)
-    # if not any([path.suffix == f".{ext}" for ext in FileType.LIF.value.extension]):
-    #     return
 
     bio_image = CellSePiImage(file_type, path)
-    data = np.squeeze(bio_image.data)
-    is_3d = (data.ndim >= 4 and data.shape[1] > 1)
-    # ToDo EK Long Term: Unify 2D and 3D loading to prevent double loading in 3D Case
-    if is_3d:
-        extract_from_lif3d_file(path, target_dir, channel_prefix, event_manager)
-        return
+    # data = np.squeeze(bio_image.data)
+    # is_3d = (data.ndim >= 4 and data.shape[1] > 1)
+    # # ToDo EK Long Term: Unify 2D and 3D loading to prevent double loading in 3D Case
+    # if is_3d:
+    #     extract_from_lif3d_file(path, target_dir, channel_prefix, event_manager)
+    #     return
 
     # get all series in the lif file
     scenes = bio_image.scenes
@@ -547,36 +459,41 @@ def extract_from_file(
         # remove the unnecessary data in the array
         bio_image.set_scene(scene)
         # TCZXY 5D array
-        npy_array = bio_image.data
-        squeezed_img = np.squeeze(npy_array)
+        raw_data = bio_image.data
 
         # get the amount of channels
-        n_channels = squeezed_img.shape[0]
+        n_channels = raw_data.shape[1]
+        if raw_data.shape[0] != 1:
+            raise ValueError(f"CellSePi can't handle time series currently")
 
         for channel_id in range(n_channels):
             # Extract the height and width of the image
-            image = squeezed_img[channel_id]
-            img = Image.fromarray(image)  # doesnt work # ToDo EK: What doesn't work here?
+            image_data = raw_data[0, channel_id]
 
             # Construct file name and path
             file_name = f"{scene}{channel_prefix}{channel_id + 1}.tif"
             target_path = target_dir / file_name
 
-            try:
-                # Handle existing files
-                if target_path.exists():
-                    if platform.system() == "Windows":
-                        os.chmod(target_path, stat.S_IWRITE)  # Set writable on Windows
-                    else:
-                        target_path.chmod(0o777)  # Set writable on Unix
-                    target_path.unlink()  # Remove the existing file
+            # Store 3D data to disk
+            write_numpy_to_ZYX_image(image_data, target_path, source_order="ZYX")
 
-                # Save the image to the target path using pillows save function
-                img.save(str(target_path))
+            # ToDo Currently handling of already existing files isn't considered.
+            # try:
+            #     # Handle existing files
+            #     if target_path.exists():
+            #         if platform.system() == "Windows":
+            #             os.chmod(target_path, stat.S_IWRITE)  # Set writable on Windows
+            #         else:
+            #             target_path.chmod(0o777)  # Set writable on Unix
+            #         target_path.unlink()  # Remove the existing file
+            #
+            #     # Save the image to the target path using pillows save function
+            #
+            #
+            # except Exception as e:
+            #     print(f"Error processing {file_name}: {e}")
+            #     continue
 
-            except Exception as e:
-                print(f"Error processing {file_name}: {e}")
-                continue
         if event_manager is not None:
             event_manager.notify(event=ProgressEvent(int((index + 1) / total_scenes * 100),
                                                      process=f"Extracted Series: {index + 1}/{total_scenes}"))
@@ -585,16 +502,50 @@ def extract_from_file(
             event=ProgressEvent(100, process=f"Finished extracting Series!"))
 
 
-def load_image_to_numpy(path):
+def transpose_data(data, source_order="ZYX", target_order="XYZ"):
+    """
+    Transposes a source_order array to a new order.
+
+    Args:
+        data (np.ndarray): The input array in source_order order.
+        source_order (str): The source string order, e.g., "ZYX" or "XZY".
+        target_order (str): The desired string order, e.g., "XYZ" or "XZY".
+    """
+    # Mapping the source positions of ZYX
+
+    # assert len(source_order) == len(target_order), "Mismatch in order lengths"
+    source_order = source_order.upper()
+    if data.ndim == 2:
+        source_order = source_order.replace("Z", "")
+        target_order = target_order.replace("Z", "")
+    source_map = {key: iX for iX, key in enumerate(source_order)}
+
+    # Generate the axes tuple for np.transpose
+    try:
+        axes = [source_map[dim.upper()] for dim in target_order]
+    except KeyError as e:
+        raise ValueError(f"Invalid dimension {e}. Use only X, Y, and Z.")
+
+    return np.transpose(data, axes)
+
+
+def load_ZYX_image_to_numpy(path, target_order="XYZ"):
     im = tifffile.imread(path)
-    array = np.array(im)
+    array = transpose_data(im, source_order="ZYX", target_order=target_order)
     return array
 
 
+def write_numpy_to_ZYX_image(array, path, source_order="XYZ"):
+    im = transpose_data(array, source_order=source_order, target_order="ZYX")
+    tifffile.imwrite(path, im)
+
+
+def load_image_to_numpy(path):
+    return load_ZYX_image_to_numpy(path, target_order="XYZ")
+
+
 def write_numpy_to_image(array, path):
-    im = Image.fromarray(array)
-    im.save(path)
-    pass
+    write_numpy_to_ZYX_image(array, path, source_order="XYZ")
 
 
 def remove_gradient(img):
@@ -665,7 +616,7 @@ def transform_image_path(image_path, output_path):
 
 
 def process_channel(channel_id, channel_path):
-    image = tifffile.imread(channel_path)
+    image = load_ZYX_image_to_numpy(channel_path, target_order="XYZ")
     if image.ndim == 3:
         image = np.max(image, axis=2)
     img = Image.fromarray(image)
@@ -697,6 +648,7 @@ def convert_tiffs_to_png_parallel(image_paths):
     Args:
         image_paths (dict): the dict of image paths of tiff images
     """
+
     if image_paths is not None:
         png_images = {}
         with ThreadPoolExecutor() as executor:

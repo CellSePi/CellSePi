@@ -247,7 +247,6 @@ class DirectoryCard(ft.Card):
         working_directory = (DirectoryManager()
                              .get_cache_dir_path(f"tmp_{file_type.name}_{image_source_identifier}/"))
 
-        # ToDo EK: Update working directory to a more hidden directory and which is dependend on the actual file/directory opened
         match file_type:
             case FileType.LIF | FileType.ND2 | FileType.CZI:  # Lif Case
 
@@ -411,6 +410,11 @@ class DirectoryCard(ft.Card):
         self.gui.page.update()
 
         src = self.gui.csp.image_paths
+        # ToDo EK: Modify as it only checks if any of the images has three dimensions
+        # for scene in src:
+        #     for channel in src[scene]:
+        #         tifffile.imread(src[scene][channel])
+
 
         is_3d = any(
             tifffile.imread(channel_path).ndim == 3
@@ -447,11 +451,12 @@ class DirectoryCard(ft.Card):
                                         [
                                             get_image(cur_image_paths[channel_id]),
                                             self.selected_images_visualise[image_id][channel_id]
-                                        ]),
-                                    width=156, height=156),
-                                on_tap=lambda e, img_id=image_id, c_id=channel_id: e.page.run_task(update_main_image,
-                                                                                                   img_id, c_id,
-                                                                                                   self.gui),
+                                        ]), width=156, height=156),
+                                on_tap=lambda e, img_id=image_id,
+                                              c_id=channel_id: e.page.run_task(update_main_image,
+                                                                               img_id,
+                                                                               c_id,
+                                                                               self.gui),
                             ),
                             ft.Text(channel_id, size=10, text_align=ft.TextAlign.CENTER),
                         ],

@@ -51,7 +51,7 @@
         "outline": "(0, 255, 0)"
     },
     "States": {
-        "auto_button": true,
-        "file_type_slider": "ND2"
+        "auto_button": false,
+        "file_type_slider": "LIF"
     }
 }

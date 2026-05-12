@@ -247,7 +247,7 @@ class Review(Module, ABC):
         self._ready.clear()
         self.event_manager.notify(ProgressEvent(percent=100, process=f"Preparing: finished"))
         self.event_manager.notify(ProgressEvent(percent=0, process=f"Loading Images: Starting"))
-        src  = convert_tiffs_to_png_parallel(self.inputs["image_paths"].data)
+        src = convert_tiffs_to_png_parallel(self.inputs["image_paths"].data)
         n_series = len(src)
         for iN,image_id in enumerate(src):
             cur_image_paths = src[image_id]
