@@ -27,7 +27,7 @@ class Project3dTo2d(Module, ABC):
             outputs_images[series] = {}
             for channel in images[series]:
                 image_path = images[series][channel]
-                image = tifffile.imread(image_path) #dimensions are: X, Y, Z
+                image = tifffile.imread(image_path) #dimensions are: Z,Y,X
                 image_max = np.max(image,axis=0)
                 base_dir = os.path.dirname(image_path)
                 proj_dir = os.path.join(base_dir, "projections")
