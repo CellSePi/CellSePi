@@ -1,0 +1,1888 @@
+<OME xmlns="http://www.openmicroscopy.org/Schemas/OME/2016-06" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openmicroscopy.org/Schemas/OME/2016-06 http://www.openmicroscopy.org/Schemas/OME/2016-06/ome.xsd">
+<Instrument ID="Instrument:0">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:0:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:0:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:0:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:0:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:0:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:0:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:0:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:0:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:0:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:0:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:0:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:0:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:0:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:0:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:0:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:1">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:1:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:1:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:1:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:1:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:1:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:1:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:1:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:1:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:1:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:1:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:1:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:1:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:1:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:1:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:1:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:2">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:2:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:2:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:2:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:2:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:2:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:2:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:2:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:2:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:2:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:2:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:2:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:2:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:2:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:2:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:2:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:3">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:3:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:3:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:3:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:3:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:3:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:3:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:3:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:3:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:3:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:3:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:3:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:3:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:3:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:3:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:3:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:4">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:4:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:4:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:4:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:4:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:4:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:4:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:4:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:4:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:4:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:4:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:4:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:4:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:4:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:4:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:4:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:5">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:5:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:5:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:5:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:5:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:5:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:5:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:5:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:5:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:5:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:5:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:5:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:5:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:5:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:5:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:5:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:6">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:6:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:6:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:6:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:6:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:6:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:6:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:6:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:6:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:6:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:6:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:6:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:6:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:6:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:6:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:6:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:7">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:7:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:7:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:7:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:7:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:7:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:7:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:7:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:7:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:7:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:7:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:7:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:7:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:7:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:7:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:7:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:8">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:8:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:8:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:8:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:8:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:8:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:8:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:8:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:8:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:8:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:8:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:8:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:8:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:8:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:8:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:8:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:9">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:9:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:9:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:9:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:9:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:9:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:9:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:9:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:9:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:9:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:9:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:9:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:9:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:9:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:9:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:9:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:10">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:10:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:10:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:10:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:10:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:10:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:10:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:10:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:10:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:10:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:10:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:10:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:10:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:10:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:10:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:10:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:11">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:11:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:11:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:11:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:11:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:11:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:11:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:11:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:11:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:11:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:11:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:11:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:11:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:11:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:11:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:11:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:12">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:12:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:12:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:12:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:12:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:12:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:12:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:12:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:12:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:12:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:12:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:12:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:12:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:12:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:12:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:12:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:13">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:13:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:13:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:13:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:13:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:13:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:13:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:13:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:13:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:13:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:13:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:13:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:13:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:13:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:13:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:13:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:14">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:14:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:14:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:14:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:14:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:14:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:14:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:14:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:14:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:14:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:14:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:14:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:14:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:14:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:14:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:14:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:15">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:15:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:15:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:15:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:15:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:15:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:15:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:15:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:15:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:15:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:15:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:15:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:15:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:15:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:15:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:15:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:16">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:16:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:16:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:16:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:16:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:16:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:16:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:16:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:16:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:16:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:16:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:16:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:16:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:16:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:16:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:16:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:17">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:17:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:17:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:17:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:17:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:17:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:17:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:17:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:17:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:17:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:17:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:17:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:17:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:17:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:17:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:17:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:18">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:18:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:18:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:18:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:18:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:18:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:18:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:18:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:18:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:18:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:18:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:18:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:18:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:18:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:18:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:18:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:19">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:19:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:19:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:19:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:19:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:19:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:19:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:19:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:19:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:19:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:19:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:19:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:19:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:19:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:19:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:19:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:20">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:20:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:20:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:20:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:20:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:20:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:20:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:20:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:20:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:20:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:20:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:20:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:20:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:20:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:20:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:20:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:21">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:21:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:21:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:21:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:21:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:21:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:21:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:21:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:21:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:21:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:21:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:21:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:21:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:21:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:21:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:21:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:22">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:22:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:22:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:22:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:22:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:22:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:22:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:22:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:22:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:22:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:22:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:22:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:22:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:22:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:22:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:22:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:23">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:23:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:23:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:23:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:23:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:23:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:23:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:23:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:23:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:23:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:23:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:23:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:23:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:23:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:23:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:23:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:24">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:24:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:24:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:24:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:24:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:24:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:24:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:24:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:24:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:24:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:24:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:24:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:24:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:24:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:24:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:24:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:25">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:25:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:25:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:25:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:25:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:25:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:25:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:25:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:25:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:25:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:25:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:25:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:25:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:25:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:25:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:25:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:26">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:26:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:26:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:26:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:26:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:26:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:26:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:26:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:26:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:26:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:26:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:26:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:26:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:26:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:26:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:26:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:27">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:27:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:27:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:27:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:27:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:27:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:27:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:27:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:27:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:27:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:27:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:27:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:27:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:27:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:27:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:27:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:28">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:28:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:28:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:28:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:28:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:28:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:28:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:28:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:28:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:28:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:28:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:28:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:28:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:28:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:28:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:28:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:29">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:29:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:29:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:29:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:29:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:29:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:29:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:29:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:29:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:29:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:29:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:29:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:29:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:29:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:29:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:29:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:30">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:30:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:30:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:30:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:30:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:30:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:30:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:30:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:30:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:30:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:30:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:30:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:30:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:30:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:30:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:30:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:31">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:31:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:31:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:31:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:31:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:31:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:31:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:31:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:31:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:31:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:31:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:31:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:31:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:31:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:31:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:31:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:32">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:32:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:32:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:32:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:32:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:32:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:32:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:32:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:32:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:32:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:32:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:32:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:32:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:32:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:32:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:32:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:33">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:33:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:33:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:33:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:33:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:33:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:33:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:33:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:33:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:33:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:33:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:33:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:33:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:33:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:33:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:33:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:34">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:34:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:34:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:34:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:34:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:34:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:34:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:34:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:34:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:34:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:34:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:34:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:34:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:34:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:34:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:34:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:35">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:35:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:35:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:35:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:35:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:35:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:35:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:35:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:35:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:35:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:35:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:35:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:35:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:35:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:35:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:35:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:36">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:36:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:36:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:36:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:36:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:36:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:36:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:36:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:36:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:36:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:36:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:36:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:36:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:36:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:36:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:36:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:37">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:37:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:37:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:37:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:37:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:37:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:37:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:37:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:37:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:37:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:37:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:37:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:37:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:37:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:37:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:37:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:38">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:38:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:38:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:38:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:38:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:38:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:38:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:38:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:38:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:38:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:38:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:38:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:38:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:38:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:38:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:38:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:39">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:39:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:39:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:39:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:39:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:39:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:39:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:39:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:39:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:39:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:39:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:39:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:39:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:39:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:39:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:39:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:40">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:40:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:40:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:40:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:40:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:40:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:40:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:40:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:40:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:40:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:40:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:40:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:40:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:40:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:40:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:40:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:41">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:41:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:41:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:41:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:41:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:41:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:41:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:41:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:41:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:41:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:41:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:41:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:41:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:41:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:41:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:41:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:42">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:42:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:42:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:42:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:42:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:42:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:42:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:42:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:42:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:42:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:42:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:42:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:42:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:42:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:42:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:42:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:43">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:43:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:43:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:43:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:43:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:43:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:43:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:43:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:43:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:43:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:43:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:43:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:43:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:43:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:43:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:43:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:44">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:44:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:44:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:44:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:44:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:44:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:44:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:44:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:44:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:44:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:44:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:44:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:44:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:44:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:44:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:44:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:45">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:45:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:45:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:45:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:45:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:45:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:45:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:45:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:45:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:45:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:45:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:45:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:45:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:45:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:45:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:45:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:46">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:46:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:46:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:46:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:46:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:46:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:46:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:46:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:46:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:46:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:46:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:46:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:46:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:46:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:46:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:46:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:47">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:47:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:47:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:47:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:47:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:47:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:47:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:47:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:47:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:47:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:47:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:47:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:47:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:47:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:47:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:47:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:48">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:48:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:48:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:48:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:48:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:48:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:48:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:48:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:48:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:48:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.78525690683456"/>
+<Detector ID="Detector:48:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.78525690683456"/>
+<Objective Correction="UV" ID="Objective:48:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:48:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:48:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:48:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:48:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:49">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:49:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:49:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:49:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:49:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:49:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:49:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:49:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:49:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:49:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:49:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:49:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:49:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:49:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:49:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:49:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Instrument ID="Instrument:50">
+<Microscope Model="TCS SP5" Type="Other"/>
+<Laser ID="LightSource:50:0" LaserMedium="Other" Type="Other" Wavelength="405.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:50:1" LaserMedium="Other" Type="Other" Wavelength="458.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:50:2" LaserMedium="Other" Type="Other" Wavelength="476.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:50:3" LaserMedium="Other" Type="Other" Wavelength="488.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:50:4" LaserMedium="Other" Type="Other" Wavelength="496.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:50:5" LaserMedium="Other" Type="Other" Wavelength="514.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:50:6" LaserMedium="Other" Type="Other" Wavelength="561.0" WavelengthUnit="nm"/>
+<Laser ID="LightSource:50:7" LaserMedium="Other" Type="Other" Wavelength="633.0" WavelengthUnit="nm"/>
+<Detector ID="Detector:50:0" Model="PMT 2" Offset="-1.09999999999999" Type="PMT" Zoom="1.0"/>
+<Detector ID="Detector:50:1" Model="PMT Trans" Offset="0.0" Type="PMT" Zoom="1.0"/>
+<Objective Correction="UV" ID="Objective:50:0" Immersion="Oil" LensNA="1.44" Model="HCX PL APO CS" NominalMagnification="100.0" SerialNumber="11506325"/>
+<Filter ID="Filter:50:0" Model="SP Mirror Channel 1">
+<TransmittanceRange CutIn="415.0" CutInUnit="nm" CutOut="485.0" CutOutUnit="nm"/>
+<Filter ID="Filter:50:1" Model="SP Mirror Channel 2">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Filter ID="Filter:50:2" Model="SP Mirror Channel 3">
+<TransmittanceRange CutIn="740.757575757576" CutInUnit="nm" CutOut="765.0" CutOutUnit="nm"/>
+<Filter ID="Filter:50:3">
+<TransmittanceRange CutIn="670.0" CutInUnit="nm" CutOut="690.0" CutOutUnit="nm"/>
+<Image ID="Image:0" Name="Series006">
+<AcquisitionDate>2024-06-28T12:05:34</AcquisitionDate>
+<InstrumentRef ID="Instrument:0"/>
+<ObjectiveSettings ID="Objective:0:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:0" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:0:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:0:7"/>
+<DetectorSettings Gain="940.0" ID="Detector:0:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:0:3"/>
+<Channel Color="-1" ID="Channel:0:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="522.0" ID="Detector:0:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06350094405" PositionXUnit="reference frame" PositionY="0.04064453973686" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06350094405" PositionXUnit="reference frame" PositionY="0.04064453973686" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:1" Name="Series008">
+<AcquisitionDate>2024-06-28T12:06:19</AcquisitionDate>
+<InstrumentRef ID="Instrument:1"/>
+<ObjectiveSettings ID="Objective:1:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:1" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:1:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:1:7"/>
+<DetectorSettings Gain="940.0" ID="Detector:1:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:1:3"/>
+<Channel Color="-1" ID="Channel:1:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="522.0" ID="Detector:1:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06332133476696" PositionXUnit="reference frame" PositionY="0.0409902622161" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06332133476696" PositionXUnit="reference frame" PositionY="0.0409902622161" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:2" Name="Series010">
+<AcquisitionDate>2024-06-28T12:07:01</AcquisitionDate>
+<InstrumentRef ID="Instrument:2"/>
+<ObjectiveSettings ID="Objective:2:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:2" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:2:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:2:7"/>
+<DetectorSettings Gain="940.0" ID="Detector:2:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:2:3"/>
+<Channel Color="-1" ID="Channel:2:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="522.0" ID="Detector:2:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06332133476696" PositionXUnit="reference frame" PositionY="0.04136255206455" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06332133476696" PositionXUnit="reference frame" PositionY="0.04136255206455" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:3" Name="Series012">
+<AcquisitionDate>2024-06-28T12:07:52</AcquisitionDate>
+<InstrumentRef ID="Instrument:3"/>
+<ObjectiveSettings ID="Objective:3:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:3" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:3:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:3:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:3:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:3:3"/>
+<Channel Color="-1" ID="Channel:3:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="522.0" ID="Detector:3:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06190620853838" PositionXUnit="reference frame" PositionY="0.04136255206455" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06190620853838" PositionXUnit="reference frame" PositionY="0.04136255206455" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:4" Name="Series014">
+<AcquisitionDate>2024-06-28T12:09:33</AcquisitionDate>
+<InstrumentRef ID="Instrument:4"/>
+<ObjectiveSettings ID="Objective:4:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:4" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:4:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:4:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:4:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:4:3"/>
+<Channel Color="-1" ID="Channel:4:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="522.0" ID="Detector:4:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06108289841304" PositionXUnit="reference frame" PositionY="0.04136255206455" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06108289841304" PositionXUnit="reference frame" PositionY="0.04136255206455" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:5" Name="Series016">
+<AcquisitionDate>2024-06-28T12:10:14</AcquisitionDate>
+<InstrumentRef ID="Instrument:5"/>
+<ObjectiveSettings ID="Objective:5:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:5" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:5:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:5:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:5:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:5:3"/>
+<Channel Color="-1" ID="Channel:5:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="522.0" ID="Detector:5:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06108289841304" PositionXUnit="reference frame" PositionY="0.04082892929089" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06108289841304" PositionXUnit="reference frame" PositionY="0.04082892929089" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:6" Name="Series018">
+<AcquisitionDate>2024-06-28T12:10:57</AcquisitionDate>
+<InstrumentRef ID="Instrument:6"/>
+<ObjectiveSettings ID="Objective:6:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:6" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:6:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:6:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:6:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:6:3"/>
+<Channel Color="-1" ID="Channel:6:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="522.0" ID="Detector:6:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06075566713527" PositionXUnit="reference frame" PositionY="0.04030721569082" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06075566713527" PositionXUnit="reference frame" PositionY="0.04030721569082" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:7" Name="Series020">
+<AcquisitionDate>2024-06-28T12:11:35</AcquisitionDate>
+<InstrumentRef ID="Instrument:7"/>
+<ObjectiveSettings ID="Objective:7:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:7" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:7:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:7:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:7:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:7:3"/>
+<Channel Color="-1" ID="Channel:7:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="522.0" ID="Detector:7:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06075566713527" PositionXUnit="reference frame" PositionY="0.03966333906736" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06075566713527" PositionXUnit="reference frame" PositionY="0.03966333906736" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:8" Name="Series022">
+<AcquisitionDate>2024-06-28T12:12:23</AcquisitionDate>
+<InstrumentRef ID="Instrument:8"/>
+<ObjectiveSettings ID="Objective:8:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:8" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:8:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:8:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:8:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:8:3"/>
+<Channel Color="-1" ID="Channel:8:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="522.0" ID="Detector:8:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06075566713527" PositionXUnit="reference frame" PositionY="0.03905703078404" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06075566713527" PositionXUnit="reference frame" PositionY="0.03905703078404" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:9" Name="Series024">
+<AcquisitionDate>2024-06-28T12:14:17</AcquisitionDate>
+<InstrumentRef ID="Instrument:9"/>
+<ObjectiveSettings ID="Objective:9:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:9" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:9:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:9:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:9:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:9:3"/>
+<Channel Color="-1" ID="Channel:9:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="522.0" ID="Detector:9:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06347977218584" PositionXUnit="reference frame" PositionY="0.04193309864743" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06347977218584" PositionXUnit="reference frame" PositionY="0.04193309864743" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:10" Name="Series026">
+<AcquisitionDate>2024-06-28T12:15:01</AcquisitionDate>
+<InstrumentRef ID="Instrument:10"/>
+<ObjectiveSettings ID="Objective:10:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:10" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:10:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:10:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:10:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:10:3"/>
+<Channel Color="-1" ID="Channel:10:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="522.0" ID="Detector:10:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06347977218584" PositionXUnit="reference frame" PositionY="0.04140205888026" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06347977218584" PositionXUnit="reference frame" PositionY="0.04140205888026" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:11" Name="Series028">
+<AcquisitionDate>2024-06-28T12:15:47</AcquisitionDate>
+<InstrumentRef ID="Instrument:11"/>
+<ObjectiveSettings ID="Objective:11:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:11" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:11:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:11:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:11:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:11:3"/>
+<Channel Color="-1" ID="Channel:11:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="522.0" ID="Detector:11:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06316579285441" PositionXUnit="reference frame" PositionY="0.04066854851363" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06316579285441" PositionXUnit="reference frame" PositionY="0.04066854851363" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:12" Name="Series030">
+<AcquisitionDate>2024-06-28T12:16:20</AcquisitionDate>
+<InstrumentRef ID="Instrument:12"/>
+<ObjectiveSettings ID="Objective:12:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:12" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:12:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:12:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:12:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:12:3"/>
+<Channel Color="-1" ID="Channel:12:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="522.0" ID="Detector:12:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06252490939348" PositionXUnit="reference frame" PositionY="0.04066854851363" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06252490939348" PositionXUnit="reference frame" PositionY="0.04066854851363" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:13" Name="Series032">
+<AcquisitionDate>2024-06-28T12:17:03</AcquisitionDate>
+<InstrumentRef ID="Instrument:13"/>
+<ObjectiveSettings ID="Objective:13:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:13" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:13:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:13:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:13:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:13:3"/>
+<Channel Color="-1" ID="Channel:13:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="522.0" ID="Detector:13:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06182297127631" PositionXUnit="reference frame" PositionY="0.04066854851363" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06182297127631" PositionXUnit="reference frame" PositionY="0.04066854851363" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:14" Name="Series034">
+<AcquisitionDate>2024-06-28T12:17:43</AcquisitionDate>
+<InstrumentRef ID="Instrument:14"/>
+<ObjectiveSettings ID="Objective:14:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:14" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:14:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:14:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:14:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:14:3"/>
+<Channel Color="-1" ID="Channel:14:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="522.0" ID="Detector:14:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.0616236500893" PositionXUnit="reference frame" PositionY="0.04066854851363" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.0616236500893" PositionXUnit="reference frame" PositionY="0.04066854851363" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:15" Name="Series036">
+<AcquisitionDate>2024-06-28T12:18:31</AcquisitionDate>
+<InstrumentRef ID="Instrument:15"/>
+<ObjectiveSettings ID="Objective:15:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:15" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:15:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:15:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:15:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:15:3"/>
+<Channel Color="-1" ID="Channel:15:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="522.0" ID="Detector:15:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06124970496826" PositionXUnit="reference frame" PositionY="0.04080200059374" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06124970496826" PositionXUnit="reference frame" PositionY="0.04080200059374" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:16" Name="Series038">
+<AcquisitionDate>2024-06-28T12:20:45</AcquisitionDate>
+<InstrumentRef ID="Instrument:16"/>
+<ObjectiveSettings ID="Objective:16:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:16" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:16:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:16:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:16:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:16:3"/>
+<Channel Color="-1" ID="Channel:16:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="537.0" ID="Detector:16:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06109819137396" PositionXUnit="reference frame" PositionY="0.04060286495351" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06109819137396" PositionXUnit="reference frame" PositionY="0.04060286495351" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:17" Name="Series040">
+<AcquisitionDate>2024-06-28T12:21:27</AcquisitionDate>
+<InstrumentRef ID="Instrument:17"/>
+<ObjectiveSettings ID="Objective:17:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:17" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:17:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:17:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:17:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:17:3"/>
+<Channel Color="-1" ID="Channel:17:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="537.0" ID="Detector:17:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.0603986507165" PositionXUnit="reference frame" PositionY="0.04060286495351" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.0603986507165" PositionXUnit="reference frame" PositionY="0.04060286495351" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:18" Name="Series042">
+<AcquisitionDate>2024-06-28T12:22:33</AcquisitionDate>
+<InstrumentRef ID="Instrument:18"/>
+<ObjectiveSettings ID="Objective:18:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:18" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:18:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:18:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:18:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:18:3"/>
+<Channel Color="-1" ID="Channel:18:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="537.0" ID="Detector:18:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.05992655134884" PositionXUnit="reference frame" PositionY="0.04060286495351" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.05992655134884" PositionXUnit="reference frame" PositionY="0.04060286495351" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:19" Name="Series044">
+<AcquisitionDate>2024-06-28T12:23:18</AcquisitionDate>
+<InstrumentRef ID="Instrument:19"/>
+<ObjectiveSettings ID="Objective:19:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:19" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:19:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:19:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:19:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:19:3"/>
+<Channel Color="-1" ID="Channel:19:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="537.0" ID="Detector:19:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.05955365114914" PositionXUnit="reference frame" PositionY="0.040773416624" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.05955365114914" PositionXUnit="reference frame" PositionY="0.040773416624" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:20" Name="Series045">
+<AcquisitionDate>2024-06-28T12:23:35</AcquisitionDate>
+<InstrumentRef ID="Instrument:20"/>
+<ObjectiveSettings ID="Objective:20:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:20" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:20:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:20:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:20:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:20:3"/>
+<Channel Color="-1" ID="Channel:20:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="537.0" ID="Detector:20:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.05955365114914" PositionXUnit="reference frame" PositionY="0.040773416624" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.05955365114914" PositionXUnit="reference frame" PositionY="0.040773416624" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:21" Name="Series047">
+<AcquisitionDate>2024-06-28T12:24:12</AcquisitionDate>
+<InstrumentRef ID="Instrument:21"/>
+<ObjectiveSettings ID="Objective:21:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:21" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:21:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:21:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:21:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:21:3"/>
+<Channel Color="-1" ID="Channel:21:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="537.0" ID="Detector:21:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.05955365114914" PositionXUnit="reference frame" PositionY="0.04118978359832" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.05955365114914" PositionXUnit="reference frame" PositionY="0.04118978359832" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:22" Name="Series049">
+<AcquisitionDate>2024-06-28T12:24:48</AcquisitionDate>
+<InstrumentRef ID="Instrument:22"/>
+<ObjectiveSettings ID="Objective:22:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:22" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:22:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:22:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:22:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:22:3"/>
+<Channel Color="-1" ID="Channel:22:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="537.0" ID="Detector:22:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.05955365114914" PositionXUnit="reference frame" PositionY="0.0415095490596" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.05955365114914" PositionXUnit="reference frame" PositionY="0.0415095490596" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:23" Name="Series051">
+<AcquisitionDate>2024-06-28T12:25:47</AcquisitionDate>
+<InstrumentRef ID="Instrument:23"/>
+<ObjectiveSettings ID="Objective:23:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:23" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:23:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:23:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:23:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:23:3"/>
+<Channel Color="-1" ID="Channel:23:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="537.0" ID="Detector:23:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.0590172061113" PositionXUnit="reference frame" PositionY="0.0415095490596" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.0590172061113" PositionXUnit="reference frame" PositionY="0.0415095490596" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:24" Name="Series053">
+<AcquisitionDate>2024-06-28T12:26:29</AcquisitionDate>
+<InstrumentRef ID="Instrument:24"/>
+<ObjectiveSettings ID="Objective:24:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:24" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:24:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:24:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:24:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:24:3"/>
+<Channel Color="-1" ID="Channel:24:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="537.0" ID="Detector:24:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.0590172061113" PositionXUnit="reference frame" PositionY="0.04198131639618" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.0590172061113" PositionXUnit="reference frame" PositionY="0.04198131639618" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:25" Name="Series055">
+<AcquisitionDate>2024-06-28T12:27:13</AcquisitionDate>
+<InstrumentRef ID="Instrument:25"/>
+<ObjectiveSettings ID="Objective:25:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:25" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:25:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:25:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:25:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:25:3"/>
+<Channel Color="-1" ID="Channel:25:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="537.0" ID="Detector:25:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.0590172061113" PositionXUnit="reference frame" PositionY="0.04242757105051" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.0590172061113" PositionXUnit="reference frame" PositionY="0.04242757105051" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:26" Name="Series057">
+<AcquisitionDate>2024-06-28T12:28:02</AcquisitionDate>
+<InstrumentRef ID="Instrument:26"/>
+<ObjectiveSettings ID="Objective:26:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:26" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:26:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:26:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:26:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:26:3"/>
+<Channel Color="-1" ID="Channel:26:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="537.0" ID="Detector:26:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.05845784116332" PositionXUnit="reference frame" PositionY="0.04119506191593" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.05845784116332" PositionXUnit="reference frame" PositionY="0.04119506191593" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:27" Name="Series059">
+<AcquisitionDate>2024-06-28T12:28:37</AcquisitionDate>
+<InstrumentRef ID="Instrument:27"/>
+<ObjectiveSettings ID="Objective:27:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:27" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:27:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:27:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:27:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:27:3"/>
+<Channel Color="-1" ID="Channel:27:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="537.0" ID="Detector:27:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.05845784116332" PositionXUnit="reference frame" PositionY="0.04077440295162" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.05845784116332" PositionXUnit="reference frame" PositionY="0.04077440295162" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:28" Name="Series061">
+<AcquisitionDate>2024-06-28T12:29:38</AcquisitionDate>
+<InstrumentRef ID="Instrument:28"/>
+<ObjectiveSettings ID="Objective:28:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:28" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:28:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:28:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:28:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:28:3"/>
+<Channel Color="-1" ID="Channel:28:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="537.0" ID="Detector:28:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.05845784116332" PositionXUnit="reference frame" PositionY="0.04003683496988" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.05845784116332" PositionXUnit="reference frame" PositionY="0.04003683496988" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:29" Name="Series063">
+<AcquisitionDate>2024-06-28T12:30:18</AcquisitionDate>
+<InstrumentRef ID="Instrument:29"/>
+<ObjectiveSettings ID="Objective:29:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:29" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:29:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:29:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:29:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:29:3"/>
+<Channel Color="-1" ID="Channel:29:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="537.0" ID="Detector:29:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.05845784116332" PositionXUnit="reference frame" PositionY="0.03961245530435" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.05845784116332" PositionXUnit="reference frame" PositionY="0.03961245530435" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:30" Name="Series065">
+<AcquisitionDate>2024-06-28T12:32:06</AcquisitionDate>
+<InstrumentRef ID="Instrument:30"/>
+<ObjectiveSettings ID="Objective:30:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:30" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:30:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:30:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:30:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:30:3"/>
+<Channel Color="-1" ID="Channel:30:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="537.0" ID="Detector:30:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.0592042665624" PositionXUnit="reference frame" PositionY="0.03961245530435" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.0592042665624" PositionXUnit="reference frame" PositionY="0.03961245530435" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:31" Name="Series067">
+<AcquisitionDate>2024-06-28T12:32:44</AcquisitionDate>
+<InstrumentRef ID="Instrument:31"/>
+<ObjectiveSettings ID="Objective:31:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:31" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:31:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:31:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:31:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:31:3"/>
+<Channel Color="-1" ID="Channel:31:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="537.0" ID="Detector:31:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.0592042665624" PositionXUnit="reference frame" PositionY="0.03983141027037" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.0592042665624" PositionXUnit="reference frame" PositionY="0.03983141027037" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:32" Name="Series069">
+<AcquisitionDate>2024-06-28T12:33:48</AcquisitionDate>
+<InstrumentRef ID="Instrument:32"/>
+<ObjectiveSettings ID="Objective:32:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:32" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:32:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:32:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:32:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:32:3"/>
+<Channel Color="-1" ID="Channel:32:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="537.0" ID="Detector:32:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.05861575123872" PositionXUnit="reference frame" PositionY="0.04025304091387" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.05861575123872" PositionXUnit="reference frame" PositionY="0.04025304091387" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:33" Name="Series071">
+<AcquisitionDate>2024-06-28T12:35:53</AcquisitionDate>
+<InstrumentRef ID="Instrument:33"/>
+<ObjectiveSettings ID="Objective:33:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:33" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:33:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:33:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:33:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:33:3"/>
+<Channel Color="-1" ID="Channel:33:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="537.0" ID="Detector:33:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.05861575123872" PositionXUnit="reference frame" PositionY="0.04049229860387" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.05861575123872" PositionXUnit="reference frame" PositionY="0.04049229860387" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:34" Name="Series073">
+<AcquisitionDate>2024-06-28T12:36:29</AcquisitionDate>
+<InstrumentRef ID="Instrument:34"/>
+<ObjectiveSettings ID="Objective:34:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:34" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:34:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:34:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:34:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:34:3"/>
+<Channel Color="-1" ID="Channel:34:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="537.0" ID="Detector:34:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.05838421815414" PositionXUnit="reference frame" PositionY="0.04049229860387" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.05838421815414" PositionXUnit="reference frame" PositionY="0.04049229860387" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:35" Name="Series075">
+<AcquisitionDate>2024-06-28T12:37:25</AcquisitionDate>
+<InstrumentRef ID="Instrument:35"/>
+<ObjectiveSettings ID="Objective:35:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:35" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:35:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:35:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:35:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:35:3"/>
+<Channel Color="-1" ID="Channel:35:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="537.0" ID="Detector:35:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.05838421815414" PositionXUnit="reference frame" PositionY="0.0409891391698" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.05838421815414" PositionXUnit="reference frame" PositionY="0.0409891391698" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:36" Name="Series077">
+<AcquisitionDate>2024-06-28T12:38:50</AcquisitionDate>
+<InstrumentRef ID="Instrument:36"/>
+<ObjectiveSettings ID="Objective:36:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:36" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:36:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:36:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:36:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:36:3"/>
+<Channel Color="-1" ID="Channel:36:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="537.0" ID="Detector:36:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.05846074643527" PositionXUnit="reference frame" PositionY="0.0409891391698" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.05846074643527" PositionXUnit="reference frame" PositionY="0.0409891391698" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:37" Name="Series079">
+<AcquisitionDate>2024-06-28T12:39:49</AcquisitionDate>
+<InstrumentRef ID="Instrument:37"/>
+<ObjectiveSettings ID="Objective:37:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:37" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:37:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:37:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:37:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:37:3"/>
+<Channel Color="-1" ID="Channel:37:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="537.0" ID="Detector:37:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.05846074643527" PositionXUnit="reference frame" PositionY="0.04046280643147" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.05846074643527" PositionXUnit="reference frame" PositionY="0.04046280643147" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:38" Name="Series080">
+<AcquisitionDate>2024-06-28T12:40:10</AcquisitionDate>
+<InstrumentRef ID="Instrument:38"/>
+<ObjectiveSettings ID="Objective:38:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:38" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:38:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:38:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:38:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:38:3"/>
+<Channel Color="-1" ID="Channel:38:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="537.0" ID="Detector:38:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.05846074643527" PositionXUnit="reference frame" PositionY="0.04046280643147" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.05846074643527" PositionXUnit="reference frame" PositionY="0.04046280643147" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:39" Name="Series082">
+<AcquisitionDate>2024-06-28T12:41:13</AcquisitionDate>
+<InstrumentRef ID="Instrument:39"/>
+<ObjectiveSettings ID="Objective:39:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:39" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:39:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:39:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:39:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:39:3"/>
+<Channel Color="-1" ID="Channel:39:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="537.0" ID="Detector:39:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.05854942803049" PositionXUnit="reference frame" PositionY="0.0395738078632" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.05854942803049" PositionXUnit="reference frame" PositionY="0.0395738078632" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:40" Name="Series084">
+<AcquisitionDate>2024-06-28T12:42:22</AcquisitionDate>
+<InstrumentRef ID="Instrument:40"/>
+<ObjectiveSettings ID="Objective:40:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:40" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:40:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:40:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:40:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:40:3"/>
+<Channel Color="-1" ID="Channel:40:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="537.0" ID="Detector:40:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.05854942803049" PositionXUnit="reference frame" PositionY="0.03920935980761" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.05854942803049" PositionXUnit="reference frame" PositionY="0.03920935980761" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:41" Name="Series087">
+<AcquisitionDate>2024-06-28T12:45:59</AcquisitionDate>
+<InstrumentRef ID="Instrument:41"/>
+<ObjectiveSettings ID="Objective:41:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:41" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:41:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:41:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:41:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:41:3"/>
+<Channel Color="-1" ID="Channel:41:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="537.0" ID="Detector:41:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06467240341115" PositionXUnit="reference frame" PositionY="0.04469029938418" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06467240341115" PositionXUnit="reference frame" PositionY="0.04469029938418" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:42" Name="Series089">
+<AcquisitionDate>2024-06-28T12:46:37</AcquisitionDate>
+<InstrumentRef ID="Instrument:42"/>
+<ObjectiveSettings ID="Objective:42:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:42" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:42:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:42:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:42:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:42:3"/>
+<Channel Color="-1" ID="Channel:42:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="537.0" ID="Detector:42:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06467240341115" PositionXUnit="reference frame" PositionY="0.04506477673151" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06467240341115" PositionXUnit="reference frame" PositionY="0.04506477673151" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:43" Name="Series091">
+<AcquisitionDate>2024-06-28T12:47:19</AcquisitionDate>
+<InstrumentRef ID="Instrument:43"/>
+<ObjectiveSettings ID="Objective:43:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:43" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:43:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:43:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:43:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:43:3"/>
+<Channel Color="-1" ID="Channel:43:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="537.0" ID="Detector:43:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06467240341115" PositionXUnit="reference frame" PositionY="0.04572666115825" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06467240341115" PositionXUnit="reference frame" PositionY="0.04572666115825" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:44" Name="Series093">
+<AcquisitionDate>2024-06-28T12:48:11</AcquisitionDate>
+<InstrumentRef ID="Instrument:44"/>
+<ObjectiveSettings ID="Objective:44:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:44" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:44:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:44:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:44:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:44:3"/>
+<Channel Color="-1" ID="Channel:44:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="537.0" ID="Detector:44:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06467240341115" PositionXUnit="reference frame" PositionY="0.0460156990962" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06467240341115" PositionXUnit="reference frame" PositionY="0.0460156990962" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:45" Name="Series094">
+<AcquisitionDate>2053-01-12T12:25:31</AcquisitionDate>
+<InstrumentRef ID="Instrument:45"/>
+<ObjectiveSettings ID="Objective:45:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:45" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:45:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:45:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:45:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:45:3"/>
+<Channel Color="-1" ID="Channel:45:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="537.0" ID="Detector:45:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06467240341115" PositionXUnit="reference frame" PositionY="0.0460156990962" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06467240341115" PositionXUnit="reference frame" PositionY="0.0460156990962" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:46" Name="Series096">
+<AcquisitionDate>2024-06-28T12:48:58</AcquisitionDate>
+<InstrumentRef ID="Instrument:46"/>
+<ObjectiveSettings ID="Objective:46:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:46" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:46:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:46:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:46:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:46:3"/>
+<Channel Color="-1" ID="Channel:46:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="537.0" ID="Detector:46:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06467240341115" PositionXUnit="reference frame" PositionY="0.04638659246099" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06467240341115" PositionXUnit="reference frame" PositionY="0.04638659246099" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:47" Name="Series098">
+<AcquisitionDate>2024-06-28T12:50:05</AcquisitionDate>
+<InstrumentRef ID="Instrument:47"/>
+<ObjectiveSettings ID="Objective:47:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:47" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:47:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:47:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:47:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:47:3"/>
+<Channel Color="-1" ID="Channel:47:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="537.0" ID="Detector:47:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.0646346837039" PositionXUnit="reference frame" PositionY="0.04657458064599" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.0646346837039" PositionXUnit="reference frame" PositionY="0.04657458064599" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:48" Name="Series099">
+<AcquisitionDate>2024-06-28T12:50:35</AcquisitionDate>
+<InstrumentRef ID="Instrument:48"/>
+<ObjectiveSettings ID="Objective:48:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:48" Interleaved="false" PhysicalSizeX="0.08487022482893451" PhysicalSizeXUnit="µm" PhysicalSizeY="0.08487022482893451" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:48:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:48:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:48:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:48:3"/>
+<Channel Color="-1" ID="Channel:48:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="537.0" ID="Detector:48:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.0646346837039" PositionXUnit="reference frame" PositionY="0.04657458064599" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.0646346837039" PositionXUnit="reference frame" PositionY="0.04657458064599" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:49" Name="Series101">
+<AcquisitionDate>2024-06-28T12:53:34</AcquisitionDate>
+<InstrumentRef ID="Instrument:49"/>
+<ObjectiveSettings ID="Objective:49:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:49" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:49:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:49:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:49:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:49:3"/>
+<Channel Color="-1" ID="Channel:49:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="537.0" ID="Detector:49:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.0646346837039" PositionXUnit="reference frame" PositionY="0.04682904340633" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.0646346837039" PositionXUnit="reference frame" PositionY="0.04682904340633" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>
+<Image ID="Image:50" Name="Series103">
+<AcquisitionDate>2024-06-28T12:54:24</AcquisitionDate>
+<InstrumentRef ID="Instrument:50"/>
+<ObjectiveSettings ID="Objective:50:0" RefractiveIndex="1.518"/>
+<Pixels BigEndian="false" DimensionOrder="XYCZT" ID="Pixels:50" Interleaved="false" PhysicalSizeX="0.15151515151515152" PhysicalSizeXUnit="µm" PhysicalSizeY="0.15151515151515152" PhysicalSizeYUnit="µm" SignificantBits="8" SizeC="2" SizeT="1" SizeX="1024" SizeY="1024" SizeZ="1" Type="uint8">
+<Channel Color="-16776961" ExcitationWavelength="633.0" ExcitationWavelengthUnit="nm" ID="Channel:50:0" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<LightSourceSettings Attenuation="0.49996948" ID="LightSource:50:7"/>
+<DetectorSettings Gain="1000.0" ID="Detector:50:0" Offset="-1.09999999999999"/>
+<LightPath>
+<EmissionFilterRef ID="Filter:50:3"/>
+<Channel Color="-1" ID="Channel:50:1" Name="" PinholeSize="147.39131134853702" PinholeSizeUnit="µm" SamplesPerPixel="1">
+<DetectorSettings Gain="537.0" ID="Detector:50:1" Offset="0.0"/>
+<LightPath/>
+<MetadataOnly/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06447584101179" PositionXUnit="reference frame" PositionY="0.0480239500211" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="0" TheT="0" TheZ="0"/>
+<Plane DeltaT="0.0" DeltaTUnit="s" PositionX="0.06447584101179" PositionXUnit="reference frame" PositionY="0.0480239500211" PositionYUnit="reference frame" PositionZ="0.0" PositionZUnit="reference frame" TheC="1" TheT="0" TheZ="0"/>

@@ -6,6 +6,8 @@ from pathlib import Path
 from typing import Optional
 
 
+BIT_DEPTH = 16
+
 class ReturnTypePath(Enum):
     IMAGE_PATHS = auto()
     MASK_PATHS = auto()

@@ -8,6 +8,7 @@ import stat
 from concurrent.futures import ThreadPoolExecutor
 from enum import Enum, auto
 from io import BytesIO
+from typing import Any
 
 import bioio_czi
 import numpy as np
@@ -18,7 +19,7 @@ from bioio_base.dimensions import Dimensions
 from bioio_base.transforms import reshape_data
 from tifffile import tifffile
 
-from backend.main_window.constants import ReturnTypePath, FileType
+from backend.main_window.constants import ReturnTypePath, FileType, BIT_DEPTH
 from cellsepi.backend.main_window.expert_mode.event_manager import *
 
 
@@ -179,20 +180,60 @@ def load_lif3d_bioimage(lif3d_path):
 
 
 class CellSePiImage:
-    def __init__(self, file_path, reader=None, *args, **kwargs):
+
+    def __init__(self, file_type, file_path, reader=None, *args, **kwargs):
         self._img = BioImage(file_path, reader=reader, *args, **kwargs)
-        self.has_s = "S" in self._img.dims.order and self._img.dims.S > 1
+        self._has_s = "S" in self._img.dims.order and self._img.dims.S > 1
         # print(f"Loaded image with dimensions: {self._img.dims.order} ({self._img.dims.C} channels, {self._img.dims.S} slices)")
         if "M" in self._img.dims.order:
             print(f"Warning: Image has M dimension, which is not supported.")
             raise Exception("Image has M dimension, which is not supported. (Mosaic or tiling images)")
-        self.has_s = "S" in self._img.dims.order and self._img.dims.S > 1
+        self._has_s = "S" in self._img.dims.order and self._img.dims.S > 1
+
+        self.file_type = file_type
+
+        self.bit_depths = self._infer_bit_depths()
+        self.set_scene(self._img.current_scene)
+
+        pass
+
+    def _infer_bit_depths(self):
+        bit_depths = []
+        try:
+            match self.file_type:
+                case FileType.LIF:  # The Lif reader often doesn't provide metadata in ome_metadata style, wherefore the proprietary xml element is used
+                    xml_element = self._img.metadata
+                    for elem in xml_element.findall(".//*[@Identifier]"):
+                        if not elem.get("Identifier") == "nBit":
+                            continue
+                        bit_depth = int(elem.get("Variant"))
+                        bit_depths.append(bit_depth)
+                case FileType.CZI | FileType.ND2:
+                    for img_meta in self._img.ome_metadata.images:
+                        bit_depth = img_meta.pixels.significant_bits
+                        bit_depths.append(bit_depth)
+                case _:
+                    raise TypeError(f"Unsupported file type: {self.file_type}")
+        except:
+            print(f"Could not infer bit depth. Defaulting to container bit depth")
+            for scene in self._img.scenes:
+                self._img.set_scene(scene)
+                bit_depth = np.iinfo(self._img.data.dtype).bits
+                bit_depths.append(bit_depth)
+
+            raise TypeError(
+                f"Could not infer bit depth. Defaulting to container bit depth (FileType: {self.file_type}).")
+
+        bit_depths = np.array(bit_depths)
+        assert np.all(bit_depths <= BIT_DEPTH), f"Bit depths must be <= {BIT_DEPTH} (found {np.max(bit_depths)})"
+
+        return bit_depths
 
     @property
     def dims(self):
         """Returns a fresh Dimensions object reflecting the merged C and S."""
         d = self._img.dims
-        if self.has_s:
+        if self._has_s:
             # Create a new Dimensions object from scratch.
             d = Dimensions(dims=["T", "C", "Z", "Y", "X"], shape=(d.T, d.C * d.S, d.Z, d.Y, d.X))
         return d
@@ -204,14 +245,28 @@ class CellSePiImage:
         return (d.T, d.C, d.Z, d.Y, d.X)
 
     @property
+    def xarray_data(self):
+        xarray_data = self._img.xarray_data
+        xarray_data = self.match_bit_depth(xarray_data)
+        return xarray_data
+
+    def set_scene(self, scene):
+        self._img.set_scene(scene)
+        # mask = np.array([s == scene for s in self._img.scenes])
+        self.bit_depth = self.bit_depths[self._img.current_scene_index]
+
+    @property
     def data(self):
         """Returns the 5D TCZYX array with S merged into C."""
         return self.get_image_data("TCZYX")
 
+
+
     def get_image_data(self, out_dims="TCZYX", **kwargs):
         """Retrieves data and automatically handles S-to-C merging."""
-        if not self.has_s:  # We don't have to do anything in the default case
-            return self._img.get_image_data(out_dims, **kwargs)
+        if not self._has_s:  # We don't have to do anything in the default case
+            original_img = self._img.get_image_data(out_dims, **kwargs)
+            return self.match_bit_depth(original_img)
 
         # Force retrieve with S to perform the merge
         raw = self._img.get_image_data("TCZYXS", **kwargs)
@@ -221,15 +276,48 @@ class CellSePiImage:
         t, c, z, y, x, s = raw.shape
         merged = raw.transpose(0, 1, 5, 2, 3, 4).reshape(t, c * s, z, y, x)
 
+        # Change bit depth of data to default bit depth of 16 bit.
+        merged = self.match_bit_depth(merged)
+
         return reshape_data(
             data=merged,
             given_dims="TCZYX",
             return_dims=out_dims
         )
 
-    def __getattr__(self, name):
-        """Delegate other common attributes to the internal BioImage object"""
-        return getattr(self._img, name)
+    def get_stack(self, **kwargs: Any) -> np.ndarray:
+        prev_scene = self._img.current_scene
+        stack = []
+        for scene in self._img.scenes:
+            self.set_scene(scene)
+            stack.append(self.data)
+
+        self.set_scene(prev_scene)
+        stack = np.stack(stack)
+        return stack
+
+    def match_bit_depth(self, data: np.array) -> np.array:
+        """
+        Adjusts the bit depth of the given data to match a pre-defined target bit depth and
+        returns the transformed data. Works between 8 and 16 bit.
+
+        Parameters:
+        data : np.ndarray
+            Input array whose bit depth is to be adjusted. Its elements are expected
+            to conform to the original bit depth defined in the instance.
+
+        Returns:
+        np.ndarray
+            A transformed array with the same shape as the input, but with its bit
+            depth adjusted to the target defined by `BIT_DEPTH`.
+        """
+        arr16 = (data.astype(np.uint16) << (BIT_DEPTH - self.bit_depth)) | (data >> (2 * self.bit_depth - BIT_DEPTH)).astype(np.uint16)
+        arr16 = arr16.astype(np.uint16)
+        return arr16
+
+    # def __getattr__(self, name):
+    #     """Delegate other common attributes to the internal BioImage object"""
+    #     return getattr(self._img, name)
 
 
 def extract_from_lif3d_file(lif3d_path, target_dir, channel_prefix, event_manager: EventManager = None):
@@ -277,8 +365,6 @@ def extract_from_lif_file(lif_path, target_dir, channel_prefix, event_manager: E
         if is_3d:
             extract_from_lif3d_file(lif_path, target_dir, channel_prefix, event_manager)
             return
-
-
 
         # get all series in the lif file
         scenes = bio_image.scenes
@@ -417,6 +503,7 @@ def extract_from_lif_file(lif_path, target_dir, channel_prefix, event_manager: E
 
 
 def extract_from_file(
+        file_type,
         path,
         target_dir,
         channel_prefix,
@@ -436,15 +523,13 @@ def extract_from_file(
     # if not any([path.suffix == f".{ext}" for ext in FileType.LIF.value.extension]):
     #     return
 
-    bio_image = CellSePiImage(path)
+    bio_image = CellSePiImage(file_type, path)
     data = np.squeeze(bio_image.data)
     is_3d = (data.ndim >= 4 and data.shape[1] > 1)
     # ToDo EK Long Term: Unify 2D and 3D loading to prevent double loading in 3D Case
     if is_3d:
         extract_from_lif3d_file(path, target_dir, channel_prefix, event_manager)
         return
-
-
 
     # get all series in the lif file
     scenes = bio_image.scenes
@@ -657,5 +742,5 @@ def convert_tiffs_to_png(image_paths):
 
 def consistent_hash(data):
     data_bytes = data.encode('utf-8')
-    c_hash =  hashlib.sha256(data_bytes).hexdigest()
+    c_hash = hashlib.sha256(data_bytes).hexdigest()
     return c_hash

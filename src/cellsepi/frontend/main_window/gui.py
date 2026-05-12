@@ -112,6 +112,7 @@ class GUI:
             self.page.run_task(self.auto_image_tuning.pressed)
 
     def build(self):
+
         """
         Build up the main page of the GUI
         """

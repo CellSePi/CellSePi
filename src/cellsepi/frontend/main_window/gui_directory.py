@@ -119,7 +119,7 @@ class DirectoryCard(ft.Card):
             self.content = self.create_directory_container()
             self.output_dir = False
             self.is_supported_lif = True
-            self.update_source_type(self.file_type.value.source)
+            self.update_source_type(file_type=self.file_type)
             self.selected_images_visualise = {}
             self.icon_check = {}
             self.icon_x = {}
@@ -260,6 +260,7 @@ class DirectoryCard(ft.Card):
                         if file_type.value.source == SourceType.FILE]):
                     # Extract from the file all the single series images and extract to .tif, .tiff and .npy files into subdirectory
                     extract_from_file(
+                        file_type=file_type,
                         path=path,
                         target_dir=working_directory,
                         channel_prefix=channel_prefix,
@@ -566,9 +567,9 @@ class DirectoryCard(ft.Card):
 
         self.gui.page.update()
 
-    def update_source_type(self, source_type):
-        self.source_type = source_type
-        if source_type == SourceType.DIRECTORY:
+    def update_source_type(self, file_type: FileType):
+        self.source_type = file_type.value.source
+        if self.source_type == SourceType.DIRECTORY:
             self.files_row.visible = False
             self.directory_row.visible = True
         else:
