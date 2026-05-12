@@ -34,9 +34,8 @@ class Project3dTo2d(Module, ABC):
                 os.makedirs(proj_dir, exist_ok=True)
                 name =os.path.basename(image_path)
                 new_path = os.path.join(proj_dir, name)
-                image_max_8bit = ((image_max - image_max.min()) / (image_max.max() - image_max.min()) * 65535).astype(np.uint16)
-                img8 = Image.fromarray(image_max_8bit)
-                img8.save(new_path, format="TIFF")
+                img = Image.fromarray(image_max)
+                img.save(new_path, format="TIFF")
                 outputs_images[series][channel] = new_path
 
             self.event_manager.notify(ProgressEvent(percent=int((iN+1) / n_series * 100), process=f"Projecting Series: {iN+1}/{n_series}"))
