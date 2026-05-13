@@ -417,7 +417,7 @@ class GUISegmentation:
         model_directory = os.path.join(project_root, "models")
 
         model_drop_down = ft.DropdownM2(
-                width=220,
+                width=250,
                 label="Choose model",
                 border_color=ft.Colors.BLUE_ACCENT,
                 options=[ft.dropdownm2.Option(key="Cellpose", text="Cellpose"),
