@@ -52,6 +52,6 @@
     },
     "States": {
         "auto_button": false,
-        "file_type_slider": "CZI"
+        "file_type_slider": "OME_TIFF"
     }
 }

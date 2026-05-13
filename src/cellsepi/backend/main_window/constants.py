@@ -5,8 +5,8 @@ from types import SimpleNamespace
 from pathlib import Path
 from typing import Optional
 
-
 BIT_DEPTH = 16
+
 
 class ReturnTypePath(Enum):
     IMAGE_PATHS = auto()
@@ -22,8 +22,10 @@ class SourceType(Enum):
 class FileType(Enum):
     LIF = SimpleNamespace({"name": "Lif", "extensions": ["lif"], "source": SourceType.FILE})
     ND2 = SimpleNamespace({"name": "ND2", "extensions": ["nd2"], "source": SourceType.FILE})
+    ND2_DIR = SimpleNamespace({"name": "ND2 Dir", "extensions": ["nd2"], "source": SourceType.DIRECTORY})
     CZI = SimpleNamespace({"name": "CZI", "extensions": ["czi"], "source": SourceType.FILE})
-    TIFF = SimpleNamespace({"name": "TIFF/TIF", "extensions": ["tiff", "tif"], "source": SourceType.DIRECTORY})
+    OME_TIFF = SimpleNamespace({"name": "OME-TIFF", "extensions": ["ome.tiff", "ome.tif"], "source": SourceType.FILE})
+    TIFF_DIR = SimpleNamespace({"name": "TIFF Dir", "extensions": ["tiff", "tif"], "source": SourceType.DIRECTORY})
 
 
 class DirectoryManager:
@@ -65,9 +67,11 @@ class DirectoryManager:
         dir_path = Path(self.cache_directory.path)
         return dir_path / filename
 
-    def get_cache_dir_path(self, dirname: str) -> Path:
+    def get_cache_dir_path(self, dirname: str, makedir=True) -> Path:
         dirpath = self.cache_directory / dirname
-        os.makedirs(dirpath, exist_ok=True)
+
+        if makedir:
+            os.makedirs(dirpath, exist_ok=True)
         return dirpath
 
     def cleanup_cache(self):

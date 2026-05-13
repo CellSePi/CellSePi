@@ -3,6 +3,7 @@ import concurrent.futures
 import os
 import pathlib
 import platform
+import shutil
 
 import flet as ft
 import numpy as np
@@ -86,7 +87,7 @@ class DirectoryCard(ft.Card):
                 on_change=self.update_view,
                 padding=ft.padding.symmetric(0, 0),
                 controls=[
-                    ft.Text(source_type.name) for source_type in FileType
+                    ft.Text(file_type.value.name) for file_type in FileType
                 ],
             )
             self.image_gallery = ft.ListView()
@@ -204,7 +205,7 @@ class DirectoryCard(ft.Card):
 
         if path:
             self.directory_path.value = path
-            self.select_directory_parallel(path, self.file_type, self.gui.csp.config.get_channel_prefix())
+            await self.select_directory_parallel(path, self.file_type, self.gui.csp.config.get_channel_prefix())
             self.load_images()
         else:
             self.image_gallery.controls.clear()
@@ -222,7 +223,7 @@ class DirectoryCard(ft.Card):
             self.formatted_path.color = None
         self.formatted_path.update()
 
-    def select_directory_parallel(
+    async def select_directory_parallel(
             self,
             path,
             file_type: FileType,
@@ -244,89 +245,105 @@ class DirectoryCard(ft.Card):
         path = pathlib.Path(path)
 
         image_source_identifier = consistent_hash(str(path.absolute()))
+
         working_directory = (DirectoryManager()
-                             .get_cache_dir_path(f"tmp_{file_type.name}_{image_source_identifier}/"))
+                             .get_cache_dir_path(f"tmp_{file_type.name}_{image_source_identifier}/", makedir=False))
 
-        match file_type:
-            case FileType.LIF | FileType.ND2 | FileType.CZI:  # Lif Case
+        overwrite = True
+        if working_directory.exists():
+            dialog = ChoiceDialog(
+                page=self.page,
+                title="Data already imported",
+                text="Do you want to overwrite the existing data?\nThis will erase all intermediate data and reload the original file.",
+                option_1="Overwrite",
+                option_2="Keep existing",
+            )
+            result = await dialog.show()
+            overwrite = result == 0
 
-                if event_manager is None:
-                    self.output_dir = False
+        if overwrite:
+            if working_directory.exists():
+                shutil.rmtree(working_directory)
+            os.makedirs(working_directory, exist_ok=True)
 
-                if any([path.suffix.lower() == f".{ext}"
-                        for file_type in FileType
-                        for ext in file_type.value.extensions
-                        if file_type.value.source == SourceType.FILE]):
-                    # Extract from the file all the single series images and extract to .tif, .tiff and .npy files into subdirectory
-                    extract_from_file(
-                        file_type=file_type,
-                        path=path,
-                        target_dir=working_directory,
-                        channel_prefix=channel_prefix,
-                        event_manager=event_manager
-                    )
-                else:
-                    if event_manager is not None:
-                        raise PipelineRunningException("Type Error", "Expected .lif!")
+            match file_type.value.source:
+                case SourceType.FILE:  # File Case
+
+                    if event_manager is None:
+                        self.output_dir = False
+
+                    if any(["".join(path.suffixes).lower() == f".{ext}" for ext in file_type.value.extensions]):
+                        # Extract from the file all the single series images and extract to .tif, .tiff and .npy files into subdirectory
+                        extract_from_file(
+                            file_type=file_type,
+                            path=path,
+                            target_dir=working_directory,
+                            channel_prefix=channel_prefix,
+                            event_manager=event_manager
+                        )
                     else:
-                        self.is_supported_lif = False
-            case FileType.TIFF:  # Tiff Case
-                if path.name == "output":
-                    if event_manager is not None:
-                        raise PipelineRunningException("Directory Error", "Directory ’output’ is not supported!")
-                    else:
-                        self.gui.page.show_dialog(ft.SnackBar(ft.Text("The directory path output is not allowed!")))
-                        self.output_dir = True
-                        self.gui.page.update()
-                        self.gui.csp.image_paths = {}
-                        self.gui.csp.linux_images = {}
-                        self.gui.csp.mask_paths = {}
-                        self.gui.ready_to_start = False
-                        self.gui.progress_ring.visible = False
-                        return None
-                if event_manager is None:
-                    self.output_dir = False
-                # Copy .tif, .tiff and .npy files into subdirectory
-
-                os.makedirs(working_directory, exist_ok=True)
-                copy_files_between_directories(path, working_directory, file_types=[".tif", ".tiff", ".npy"],
-                                               event_manager=event_manager)
-                tiff_paths = [p for p in working_directory.iterdir() if
-                              p.suffix.lower() in [".tif", ".tiff"] and p.is_file()]
-                total = len(tiff_paths)
-                converted_count = 0
-                failed = False
-
-                if event_manager is not None:
-                    event_manager.notify(ProgressEvent(percent=0, process=f"Convert TIFFs: {converted_count}/{total}"))
-
-                with concurrent.futures.ThreadPoolExecutor() as executor:
-                    futures = {executor.submit(self.convert_tiffs_to_8_bit, path): path for path in tiff_paths}
-                    for future in concurrent.futures.as_completed(futures):
-                        result = future.result()
-                        if not result:
-                            failed = True
-                        converted_count += 1
                         if event_manager is not None:
-                            event_manager.notify(
-                                ProgressEvent(percent=int(converted_count / total * 100),
-                                              process=f"Convert Tiff's: {converted_count}/{total}")
-                            )
+                            raise PipelineRunningException("Type Error", "Expected .lif!")
+                        else:
+                            self.is_supported_lif = False
+                case SourceType.DIRECTORY:  # Directory Case
+                    if path.name == "output":
+                        if event_manager is not None:
+                            raise PipelineRunningException("Directory Error", "Directory ’output’ is not supported!")
+                        else:
+                            self.gui.page.show_dialog(ft.SnackBar(ft.Text("The directory path output is not allowed!")))
+                            self.output_dir = True
+                            self.gui.page.update()
+                            self.gui.csp.image_paths = {}
+                            self.gui.csp.linux_images = {}
+                            self.gui.csp.mask_paths = {}
+                            self.gui.ready_to_start = False
+                            self.gui.progress_ring.visible = False
+                            return None
+                    if event_manager is None:
+                        self.output_dir = False
+                    # Copy .tif, .tiff and .npy files into subdirectory
 
-                if failed:
-                    if event_manager is not None:
-                        raise PipelineRunningException("Type Error",
-                                                       "The directory contains an unsupported file type. Only 8 or 16 bit .tiff files allowed.")
-                    else:
-                        is_supported_tif = False
-                else:
+                    os.makedirs(working_directory, exist_ok=True)
+                    copy_files_between_directories(path, working_directory, file_types=[".tif", ".tiff", ".npy"],
+                                                   event_manager=event_manager)
+                    tiff_paths = [p for p in working_directory.iterdir() if
+                                  p.suffix.lower() in [".tif", ".tiff"] and p.is_file()]
+                    total = len(tiff_paths)
+                    converted_count = 0
+                    failed = False
+
                     if event_manager is not None:
                         event_manager.notify(
-                            ProgressEvent(percent=100,
-                                          process=f"Finished converting Tiff's!")
-                        )
-            case _:
-                raise Exception(f"File type {file_type} currently not supported!")
+                            ProgressEvent(percent=0, process=f"Convert TIFFs: {converted_count}/{total}"))
+
+                    with concurrent.futures.ThreadPoolExecutor() as executor:
+                        futures = {executor.submit(self.convert_tiffs_to_8_bit, path): path for path in tiff_paths}
+                        for future in concurrent.futures.as_completed(futures):
+                            result = future.result()
+                            if not result:
+                                failed = True
+                            converted_count += 1
+                            if event_manager is not None:
+                                event_manager.notify(
+                                    ProgressEvent(percent=int(converted_count / total * 100),
+                                                  process=f"Convert Tiff's: {converted_count}/{total}")
+                                )
+
+                    if failed:
+                        if event_manager is not None:
+                            raise PipelineRunningException("Type Error",
+                                                           "The directory contains an unsupported file type. Only 8 or 16 bit .tiff files allowed.")
+                        else:
+                            is_supported_tif = False
+                    else:
+                        if event_manager is not None:
+                            event_manager.notify(
+                                ProgressEvent(percent=100,
+                                              process=f"Finished converting Tiff's!")
+                            )
+                case _:
+                    raise Exception(f"File type {file_type} currently not supported!")
 
         if event_manager is not None:
             return working_directory
@@ -415,14 +432,13 @@ class DirectoryCard(ft.Card):
         #     for channel in src[scene]:
         #         tifffile.imread(src[scene][channel])
 
-
         # is_3d = any(
         #     tifffile.imread(channel_path).ndim == 3
         #     for outer_dict in src.values()
         #     for channel_path in outer_dict.values()
         # )
 
-        #if platform.system() == "Linux" or is_3d:
+        # if platform.system() == "Linux" or is_3d:
         self.gui.csp.linux_images = convert_tiffs_to_png_parallel(self.gui.csp.image_paths)
         self.gui.csp.linux_or_3d = True
         src = self.gui.csp.linux_images
@@ -673,3 +689,55 @@ class DirectoryCard(ft.Card):
             else:
                 fluorescence_button.visible = False
                 fluorescence_button.update()
+
+
+class ChoiceDialog:
+    def __init__(self, page: ft.Page, title: str, text: str, option_1: str, option_2: str, ):
+        self.page = page
+        self.result = None
+        # asyncio.Event manages the pause/resume state of the execution flow
+        self.event = asyncio.Event()
+
+        # Build the reusable AlertDialog control template
+        self.dialog = ft.AlertDialog(
+            modal=True,
+            title=ft.Text(title),
+            content=ft.Text(text),
+            actions=[
+                # ft.TextButton("Cancel", on_click=self._on_cancel),
+                ft.FilledButton(option_1, color=ft.Colors.WHITE, bgcolor=ft.Colors.PRIMARY, on_click=self._on_opt_1),
+                ft.ElevatedButton(option_2, on_click=self._on_opt_2),
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
+
+    # Event handlers update choice state and clear the thread block
+    async def _on_opt_1(self, e):
+        self.result = 0
+        await self._close()
+
+    async def _on_opt_2(self, e):
+        self.result = 1
+        await self._close()
+
+    async def _on_cancel(self, e):
+        self.result = "cancel"
+        await self._close()
+
+    async def _close(self):
+        self.dialog.open = False
+        self.page.update()
+        self.event.set()  # Unblocks the await statement in show()
+
+    # The primary method to call from your main app flow
+    async def show(self) -> str:
+        self.result = None
+        self.event.clear()
+
+        self.page.overlay.append(self.dialog)
+        self.dialog.open = True
+        self.page.update()
+
+        # execution halts here until self.event.set() runs
+        await self.event.wait()
+        return self.result
