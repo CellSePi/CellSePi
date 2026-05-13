@@ -146,10 +146,11 @@ class DirectoryCard(ft.Card):
             if self.directory_path.value != "Directory Path" \
             else pathlib.Path.home() / "Downloads"
         if self.source_type == SourceType.FILE:
-            allowed_extensions = [ext
-                                  for file_type in FileType
-                                  for ext in file_type.value.extensions
-                                  if file_type.value.source == SourceType.FILE]
+            # allowed_extensions = [ext
+            #                       for file_type in FileType
+            #                       for ext in file_type.value.extensions
+            #                       if file_type.value.source == SourceType.FILE]
+            allowed_extensions = self.file_type.value.extensions
             files = await ft.FilePicker().pick_files(
                 initial_directory=str(previous_directory),
                 allow_multiple=False,
@@ -191,7 +192,6 @@ class DirectoryCard(ft.Card):
         # ToDo EK: Maybe only reset screen if loading did succeed?
         # differentiate between the lif and tiff case, as there are two different file formats
         if self.source_type == SourceType.FILE:
-            # ToDo EK: Adapt here to support other file types
             # is a file
             # get data
             fetched_date = files[0]
@@ -416,16 +416,16 @@ class DirectoryCard(ft.Card):
         #         tifffile.imread(src[scene][channel])
 
 
-        is_3d = any(
-            tifffile.imread(channel_path).ndim == 3
-            for outer_dict in src.values()
-            for channel_path in outer_dict.values()
-        )
+        # is_3d = any(
+        #     tifffile.imread(channel_path).ndim == 3
+        #     for outer_dict in src.values()
+        #     for channel_path in outer_dict.values()
+        # )
 
-        if platform.system() == "Linux" or is_3d:
-            self.gui.csp.linux_images = convert_tiffs_to_png_parallel(self.gui.csp.image_paths)
-            self.gui.csp.linux_or_3d = True
-            src = self.gui.csp.linux_images
+        #if platform.system() == "Linux" or is_3d:
+        self.gui.csp.linux_images = convert_tiffs_to_png_parallel(self.gui.csp.image_paths)
+        self.gui.csp.linux_or_3d = True
+        src = self.gui.csp.linux_images
 
         self.selected_images_visualise = {}
         # Display groups with side-by-side images for linux_or_3d

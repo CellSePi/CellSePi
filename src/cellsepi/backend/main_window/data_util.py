@@ -14,7 +14,10 @@ from PIL import Image
 from bioio import BioImage
 from bioio_base.dimensions import Dimensions
 from bioio_base.transforms import reshape_data
+from matplotlib import pyplot as plt
 from tifffile import tifffile
+
+
 
 from backend.main_window.constants import ReturnTypePath, FileType, BIT_DEPTH
 from cellsepi.backend.main_window.expert_mode.event_manager import *
@@ -196,30 +199,30 @@ class CellSePiImage:
 
     def _infer_bit_depths(self):
         bit_depths = []
+        exception_occured = True
         try:
             match self.file_type:
                 case FileType.LIF:  # The Lif reader often doesn't provide metadata in ome_metadata style, wherefore the proprietary xml element is used
-                    xml_element = self._img.metadata
-                    for elem in xml_element.findall(".//*[@Identifier]"):
-                        if not elem.get("Identifier") == "nBit":
-                            continue
-                        bit_depth = int(elem.get("Variant"))
-                        bit_depths.append(bit_depth)
+                    bit_depths = []  # Currently no robust way of extracting bit depths from lif files available
                 case FileType.CZI | FileType.ND2:
                     for img_meta in self._img.ome_metadata.images:
                         bit_depth = img_meta.pixels.significant_bits
                         bit_depths.append(bit_depth)
                 case _:
                     raise TypeError(f"Unsupported file type: {self.file_type}")
+            exception_occured = False
         except:
             print(f"Could not infer bit depth. Defaulting to container bit depth")
+            exception_occured = True
+            raise TypeError(
+                f"Could not infer bit depth. Defaulting to container bit depth (FileType: {self.file_type}).")
+
+        if exception_occured or len(bit_depths) != len(self._img.scenes):
             for scene in self._img.scenes:
                 self._img.set_scene(scene)
                 bit_depth = np.iinfo(self._img.data.dtype).bits
                 bit_depths.append(bit_depth)
-
-            raise TypeError(
-                f"Could not infer bit depth. Defaulting to container bit depth (FileType: {self.file_type}).")
+            print(f"Could not infer bit depth. Defaulting to container bit depth(FileType: {self.file_type}). ({bit_depths})")
 
         bit_depths = np.array(bit_depths)
         assert np.all(bit_depths <= BIT_DEPTH), f"Bit depths must be <= {BIT_DEPTH} (found {np.max(bit_depths)})"
@@ -314,6 +317,28 @@ class CellSePiImage:
     def __getattr__(self, name):
         """Delegate other common attributes to the internal BioImage object"""
         return getattr(self._img, name)
+
+
+# def extract_bit_depth_from_lif(lif_img):
+#     import xmltodict
+#     import xml.etree.ElementTree as ET
+#     # Convert metadata to dict
+#     metadata = lif_img.metadata
+#     xml_str = ET.tostring(metadata, encoding='unicode')
+#     metadata_dict = xmltodict.parse(xml_str)
+#
+#     bit_depths = {}
+#     for elem in metadata_dict["LMSDataContainerHeader"]["Element"]["Children"]["Element"]:
+#         scene = elem["@Name"]
+#         if "Image" in elem["Data"]:
+#             attachment = \
+#                 [attachment for attachment in elem["Data"]["Image"]["Attachment"] if
+#                  attachment["@Name"] == "HardwareSetting"][0]
+#         bit_depth = attachment["ATLConfocalSettingDefinition"]["@BitSize"]
+#
+#         bit_depths[scene] = int(bit_depth)
+#
+#     return bit_depths
 
 
 def extract_from_lif3d_file(lif3d_path, target_dir, channel_prefix, event_manager: EventManager = None):
