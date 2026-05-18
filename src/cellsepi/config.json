@@ -1,9 +1,9 @@
 {
     "Profiles": {
         "Lif": {
-            "bf_channel": "1",
+            "bf_channel": "2",
             "mask_suffix": "_seg",
-            "channel_prefix": "_channel",
+            "channel_prefix": "c",
             "diameter": 125.0
         },
         "Tif": {
@@ -52,6 +52,6 @@
     },
     "States": {
         "auto_button": false,
-        "file_type_slider": "OME_TIFF"
+        "file_type_slider": "ND2_DIR"
     }
 }

@@ -7,6 +7,7 @@ from typing import Optional
 
 BIT_DEPTH = 16
 
+CSP_CHANNEL_PREFIX = "_CSP-channel-pref_"
 
 class ReturnTypePath(Enum):
     IMAGE_PATHS = auto()
@@ -26,6 +27,11 @@ class FileType(Enum):
     CZI = SimpleNamespace({"name": "CZI", "extensions": ["czi"], "source": SourceType.FILE})
     OME_TIFF = SimpleNamespace({"name": "OME-TIFF", "extensions": ["ome.tiff", "ome.tif"], "source": SourceType.FILE})
     TIFF_DIR = SimpleNamespace({"name": "TIFF Dir", "extensions": ["tiff", "tif"], "source": SourceType.DIRECTORY})
+
+
+class Suffixes(Enum):
+    SEGMENTATION_MASK = SimpleNamespace({"name": "SEGMENTATION_MASK", "suffixes": ["_seq"], "extensions": ["npy"]})
+    SPOT_MASK = SimpleNamespace({"name": "SPOT_MASK", "suffixes": ["_sdm"], "extensions": ["npy"]})
 
 
 class DirectoryManager:

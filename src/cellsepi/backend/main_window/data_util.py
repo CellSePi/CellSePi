@@ -5,6 +5,7 @@ import pathlib
 import platform
 import shutil
 import stat
+from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from io import BytesIO
 from typing import Any
@@ -17,7 +18,7 @@ from bioio_base.transforms import reshape_data
 from matplotlib import pyplot as plt
 from tifffile import tifffile
 
-from backend.main_window.constants import ReturnTypePath, FileType, BIT_DEPTH
+from backend.main_window.constants import ReturnTypePath, FileType, BIT_DEPTH, Suffixes, CSP_CHANNEL_PREFIX
 from cellsepi.backend.main_window.expert_mode.event_manager import *
 
 
@@ -202,7 +203,7 @@ class CellSePiImage:
             match self.file_type:
                 case FileType.LIF:  # The Lif reader often doesn't provide metadata in ome_metadata style, wherefore the proprietary xml element is used
                     bit_depths = []  # Currently no robust way of extracting bit depths from lif files available
-                case FileType.CZI | FileType.ND2:
+                case FileType.CZI | FileType.ND2 | FileType.ND2_DIR | FileType.TIFF_DIR | FileType.OME_TIFF:
                     for img_meta in self._img.ome_metadata.images:
                         bit_depth = img_meta.pixels.significant_bits
                         bit_depths.append(bit_depth)
@@ -351,7 +352,7 @@ def extract_from_file(
     Extracts all series from the provided file using the bioio library and
     copies the images to the target directory.
     Arguments:
-          path {str} -- The path to the lif file.
+          path {str} -- The path to the file.
           target_dir {str} -- The path to the target directory.
     """
     path = pathlib.Path(path)
@@ -387,7 +388,7 @@ def extract_from_file(
             image_data = raw_data[0, channel_id]
 
             # Construct file name and path
-            file_name = f"{scene}{channel_prefix}{channel_id + 1}.tif"
+            file_name = f"{scene}{CSP_CHANNEL_PREFIX}{channel_id + 1}.tif"
             target_path = target_dir / file_name
 
             # Store 3D data to disk
@@ -396,6 +397,111 @@ def extract_from_file(
         if event_manager is not None:
             event_manager.notify(event=ProgressEvent(int((index + 1) / total_scenes * 100),
                                                      process=f"Extracted Series: {index + 1}/{total_scenes}"))
+    if event_manager is not None:
+        event_manager.notify(
+            event=ProgressEvent(100, process=f"Finished extracting Series!"))
+
+
+def extract_from_directory(
+        file_type,
+        path,
+        target_dir,
+        channel_prefix,
+        event_manager: EventManager = None
+):
+    """
+    Extracts all image scenes from the provided directory using the bioio library and
+    copies the images to the target directory.
+    Arguments:
+          path {str} -- The path to the source directory.
+          target_dir {str} -- The path to the target directory.
+    """
+    path = pathlib.Path(path)
+    target_dir = pathlib.Path(target_dir)
+
+    file_paths = listdir(path)
+
+    image_paths = [fpath for fpath in file_paths if fpath.suffix.lower().replace(".", "") in file_type.value.extensions]
+    mask_paths = [fpath for fpath in file_paths if fpath.suffix.lower().replace(".", "") in (
+            Suffixes.SPOT_MASK.value.extensions + Suffixes.SEGMENTATION_MASK.value.extensions)]
+
+    # File names are of the format <scene><channel_prefix><channel_id>.tif
+    # and bioio returns a T x C x Z x Y x X image with T=1 and C=1
+    channels_in_individual_files = all([channel_prefix in str(ipath) for ipath in image_paths])
+
+    smallest_channel_id = 1
+    if channels_in_individual_files:
+        channel_ids = [int(fpath.stem.split(channel_prefix)[1]) for fpath in image_paths]
+        smallest_channel_id = min(channel_ids)
+
+    scenes = defaultdict(list)
+    scenes_masks = defaultdict(list)
+    for ipath in image_paths:
+        stem = ipath.stem
+        scene = stem
+        channel = smallest_channel_id
+        if channels_in_individual_files:
+            scene, channel = stem.split(channel_prefix)
+        channel_id = int(channel) - smallest_channel_id + 1
+        scenes[scene].append((channel_id, ipath))
+        # cur_mask_paths = [mpath for mpath in mask_paths if mpath.stem.split(channel_prefix)[0] == scene]
+        for mpath in mask_paths:
+            stem = mpath.stem
+            scene_mask, channel_mask = stem.split(channel_prefix)
+            # channel_id_mask = int(channel_mask)
+            if scene_mask != scene:  # Make sure that scene matches
+                continue
+            if str(channel_id) not in channel_mask:  # Make sure that channel matches
+                continue
+            scenes_masks[scene].append((channel_id, mpath))
+
+    # scenes = bio_image.scenes
+    total_scenes = len(scenes)
+    if event_manager is not None:
+        event_manager.notify(
+            event=ProgressEvent(0, process=f"Extracting Directory: {0}/{total_scenes}"))
+
+    # Create the target directory if it doesn't exist
+    target_dir.mkdir(parents=True, exist_ok=True)
+
+    for iX, scene in enumerate(scenes):
+
+        if channels_in_individual_files:
+            raw_data = []
+            for channel_id, fpath in sorted(scenes[scene], key=lambda elem: elem[1]):
+                # TCZXY 5D array
+                bio_image = CellSePiImage(file_type, fpath)
+                c_raw_data = bio_image.data
+                raw_data.append(c_raw_data)
+            raw_data = np.concat(raw_data, axis=1)
+        else:
+            channel_id, fpath = scenes[scene][0]
+            bio_image = CellSePiImage(file_type, fpath)
+            raw_data = bio_image.data
+
+        if raw_data.shape[0] != 1:
+            raise ValueError(f"CellSePi can't handle time series currently")
+
+        n_channels = raw_data.shape[1]
+        for channel_id in range(n_channels):
+            image_data = raw_data[0, channel_id]
+
+            # Construct file name and path
+            file_name = f"{scene}{CSP_CHANNEL_PREFIX}{channel_id}.tiff"
+            target_path = target_dir / file_name
+
+            # Store 3D data to disk
+            write_numpy_to_ZYX_image(image_data, target_path, source_order="ZYX")
+
+        for channel_id, mpath in scenes_masks[scene]:
+            # Copy all associated mask information
+            src_path = mpath
+            target_path = target_dir / f"{scene}{CSP_CHANNEL_PREFIX}{mpath.stem.split(channel_prefix)[1]}.npy"
+            shutil.copy(str(src_path), str(target_path))
+
+        if event_manager is not None:
+            event_manager.notify(event=ProgressEvent(int((iX + 1) / total_scenes * 100),
+                                                     process=f"Extracted Series: {iX + 1}/{total_scenes}"))
     if event_manager is not None:
         event_manager.notify(
             event=ProgressEvent(100, process=f"Finished extracting Series!"))

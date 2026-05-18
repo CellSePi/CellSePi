@@ -9,8 +9,8 @@ import flet as ft
 import numpy as np
 import tifffile
 
-from backend.main_window.constants import FileType, SourceType, DirectoryManager
-from backend.main_window.data_util import consistent_hash
+from backend.main_window.constants import FileType, SourceType, DirectoryManager, Suffixes, CSP_CHANNEL_PREFIX
+from backend.main_window.data_util import consistent_hash, extract_from_directory
 from cellsepi.backend.main_window.data_util import extract_from_file, copy_files_between_directories, \
     load_directory, transform_image_path, convert_tiffs_to_png_parallel
 from cellsepi.backend.main_window.expert_mode.event_manager import EventManager
@@ -160,7 +160,7 @@ class DirectoryCard(ft.Card):
             )
         elif self.source_type == SourceType.DIRECTORY:
             files = await ft.FilePicker().get_directory_path(
-                initial_directory=previous_directory,
+                initial_directory=str(previous_directory),
             )
         else:
             raise Exception(f"Source type {self.source_type} not supported!")
@@ -287,7 +287,7 @@ class DirectoryCard(ft.Card):
                         else:
                             self.is_supported_lif = False
                 case SourceType.DIRECTORY:  # Directory Case
-                    if path.name == "output":
+                    if path.name == "output":  # ToDo: Can this be removed?
                         if event_manager is not None:
                             raise PipelineRunningException("Directory Error", "Directory ’output’ is not supported!")
                         else:
@@ -304,32 +304,48 @@ class DirectoryCard(ft.Card):
                         self.output_dir = False
                     # Copy .tif, .tiff and .npy files into subdirectory
 
-                    os.makedirs(working_directory, exist_ok=True)
-                    copy_files_between_directories(path, working_directory, file_types=[".tif", ".tiff", ".npy"],
-                                                   event_manager=event_manager)
-                    tiff_paths = [p for p in working_directory.iterdir() if
-                                  p.suffix.lower() in [".tif", ".tiff"] and p.is_file()]
-                    total = len(tiff_paths)
-                    converted_count = 0
+                    # os.makedirs(working_directory, exist_ok=True)
+                    # Copies direectory
+
+                    extract_from_directory(
+                        file_type=file_type,
+                        path=path,
+                        target_dir=working_directory,
+                        channel_prefix=channel_prefix,
+                        event_manager=event_manager
+                    )
                     failed = False
 
-                    if event_manager is not None:
-                        event_manager.notify(
-                            ProgressEvent(percent=0, process=f"Convert TIFFs: {converted_count}/{total}"))
+                    # file_types = file_type.value.extensions + Suffixes.SEGMENTATION_MASK.value.extensions + Suffixes.SPOT_MASK.value.extensions
+                    # copy_files_between_directories(path, working_directory,
+                    #                                file_types=[f".{ext}" for ext in file_types],
+                    #                                # ToDo EK: What is the spot dection mask extension?
+                    #                                event_manager=event_manager)
+                    # tiff_paths = [p for p in working_directory.iterdir() if
+                    #               p.suffix.lower().replace(".", "") in file_type.value.extensions and p.is_file()]
+                    # total = len(tiff_paths)
+                    # converted_count = 0
+                    # failed = False
+                    #
+                    # if event_manager is not None:
+                    #     event_manager.notify(
+                    #         ProgressEvent(percent=0, process=f"Convert TIFFs: {converted_count}/{total}"))
+                    #
+                    # # Converts TIFFS to 8 Bit.
+                    # with concurrent.futures.ThreadPoolExecutor() as executor:
+                    #     futures = {executor.submit(self.convert_tiffs_to_8_bit, path): path for path in tiff_paths}
+                    #     for future in concurrent.futures.as_completed(futures):
+                    #         result = future.result()
+                    #         if not result:
+                    #             failed = True
+                    #         converted_count += 1
+                    #         if event_manager is not None:
+                    #             event_manager.notify(
+                    #                 ProgressEvent(percent=int(converted_count / total * 100),
+                    #                               process=f"Convert Tiff's: {converted_count}/{total}")
+                    #             )
 
-                    with concurrent.futures.ThreadPoolExecutor() as executor:
-                        futures = {executor.submit(self.convert_tiffs_to_8_bit, path): path for path in tiff_paths}
-                        for future in concurrent.futures.as_completed(futures):
-                            result = future.result()
-                            if not result:
-                                failed = True
-                            converted_count += 1
-                            if event_manager is not None:
-                                event_manager.notify(
-                                    ProgressEvent(percent=int(converted_count / total * 100),
-                                                  process=f"Convert Tiff's: {converted_count}/{total}")
-                                )
-
+                    # ToDo: Currently without use. Is this still needed?
                     if failed:
                         if event_manager is not None:
                             raise PipelineRunningException("Type Error",
@@ -372,7 +388,8 @@ class DirectoryCard(ft.Card):
              is_supported_tif (bool): True if the image types for tif are supported.
         """
         bfc = self.gui.csp.config.get_bf_channel()
-        cp = self.gui.csp.config.get_channel_prefix()
+        # cp = self.gui.csp.config.get_channel_prefix()
+        cp = CSP_CHANNEL_PREFIX
         ms = self.gui.csp.config.get_mask_suffix()
         working_directory = self.gui.csp.working_directory
 
