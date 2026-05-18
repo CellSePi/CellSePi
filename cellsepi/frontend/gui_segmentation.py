@@ -7,7 +7,7 @@ import sys
 import flet as ft
 
 from backend.fluorescence import Fluorescence
-from frontend.gui_fluorescence import fluorescence_button
+from frontend.gui_fluorescence import fluorescence_button, FluorescenceReadoutControl
 from backend.segmentation import Segmentation
 
 
@@ -65,7 +65,8 @@ class GUISegmentation:
         )
 
         # button to start the fluorescence readout
-        fl_button = fluorescence_button
+        # fl_button = fluorescence_button
+        fl_button = FluorescenceReadoutControl()
 
         # progress bar, which is updated throughout the segmentation calculation and fluorescence readout
         self.progress_bar = ft.ProgressBar(value=0, width=180)
@@ -356,6 +357,7 @@ class GUISegmentation:
             """
             Updates the segmentation card and starts readout of the fluorescence data when the fluorescence button is clicked.
             """
+            # ToDo EK: Retrieve here the export format of the data from the FluorescenceReadoutControl slider
             self.fluorescence.readout_fluorescence()
             fl_button.disabled = True
             start_button.disabled = True
