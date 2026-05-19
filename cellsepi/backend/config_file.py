@@ -5,7 +5,7 @@ import shutil
 import time
 from threading import Lock
 
-from backend.main_window.constants import FileType
+from backend.constants import FileType
 
 
 class DeletionForbidden(Exception):
@@ -23,7 +23,7 @@ def load_config(file_directory):
     """
     Return the current config.json.
 
-    It tries 5 times to read the file,
+    It tries 5 times to read the file
     before resetting the file to the default config.
 
     Args:
@@ -93,7 +93,7 @@ def create_default_config():
         },
         "States": {
             "auto_button": False,
-            "lif_slider": True,
+            "file_type_slider": "LIF",
         }
     }
 
@@ -290,7 +290,7 @@ class ConfigFile:
         Gets the name of the selected profile.
 
         Returns:
-            profile name (str): The name of the selected profile or if the no profile is selected the first profile.
+            profile name (str): The name of the selected profile or if no profile is selected, the first profile.
         """
         if self.config["Selected Profile"]["name"] is not None:
             return self.config["Selected Profile"]["name"]

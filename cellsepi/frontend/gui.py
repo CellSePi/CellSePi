@@ -115,7 +115,7 @@ class GUI:
         if self.csp.config.get_auto_button():
             self.page.run_task(self.auto_image_tuning.pressed)
 
-    def build(self)
+    def build(self):
         """
         Build up the main page of the GUI
         """

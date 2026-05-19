@@ -24,8 +24,8 @@ from bioio_base.transforms import reshape_data
 from matplotlib import pyplot as plt
 from tifffile import tifffile
 
-from backend.main_window.constants import ReturnTypePath, FileType, BIT_DEPTH, Suffixes, CSP_CHANNEL_PREFIX
-from cellsepi.backend.main_window.expert_mode.event_manager import *
+from backend.constants import ReturnTypePath, FileType, BIT_DEPTH, Suffixes, CSP_CHANNEL_PREFIX
+from cellsepi.backend.expert_mode.event_manager import *
 
 
 def listdir(directory):

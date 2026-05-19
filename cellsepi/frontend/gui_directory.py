@@ -1,5 +1,4 @@
 import asyncio
-import concurrent.futures
 import os
 import pathlib
 import platform
@@ -7,25 +6,16 @@ import shutil
 
 import flet as ft
 import numpy as np
-import tifffile
 
-from backend.expert_mode.event_manager import EventManager
-from backend.expert_mode.listener import ProgressEvent
-from backend.expert_mode.pipeline_manager import PipelineRunningException
-from frontend.gui_canvas import update_main_image
-from frontend.gui_fluorescence import fluorescence_button
-from backend.data_util import extract_from_lif_file, copy_files_between_directories, load_directory, \
-    transform_image_path, \
+from backend.constants import FileType, SourceType, DirectoryManager, CSP_CHANNEL_PREFIX
+from backend.data_util import consistent_hash, extract_from_directory
+from cellsepi.backend.data_util import extract_from_file, load_directory, transform_image_path, \
     convert_tiffs_to_png_parallel
-from backend.main_window.constants import FileType, SourceType, DirectoryManager, Suffixes, CSP_CHANNEL_PREFIX
-from backend.main_window.data_util import consistent_hash, extract_from_directory
-from cellsepi.backend.main_window.data_util import extract_from_file, copy_files_between_directories, \
-    load_directory, transform_image_path, convert_tiffs_to_png_parallel
-from cellsepi.backend.main_window.expert_mode.event_manager import EventManager
-from cellsepi.backend.main_window.expert_mode.listener import ProgressEvent
-from cellsepi.backend.main_window.expert_mode.pipeline_manager import PipelineRunningException
-from cellsepi.frontend.main_window.gui_canvas import update_main_image
-from cellsepi.frontend.main_window.gui_fluorescence import fluorescence_button
+from cellsepi.backend.expert_mode.event_manager import EventManager
+from cellsepi.backend.expert_mode.listener import ProgressEvent
+from cellsepi.backend.expert_mode.pipeline_manager import PipelineRunningException
+from cellsepi.frontend.gui_canvas import update_main_image
+from cellsepi.frontend.gui_fluorescence import fluorescence_button
 
 
 def format_directory_path(dir_path: str, max_length=30):
@@ -716,6 +706,7 @@ class DirectoryCard(ft.Card):
             else:
                 fluorescence_button.visible = False
                 fluorescence_button.update()
+
 
 class ChoiceDialog:
     def __init__(self, page: ft.Page, title: str, text: str, option_1: str, option_2: str, ):
