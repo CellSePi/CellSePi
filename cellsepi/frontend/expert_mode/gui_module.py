@@ -783,9 +783,9 @@ class ModuleGUI(ft.GestureDetector):
                         ft.Text("True")
                     ],
                 )
-                bool_choosing = ft.Container(ft.Row([text, slider_bool], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                                             padding=ft.Padding(0, 10, 0, 10))
-                items.append(bool_choosing)
+                choosing = ft.Container(ft.Row([text, slider_bool], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                                        padding=ft.Padding(0, 10, 0, 10))
+                items.append(choosing)
             elif typ == FilePath:
                 text_field = ft.TextField(
                     label=attribute_name.removeprefix("user_"),
@@ -848,6 +848,28 @@ class ModuleGUI(ft.GestureDetector):
                         ]
                     )
                 )
+            elif type(typ) == enum.EnumType:  # An enumeration
+                enum_class = typ
+                text = ft.Text(attribute_name.removeprefix("user_"), weight=ft.FontWeight.BOLD)
+                index = list(enum_class).index(value)
+                setattr(self.module, "on_change_" + attribute_name, lambda: None)
+                slider_bool = ft.CupertinoSlidingSegmentedButton(
+                    selected_index=index,
+                    thumb_color=ft.Colors.BLUE_400,
+                    on_change=lambda e, attr_name=attribute_name: self.update_bool(e, attr_name),
+                    padding=ft.padding.symmetric(0, 0),
+                    controls=[
+                        ft.Text(enum_val.name) for enum_val in enum_class
+                    ],
+                )
+                choosing = ft.Container(
+                    ft.Row(
+                        [
+                            text,
+                            slider_bool
+                        ],
+                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN), padding=ft.Padding(0, 10, 0, 10))
+                items.append(choosing)
             else:
                 raise ValueError(f"Unsupported 'user_' attribute file type: {typ}")
         return items
@@ -909,6 +931,16 @@ class ModuleGUI(ft.GestureDetector):
             setattr(self.module, attr_name, True)
         else:
             setattr(self.module, attr_name, False)
+        getattr(self.module, "on_change_" + attr_name)()
+        self.module.settings.update()
+        self.pipeline_gui.pipeline.event_manager.notify(OnPipelineChangeEvent("user_attr_change"))
+
+    def update_enum(self, e, attr_name, enum_class):
+        """
+        Handles changes to the attribute for enumerations.
+        """
+        enum_val = list(enum_class)[int(e.data)]
+        setattr(self.module, attr_name, enum_val)
         getattr(self.module, "on_change_" + attr_name)()
         self.module.settings.update()
         self.pipeline_gui.pipeline.event_manager.notify(OnPipelineChangeEvent("user_attr_change"))
