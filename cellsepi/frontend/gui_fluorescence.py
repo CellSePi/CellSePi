@@ -1,16 +1,32 @@
 import flet as ft
 
-fluorescence_button = ft.Button(content="Readout",
-                                icon=ft.Icons.FILE_DOWNLOAD,
-                                tooltip="Readout fluorescence values",
-                                disabled=False,
-                                visible=False)
+from backend.constants import ExportFileType
+
+
+# fluorescence_button = ft.Button(
+#     content="Readout",
+#     icon=ft.Icons.FILE_DOWNLOAD,
+#     tooltip="Readout fluorescence values",
+#     disabled=False,
+#     visible=False
+# )
 
 
 @ft.control
 class FluorescenceReadoutControl(ft.Container):
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if not cls._instance:
+            cls._instance = super(FluorescenceReadoutControl, cls).__new__(cls)
+            cls._instance._initialized = False
+        return cls._instance
+
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs, )
+        if self._initialized:
+            return
+
+        super().__init__(*args, **kwargs)
 
         self.button = ft.Button(
             content="Readout",
@@ -22,35 +38,36 @@ class FluorescenceReadoutControl(ft.Container):
 
         self.slider = ft.CupertinoSlidingSegmentedButton(
             selected_index=0,
-            # TODo EK: Adapt colorscheme
             thumb_color=ft.Colors.BLUE_400,
-            on_change=lambda e: print(f"selected_index: {e.data}"),
-            padding=ft.Padding.symmetric(vertical=0, horizontal=10),
+            on_change=lambda e: print(f"selected_index: {list(ExportFileType)[e.data]}"),
+            padding=ft.Padding.symmetric(vertical=0, horizontal=0),
             controls=[
-                ft.Text("XLSX"),
-                ft.Text("TSV"),
-                ft.Text("CSV"),
-                ft.Text("PDF"),
+                ft.Text(eft.value.name)
+                for eft in ExportFileType
             ],
         )
 
         self.content = ft.Row(
             [
-                # ft.Text("Readout fluorescence values"),
                 self.slider,
                 self.button,
-                # ft.TextButton(content="Select file", on_click=lambda e: print("Select file")),
             ], alignment=ft.MainAxisAlignment.CENTER,
         )
+        self.visible = False
+        self._initialized = True
 
-    @property
-    def on_click(self):
-        return self.button.on_click
+    # def did_mount(self):
+    #     if self.page and self.page.theme:
+    #         self.slider.thumb_color = self.page.theme.color_scheme.primary
+    #         self.update()
 
-    @on_click.setter
-    def on_click(self, on_click):
-        self.button.on_click = on_click
-
+    # @property
+    # def on_click(self):
+    #     return self.button.on_click
+    #
+    # @on_click.setter
+    # def on_click(self, handler):
+    #     self.button.on_click = handler
 
 def error_banner(gui, message):
     gui.page.show_dialog(ft.SnackBar(
