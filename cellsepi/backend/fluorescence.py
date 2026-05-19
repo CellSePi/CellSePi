@@ -20,7 +20,7 @@ class Fluorescence(Notifier):
         self.csp = csp
         self.gui = gui
 
-    def readout_fluorescence(self, file_path):
+    def readout_fluorescence(self, export_file_type, file_path):
         """
         starts the readout of fluorescence and creates an Excel list if possible
         path: path to the file to save the readout to
@@ -56,6 +56,7 @@ class Fluorescence(Notifier):
             # creates the readout image and fills the mask_path
             batch_image_readout = BatchImageReadout(image_paths=self.csp.image_paths,
                                                     mask_paths=self.csp.mask_paths,
+                                                    export_file_type=export_file_type,
                                                     file_path=file_path,
                                                     segmentation_channel=brightfield_channel,
                                                     channel_prefix=prefix,

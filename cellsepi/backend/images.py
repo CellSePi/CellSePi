@@ -1,4 +1,5 @@
 import os
+import pathlib
 import threading
 
 import pandas as pd
@@ -12,7 +13,8 @@ from scipy.ndimage import binary_erosion
 from tifffile import tifffile
 import cv2
 
-from backend.data_util import load_image_to_numpy
+from backend.constants import ExportFileType
+from backend.data_util import load_image_to_numpy, export_dataframe_to_pdf
 from backend.expert_mode.event_manager import EventManager
 from backend.expert_mode.listener import ProgressEvent
 from backend.notifier import Notifier
@@ -414,24 +416,21 @@ class BatchImageReadout(Notifier):
     def __init__(self,
                  image_paths,
                  mask_paths,
-                 file_path,
+                 export_file_type: ExportFileType,
+                 file_path: pathlib.Path,
                  segmentation_channel,
                  channel_prefix="c",
-                 directory=None,
                  module: bool = False
                  ):
         if not module:
             super().__init__()
 
-        if directory is None:
-            directory = ""
-
         self.image_paths = image_paths
         self.mask_paths = mask_paths
+        self.export_file_type = export_file_type
         self.file_path = file_path
         self.segmentation_channel = segmentation_channel
         self.channel_prefix = channel_prefix
-        self.directory = directory
 
     def _channel_name(self, channel_id):
         return self.channel_prefix + str(channel_id)
@@ -516,7 +515,17 @@ class BatchImageReadout(Notifier):
 
         readout_path = self.file_path
         df = pd.DataFrame(row_entries)
-        df.to_excel(readout_path, index=False)
+
+        match self.export_file_type:
+            case ExportFileType.EXCEL:
+                df.to_excel(readout_path, index=False)
+            case ExportFileType.CSV:
+                df.to_csv(readout_path, index=False)
+            case ExportFileType.TSV:
+                df.to_csv(readout_path, sep="\t", index=False)
+            case ExportFileType.PDF:
+                export_dataframe_to_pdf(df, str(readout_path.absolute()))
+
         if event_manager is None:
             kwargs = {}
             self._call_completion_listeners(readout=df, readout_path=readout_path, **kwargs)

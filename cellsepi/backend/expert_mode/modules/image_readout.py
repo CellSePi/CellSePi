@@ -1,9 +1,13 @@
+import pathlib
+
+from backend.constants import ExportFileType
 from backend.fluorescence import BatchImageReadout
 from backend.expert_mode.module import *
 
 
 class ImageReadoutModule(Module, ABC):
-    _gui_config = ModuleGuiConfig("ImageReadout", Categories.OUTPUTS,
+    _gui_config = ModuleGuiConfig("ImageReadout",
+                                  Categories.OUTPUTS,
                                   "This module handles the readout of the segmented images and saves them in an .xlsx file.")
 
     def __init__(self, module_id: str = None) -> None:
@@ -12,7 +16,8 @@ class ImageReadoutModule(Module, ABC):
             "image_paths": InputPort("image_paths", dict),
             "mask_paths": InputPort("mask_paths", dict),
         }
-        self.user_directory_path: DirectoryPath = DirectoryPath()
+        self.user_export_file_path: FilePath = FilePath("fluorescence_readout.xlsx")
+        self.user_export_file_type: ExportFileType = ExportFileType.EXCEL
         self.user_segmentation_channel: str = "2"
         self.user_channel_prefix: str = "c"
 
@@ -20,8 +25,9 @@ class ImageReadoutModule(Module, ABC):
         (BatchImageReadout(
             self.inputs["image_paths"].data,
             self.inputs["mask_paths"].data,
+            self.user_export_file_type,
+            self.user_export_file_path,
             self.user_segmentation_channel,
             self.user_channel_prefix,
-            self.user_directory_path.path,
             True)
          .run(self.event_manager))

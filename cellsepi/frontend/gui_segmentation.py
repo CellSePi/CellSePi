@@ -365,7 +365,7 @@ class GUISegmentation:
             )
             path = pathlib.Path(chosen_path)
 
-            self.fluorescence.readout_fluorescence(path)
+            self.fluorescence.readout_fluorescence(export_ft, path)
             FluorescenceReadoutControl().disabled = True
             start_button.disabled = True
             self.gui.open_button.visible = False

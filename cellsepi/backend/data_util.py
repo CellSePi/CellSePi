@@ -1,24 +1,27 @@
-import os
-from collections import Counter
-
 import base64
+import os
 import pathlib
 import platform
 import shutil
 import stat
+from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from enum import Enum, auto
 from io import BytesIO
 
-import numpy as np
-from PIL import Image
-from backend.expert_mode.event_manager import EventManager
-from backend.expert_mode.listener import ProgressEvent
-
-from bioio import BioImage
 import bioio_lif
+import numpy as np
+import pandas as pd
+from PIL import Image
+from bioio import BioImage
+from reportlab.lib import colors
+from reportlab.lib import pagesizes
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from tifffile import tifffile
 
+from backend.expert_mode.event_manager import EventManager
+from backend.expert_mode.listener import ProgressEvent
 
 
 def listdir(directory):
@@ -44,30 +47,33 @@ def organize_files(files, channel_prefix, mask_suffix=""):
 
             id_to_file[image_id][channel_id] = str(file)
 
-    #sorting the Channel IDs
+    # sorting the Channel IDs
     for image_id in id_to_file:
         id_to_file[image_id] = dict(sorted(id_to_file[image_id].items()))
-    #sorting the Image IDs
+    # sorting the Image IDs
     id_to_file = dict(sorted(id_to_file.items()))
 
     return id_to_file
+
 
 class ReturnTypePath(Enum):
     IMAGE_PATHS = auto()
     MASK_PATHS = auto()
     BOTH_PATHS = auto()
 
-def load_directory(directory, channel_prefix=None, mask_suffix=None,return_type: ReturnTypePath=ReturnTypePath.BOTH_PATHS,event_manager: EventManager=None):
+
+def load_directory(directory, channel_prefix=None, mask_suffix=None,
+                   return_type: ReturnTypePath = ReturnTypePath.BOTH_PATHS, event_manager: EventManager = None):
     assert directory is not None
 
     total_steps = 4 if return_type == ReturnTypePath.BOTH_PATHS else 3
     step = 0
 
-    def notifier(process:str):
+    def notifier(process: str):
         nonlocal step
         step += 1
         if event_manager is not None:
-            event_manager.notify(event=ProgressEvent(int(step/total_steps*100), process=process))
+            event_manager.notify(event=ProgressEvent(int(step / total_steps * 100), process=process))
 
     if channel_prefix is None:
         channel_prefix = "c"
@@ -82,35 +88,35 @@ def load_directory(directory, channel_prefix=None, mask_suffix=None,return_type:
     paths = [directory / name for name in names]
     file_paths = [path for path in paths if path.is_file()]
 
-
     notifier("Organizing: Filtering Directory for Images")
     tiff_files = [path for path in file_paths if path.suffix == ".tif" or path.suffix == ".tiff"]
 
     match return_type:
-            case ReturnTypePath.IMAGE_PATHS:
-                notifier( "Organizing: Image Files")
-                id_to_image = organize_files(tiff_files, channel_prefix=channel_prefix)
-                notifier( "Finished Organizing Files")
-                return id_to_image
-            case ReturnTypePath.MASK_PATHS:
-                notifier( "Organizing: Mask Files")
-                mask_files = [path for path in file_paths if path.suffix == ".npy" and path.stem.endswith(mask_suffix)]
-                id_to_mask = organize_files(mask_files, channel_prefix=channel_prefix, mask_suffix=mask_suffix)
-                notifier( "Finished Organizing Files")
-                return id_to_mask
-            case ReturnTypePath.BOTH_PATHS:
-                notifier( "Organizing: Image Files")
-                id_to_image = organize_files(tiff_files, channel_prefix=channel_prefix)
-                notifier( "Organizing: Mask Files")
-                mask_files = [path for path in file_paths if path.suffix == ".npy" and path.stem.endswith(mask_suffix)]
-                id_to_mask = organize_files(mask_files, channel_prefix=channel_prefix, mask_suffix=mask_suffix)
-                notifier( "Finished Organizing Files!")
-                return id_to_image, id_to_mask
+        case ReturnTypePath.IMAGE_PATHS:
+            notifier("Organizing: Image Files")
+            id_to_image = organize_files(tiff_files, channel_prefix=channel_prefix)
+            notifier("Finished Organizing Files")
+            return id_to_image
+        case ReturnTypePath.MASK_PATHS:
+            notifier("Organizing: Mask Files")
+            mask_files = [path for path in file_paths if path.suffix == ".npy" and path.stem.endswith(mask_suffix)]
+            id_to_mask = organize_files(mask_files, channel_prefix=channel_prefix, mask_suffix=mask_suffix)
+            notifier("Finished Organizing Files")
+            return id_to_mask
+        case ReturnTypePath.BOTH_PATHS:
+            notifier("Organizing: Image Files")
+            id_to_image = organize_files(tiff_files, channel_prefix=channel_prefix)
+            notifier("Organizing: Mask Files")
+            mask_files = [path for path in file_paths if path.suffix == ".npy" and path.stem.endswith(mask_suffix)]
+            id_to_mask = organize_files(mask_files, channel_prefix=channel_prefix, mask_suffix=mask_suffix)
+            notifier("Finished Organizing Files!")
+            return id_to_image, id_to_mask
     return None
 
-def copy_files_between_directories(source_dir, target_dir, file_types = None, event_manager: EventManager=None):
-    file_filter = lambda file_path: file_path.is_file() and (True if file_types is None else file_path.suffix in file_types)
 
+def copy_files_between_directories(source_dir, target_dir, file_types=None, event_manager: EventManager = None):
+    file_filter = lambda file_path: file_path.is_file() and (
+        True if file_types is None else file_path.suffix in file_types)
 
     files = listdir(source_dir)
     files_to_copy = [file for file in files if file_filter(file)]
@@ -137,13 +143,15 @@ def copy_files_between_directories(source_dir, target_dir, file_types = None, ev
         except Exception as e:
             print(f"Something went wrong while processing {src_path.name}: {str(e)}")
         finally:
-            copied_files+=1
+            copied_files += 1
             if event_manager is not None:
-                event_manager.notify(event=ProgressEvent(int(copied_files/total_files*100), process=f"Copy Files: {copied_files}/{total_files}"))
+                event_manager.notify(event=ProgressEvent(int(copied_files / total_files * 100),
+                                                         process=f"Copy Files: {copied_files}/{total_files}"))
 
     if event_manager is not None:
         event_manager.notify(
             event=ProgressEvent(100, process="Finished copy Files!"))
+
 
 def load_lif3d_bioimage(lif3d_path):
     lif3d_path = pathlib.Path(lif3d_path)
@@ -152,7 +160,7 @@ def load_lif3d_bioimage(lif3d_path):
 
     shapes = []
 
-    #Collect shapes
+    # Collect shapes
     for scene in bio_img.scenes:
         bio_img.set_scene(scene)
         current_shape = (bio_img.dims.X, bio_img.dims.Y, bio_img.dims.Z)
@@ -161,13 +169,13 @@ def load_lif3d_bioimage(lif3d_path):
     if not shapes:
         return [], np.array([])
 
-    #get the primary shape in the image array
+    # get the primary shape in the image array
     most_common_shape = Counter(shapes).most_common(1)[0][0]
 
     images = []
     series_ids = []
 
-    #only load the images that are comform with the most common shape
+    # only load the images that are comform with the most common shape
     for scene, shape in zip(bio_img.scenes, shapes):
         if shape == most_common_shape:
             bio_img.set_scene(scene)
@@ -210,7 +218,7 @@ def extract_from_lif3d_file(lif3d_path, target_dir, channel_prefix, event_manage
             event=ProgressEvent(100, process=f"Finished extracting Series!"))
 
 
-def extract_from_lif_file(lif_path, target_dir,channel_prefix,event_manager: EventManager=None):
+def extract_from_lif_file(lif_path, target_dir, channel_prefix, event_manager: EventManager = None):
     """
     Extracts all series from the lif file using the bioio-lif library and
     copies the images to the target directory.
@@ -222,7 +230,7 @@ def extract_from_lif_file(lif_path, target_dir,channel_prefix,event_manager: Eve
     lif_path = pathlib.Path(lif_path)
     target_dir = pathlib.Path(target_dir)
     if lif_path.suffix == ".lif":
-        bio_image = BioImage(lif_path,reader=bioio_lif.Reader)  # Specify the backend explicitly
+        bio_image = BioImage(lif_path, reader=bioio_lif.Reader)  # Specify the backend explicitly
         data = np.squeeze(bio_image.data)
         is_3d = (data.ndim >= 4 and data.shape[1] > 1)
 
@@ -234,28 +242,28 @@ def extract_from_lif_file(lif_path, target_dir,channel_prefix,event_manager: Eve
         target_dir.mkdir(parents=True, exist_ok=True)
 
         # get all series in the lif file
-        scenes= bio_image.scenes
+        scenes = bio_image.scenes
         total_scenes = len(scenes)
         if event_manager is not None:
             event_manager.notify(
                 event=ProgressEvent(0, process=f"Extracting Series: {0}/{total_scenes}"))
 
-        for index,scene_id in enumerate(scenes):
-            scene= scene_id
+        for index, scene_id in enumerate(scenes):
+            scene = scene_id
 
-            #remove the unnecessary data in the array
+            # remove the unnecessary data in the array
             bio_image.set_scene(scene)
-            #TCZXY 5D array
-            npy_array= bio_image.data
-            squeezed_img= np.squeeze(npy_array)
+            # TCZXY 5D array
+            npy_array = bio_image.data
+            squeezed_img = np.squeeze(npy_array)
 
-            #get the amount of channels
+            # get the amount of channels
             n_channels = squeezed_img.shape[0]
 
             for channel_id in range(n_channels):
                 # Extract the height and width of the image
-                image= squeezed_img[channel_id]
-                img = Image.fromarray(image)#doesnt work
+                image = squeezed_img[channel_id]
+                img = Image.fromarray(image)  # doesnt work
 
                 # Construct file name and path
                 file_name = f"{scene}{channel_prefix}{channel_id + 1}.tif"
@@ -277,14 +285,11 @@ def extract_from_lif_file(lif_path, target_dir,channel_prefix,event_manager: Eve
                     print(f"Error processing {file_name}: {e}")
                     continue
             if event_manager is not None:
-                event_manager.notify(event=ProgressEvent(int((index+1) / total_scenes * 100),
-                                                         process=f"Extracted Series: {index+1}/{total_scenes}"))
+                event_manager.notify(event=ProgressEvent(int((index + 1) / total_scenes * 100),
+                                                         process=f"Extracted Series: {index + 1}/{total_scenes}"))
         if event_manager is not None:
             event_manager.notify(
                 event=ProgressEvent(100, process=f"Finished extracting Series!"))
-
-
-
 
 
 def load_image_to_numpy(path):
@@ -300,7 +305,6 @@ def write_numpy_to_image(array, path):
 
 
 def remove_gradient(img):
-
     """
     The method evens out the background of the images to prone microscopy errors
 
@@ -376,6 +380,7 @@ def process_channel(channel_id, channel_path):
 
     return channel_id, base64.b64encode(buffer.getvalue()).decode('utf-8')
 
+
 def convert_series_parallel(image_id, cur_image_paths):
     png_images = {image_id: {}}
     with ThreadPoolExecutor() as executor:
@@ -388,6 +393,7 @@ def convert_series_parallel(image_id, cur_image_paths):
             png_images[image_id][channel_id] = encoded_image
 
     return png_images
+
 
 def convert_tiffs_to_png_parallel(image_paths):
     """
@@ -410,6 +416,7 @@ def convert_tiffs_to_png_parallel(image_paths):
         return png_images
     else:
         return None
+
 
 def convert_tiffs_to_png(image_paths):
     """
@@ -436,3 +443,42 @@ def convert_tiffs_to_png(image_paths):
         return png_images
     else:
         return None
+
+
+def export_dataframe_to_pdf(df: pd.DataFrame, output_path: str):
+    # Setup document geometry (Standard Letter size)
+    doc = SimpleDocTemplate(output_path, pagesize=pagesizes.A4, rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
+    story = []
+
+    # Add a title header
+    styles = getSampleStyleSheet()
+    title_style = styles['Heading1']
+    story.append(Paragraph("Fluorescence Values", title_style))
+    story.append(Spacer(1, 15))  # 15 point vertical spacing
+
+    # Prepare data matrix: Include headers + all row values
+    data_matrix = [df.columns.to_list()] + df.values.tolist()
+
+    # Create the ReportLab dynamic Table widget
+    pdf_table = Table(data_matrix)
+
+    # Apply a clean, modern aesthetic theme (JetBrains-style dark/light structure)
+    pdf_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#1A73E8")),  # Primary header color
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 11),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+        ('TOPPADDING', (0, 0), (-1, 0), 8),
+        # Zebra striping for structural readability
+        ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor("#F8F9FA")),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor("#E0E0E0")),
+        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 1), (-1, -1), 9),
+        ('BOTTOMPADDING', (0, 1), (-1, -1), 6),
+        ('TOPPADDING', (0, 1), (-1, -1), 6),
+    ]))
+
+    story.append(pdf_table)
+    doc.build(story)

@@ -1,4 +1,5 @@
 import asyncio
+import enum
 import textwrap
 import flet as ft
 from typing import List, Any, Dict, cast
@@ -10,11 +11,14 @@ from frontend.gui_page_overlay import PageOverlay
 from frontend.expert_mode.expert_constants import *
 from frontend.expert_mode.gui_pipeline import *
 
+
 class ModuleGUI(ft.GestureDetector):
     """
     Manages the GUI parts of the module.
     """
-    def __init__(self, pipeline_gui,module_type: type,x: float = None,y: float = None,show_mode:bool=False,visible=True,index:int=None,id_number:int=None,module_dict:dict=None):
+
+    def __init__(self, pipeline_gui, module_type: type, x: float = None, y: float = None, show_mode: bool = False,
+                 visible=True, index: int = None, id_number: int = None, module_dict: dict = None):
         super().__init__()
         self.pipeline_gui = pipeline_gui
         self.detection: bool = True
@@ -27,12 +31,15 @@ class ModuleGUI(ft.GestureDetector):
         self.on_pan_update = self.drag
         self.on_pan_end = self.drop
         self.show_offset_y = y
-        self.left = ft.BUILDER_WIDTH/2 if x is None else x
-        self.top = ft.BUILDER_HEIGHT/2 if y is None else y
+        self.left = ft.BUILDER_WIDTH / 2 if x is None else x
+        self.top = ft.BUILDER_HEIGHT / 2 if y is None else y
         self.old_left = None
         self.old_top = None
         self.port_selection = False
-        self.module = self.pipeline_gui.pipeline.add_module(module_type) if id_number is None else self.pipeline_gui.pipeline.add_module_with_id(module_type,module_type.gui_config().name+ "_" + str(id_number))
+        self.module = self.pipeline_gui.pipeline.add_module(
+            module_type) if id_number is None else self.pipeline_gui.pipeline.add_module_with_id(module_type,
+                                                                                                 module_type.gui_config().name + "_" + str(
+                                                                                                     id_number))
         self.module._page = self.pipeline_gui._page
         self.pipeline_gui._page.run_task(self.create_options)
         if module_dict is not None:
@@ -41,69 +48,93 @@ class ModuleGUI(ft.GestureDetector):
             if index is None:
                 self.pipeline_gui.show_room_modules.append(self)
             else:
-                self.pipeline_gui.show_room_modules.insert(index,self)
+                self.pipeline_gui.show_room_modules.insert(index, self)
         else:
             self.pipeline_gui.modules[self.module.module_id] = self
-            self.pipeline_gui.pipeline.event_manager.notify(OnPipelineChangeEvent(f"Added {self.module_id} to pipeline_gui.modules."))
+            self.pipeline_gui.pipeline.event_manager.notify(
+                OnPipelineChangeEvent(f"Added {self.module_id} to pipeline_gui.modules."))
         self.color = self.module.gui_config().category.value
         self.valid = False
         self.wrapped_description = "\n".join(textwrap.wrap(self.module.gui_config().description, width=40))
-        self.click_container = ft.Container(on_click=self.add_connection,tooltip=self.wrapped_description if self.show_mode else None, height=MODULE_HEIGHT, width=MODULE_WIDTH,
-                                            visible=False if not show_mode else True,bgcolor=INVALID_COLOR if not show_mode else ft.Colors.TRANSPARENT,disabled=True if not show_mode else False,border_radius=ft.border_radius.all(10))
-        self.click_gesture = ft.GestureDetector(hover_interval=25,visible=False,disabled=True,content=self.click_container,on_enter=self.on_enter_click_module,on_exit=self.on_exit_click_module)
+        self.click_container = ft.Container(on_click=self.add_connection,
+                                            tooltip=self.wrapped_description if self.show_mode else None,
+                                            height=MODULE_HEIGHT, width=MODULE_WIDTH,
+                                            visible=False if not show_mode else True,
+                                            bgcolor=INVALID_COLOR if not show_mode else ft.Colors.TRANSPARENT,
+                                            disabled=True if not show_mode else False,
+                                            border_radius=ft.border_radius.all(10))
+        self.click_gesture = ft.GestureDetector(hover_interval=25, visible=False, disabled=True,
+                                                content=self.click_container, on_enter=self.on_enter_click_module,
+                                                on_exit=self.on_exit_click_module)
 
         self.connect_button = ft.IconButton(icon=ft.Icons.SHARE, icon_color=ft.Colors.WHITE60,
                                             style=ft.ButtonStyle(
-                                                          shape=ft.RoundedRectangleBorder(radius=12),
-                                                      ), on_click=self.connect_clicked,
-                                            tooltip="Add connection", hover_color=ft.Colors.WHITE12, visible=self.module.outputs!={})
+                                                shape=ft.RoundedRectangleBorder(radius=12),
+                                            ), on_click=self.connect_clicked,
+                                            tooltip="Add connection", hover_color=ft.Colors.WHITE12,
+                                            visible=self.module.outputs != {})
 
         self.options_button = ft.IconButton(icon=ft.Icons.TUNE, icon_color=ft.Colors.WHITE60,
                                             style=ft.ButtonStyle(
-                                                          shape=ft.RoundedRectangleBorder(radius=12),
-                                                      ), on_click=lambda e: self.open_options(e),
-                                            tooltip="Options", hover_color=ft.Colors.WHITE12, visible=True if len(self.module.get_user_attributes) != 0 else False,)
+                                                shape=ft.RoundedRectangleBorder(radius=12),
+                                            ), on_click=lambda e: self.open_options(e),
+                                            tooltip="Options", hover_color=ft.Colors.WHITE12,
+                                            visible=True if len(self.module.get_user_attributes) != 0 else False, )
         self.copy_button = ft.IconButton(icon=ft.Icons.CONTENT_COPY, icon_color=ft.Colors.WHITE60,
-                                            style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=12)),
-                                            on_click=self.copy_module,
-                                            tooltip="Copy module", hover_color=ft.Colors.WHITE12,)
+                                         style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=12)),
+                                         on_click=self.copy_module,
+                                         tooltip="Copy module", hover_color=ft.Colors.WHITE12, )
 
-        self.paused_button = ft.Stack([ft.Container(bgcolor=ft.Colors.BLACK26, width=30, height=30, top=5, right=5, border_radius=ft.border_radius.all(45)), ft.IconButton(icon=ft.Icons.PLAY_ARROW, icon_color=ft.Colors.WHITE, disabled=True,
-                                                                                                                                                                           style=ft.ButtonStyle(
-                                              shape=ft.RoundedRectangleBorder(radius=12),
-                                          ), on_click=self.copy_module,
-                                                                                                                                                                           tooltip="Currently paused to continue\npress the resume button", hover_color=ft.Colors.WHITE12)], top=1,
+        self.paused_button = ft.Stack([ft.Container(bgcolor=ft.Colors.BLACK26, width=30, height=30, top=5, right=5,
+                                                    border_radius=ft.border_radius.all(45)),
+                                       ft.IconButton(icon=ft.Icons.PLAY_ARROW, icon_color=ft.Colors.WHITE,
+                                                     disabled=True,
+                                                     style=ft.ButtonStyle(
+                                                         shape=ft.RoundedRectangleBorder(radius=12),
+                                                     ), on_click=self.copy_module,
+                                                     tooltip="Currently paused to continue\npress the resume button",
+                                                     hover_color=ft.Colors.WHITE12)], top=1,
                                       left=MODULE_WIDTH - 42, visible=False, width=40, height=40)
-        self.executing_button = ft.Stack([ft.Container(bgcolor=ft.Colors.BLACK26, width=30, height=30, top=5, right=5, border_radius=ft.border_radius.all(45)), ft.IconButton(icon=ft.Icons.PAUSE_ROUNDED, icon_color=ft.Colors.WHITE, disabled=True,
-                                                                                                                                                                              style=ft.ButtonStyle(
-                                              shape=ft.RoundedRectangleBorder(radius=12),
-                                          ), on_click=self.copy_module,
-                                                                                                                                                                              tooltip="Currently executed", hover_color=ft.Colors.WHITE12)], top=1,
+        self.executing_button = ft.Stack([ft.Container(bgcolor=ft.Colors.BLACK26, width=30, height=30, top=5, right=5,
+                                                       border_radius=ft.border_radius.all(45)),
+                                          ft.IconButton(icon=ft.Icons.PAUSE_ROUNDED, icon_color=ft.Colors.WHITE,
+                                                        disabled=True,
+                                                        style=ft.ButtonStyle(
+                                                            shape=ft.RoundedRectangleBorder(radius=12),
+                                                        ), on_click=self.copy_module,
+                                                        tooltip="Currently executed", hover_color=ft.Colors.WHITE12)],
+                                         top=1,
                                          left=MODULE_WIDTH - 42, visible=False, width=40, height=40)
-        self.waiting_button = ft.Stack([ft.Container(bgcolor=ft.Colors.BLACK26,width=30,height=30,top=5,right=5,border_radius=ft.border_radius.all(45)),ft.IconButton(icon=ft.Icons.HOURGLASS_EMPTY_ROUNDED, icon_color=ft.Colors.WHITE,disabled=True,
-                                          style=ft.ButtonStyle(
-                                              shape=ft.RoundedRectangleBorder(radius=12),
-                                          ), on_click=self.copy_module,
-                                          tooltip="Waiting for execution", hover_color=ft.Colors.WHITE12)],top=1,
-                                          left=MODULE_WIDTH - 42,visible=False,width=40,height=40)
+        self.waiting_button = ft.Stack([ft.Container(bgcolor=ft.Colors.BLACK26, width=30, height=30, top=5, right=5,
+                                                     border_radius=ft.border_radius.all(45)),
+                                        ft.IconButton(icon=ft.Icons.HOURGLASS_EMPTY_ROUNDED, icon_color=ft.Colors.WHITE,
+                                                      disabled=True,
+                                                      style=ft.ButtonStyle(
+                                                          shape=ft.RoundedRectangleBorder(radius=12),
+                                                      ), on_click=self.copy_module,
+                                                      tooltip="Waiting for execution", hover_color=ft.Colors.WHITE12)],
+                                       top=1,
+                                       left=MODULE_WIDTH - 42, visible=False, width=40, height=40)
         self.show_ports = False
         self.ports_in_out_button = ft.IconButton(icon=ft.Icons.SYNC_ALT_ROUNDED, icon_color=ft.Colors.WHITE60,
                                                  style=ft.ButtonStyle(
-                                              shape=ft.RoundedRectangleBorder(radius=12),
-                                          ), on_click=self.ports_in_out_clicked,
-                                                 tooltip="View ports", hover_color=ft.Colors.WHITE12,)
+                                                     shape=ft.RoundedRectangleBorder(radius=12),
+                                                 ), on_click=self.ports_in_out_clicked,
+                                                 tooltip="View ports", hover_color=ft.Colors.WHITE12, )
 
         self.tools = ft.Container(ft.Row(
-                                            [
-                                                self.connect_button,self.options_button,self.ports_in_out_button,self.copy_button,
-                                            ],tight=True,spacing=7
-                                        ),bgcolor=ft.Colors.BLACK12,expand=True,width=MODULE_WIDTH
-                                        )
+            [
+                self.connect_button, self.options_button, self.ports_in_out_button, self.copy_button,
+            ], tight=True, spacing=7
+        ), bgcolor=ft.Colors.BLACK12, expand=True, width=MODULE_WIDTH
+        )
 
-        self.delete_button = ft.IconButton(ft.Icons.CLOSE,visible=True if not show_mode else False,icon_color=ft.Colors.WHITE,hover_color=ft.Colors.WHITE12,tooltip="Delete Module",on_click=self.remove_module)
+        self.delete_button = ft.IconButton(ft.Icons.CLOSE, visible=True if not show_mode else False,
+                                           icon_color=ft.Colors.WHITE, hover_color=ft.Colors.WHITE12,
+                                           tooltip="Delete Module", on_click=self.remove_module)
         self.port_chips = self.get_ports_row()
         self.connection_ports = ft.Container(
-            self.port_chips,visible=False
+            self.port_chips, visible=False
         )
 
         control_list_ports = []
@@ -111,16 +142,51 @@ class ModuleGUI(ft.GestureDetector):
         self.in_ports_Icons_occupied = {}
         for port in self.module.inputs.values():
             if not port.opt:
-                self.in_ports_Icons[port.name] = ft.Stack([ft.Container(bgcolor=ft.Colors.WHITE,width=10,height=20,bottom=10,right=15,border_radius=ft.border_radius.all(45)),ft.Container(ft.IconButton(ft.Icons.WARNING_ROUNDED,icon_size=35,disabled=True,hover_color=ft.Colors.TRANSPARENT,icon_color=ft.Colors.RED,tooltip=f"Port '{port.name}' is mandatory and has no incoming pipe!"),bottom=-3,right=-5)],alignment=ft.Alignment.CENTER,visible=not self.pipeline_gui.pipeline.check_ports_occupied(self.module_id,[port.name]),width=40,height=40)
-                self.in_ports_Icons_occupied[port.name] = ft.Stack([ft.Container(bgcolor=ft.Colors.GREEN,width=30,height=30,border_radius=ft.border_radius.all(45)),ft.IconButton(ft.Icons.CHECK,disabled=True,hover_color=ft.Colors.TRANSPARENT,icon_color=ft.Colors.WHITE,tooltip=f"Port '{port.name}' is mandatory and is satisfied.")],alignment=ft.Alignment.CENTER,visible= self.pipeline_gui.pipeline.check_ports_occupied(self.module_id,[port.name]),width=40,height=40)
+                self.in_ports_Icons[port.name] = ft.Stack(
+                    [ft.Container(bgcolor=ft.Colors.WHITE, width=10, height=20, bottom=10, right=15,
+                                  border_radius=ft.border_radius.all(45)), ft.Container(
+                        ft.IconButton(ft.Icons.WARNING_ROUNDED, icon_size=35, disabled=True,
+                                      hover_color=ft.Colors.TRANSPARENT, icon_color=ft.Colors.RED,
+                                      tooltip=f"Port '{port.name}' is mandatory and has no incoming pipe!"), bottom=-3,
+                        right=-5)], alignment=ft.Alignment.CENTER,
+                    visible=not self.pipeline_gui.pipeline.check_ports_occupied(self.module_id, [port.name]), width=40,
+                    height=40)
+                self.in_ports_Icons_occupied[port.name] = ft.Stack(
+                    [ft.Container(bgcolor=ft.Colors.GREEN, width=30, height=30, border_radius=ft.border_radius.all(45)),
+                     ft.IconButton(ft.Icons.CHECK, disabled=True, hover_color=ft.Colors.TRANSPARENT,
+                                   icon_color=ft.Colors.WHITE,
+                                   tooltip=f"Port '{port.name}' is mandatory and is satisfied.")],
+                    alignment=ft.Alignment.CENTER,
+                    visible=self.pipeline_gui.pipeline.check_ports_occupied(self.module_id, [port.name]), width=40,
+                    height=40)
             else:
-                self.in_ports_Icons[port.name] = ft.Stack([ft.Container(bgcolor=ft.Colors.WHITE,width=10,height=20,bottom=10,right=15,border_radius=ft.border_radius.all(45)),ft.Container(ft.IconButton(ft.Icons.WARNING_ROUNDED,icon_size=35,disabled=True,hover_color=ft.Colors.TRANSPARENT,icon_color=ft.Colors.RED,tooltip=f"Port '{port.name}' is optional and has no incoming pipe!"),bottom=-3,right=-5)],alignment=ft.Alignment.CENTER,visible=not self.pipeline_gui.pipeline.check_ports_occupied(self.module_id,[port.name]),opacity=0.2,width=40,height=40)
-                self.in_ports_Icons_occupied[port.name] = ft.Stack([ft.Container(bgcolor=ft.Colors.GREEN,width=30,height=30,border_radius=ft.border_radius.all(45)),ft.IconButton(ft.Icons.CHECK,disabled=True,hover_color=ft.Colors.TRANSPARENT,icon_color=ft.Colors.WHITE,tooltip=f"Port '{port.name}' is optional and is satisfied.")],alignment=ft.Alignment.CENTER,opacity=0.2,visible= self.pipeline_gui.pipeline.check_ports_occupied(self.module_id,[port.name]),width=40,height=40)
+                self.in_ports_Icons[port.name] = ft.Stack(
+                    [ft.Container(bgcolor=ft.Colors.WHITE, width=10, height=20, bottom=10, right=15,
+                                  border_radius=ft.border_radius.all(45)), ft.Container(
+                        ft.IconButton(ft.Icons.WARNING_ROUNDED, icon_size=35, disabled=True,
+                                      hover_color=ft.Colors.TRANSPARENT, icon_color=ft.Colors.RED,
+                                      tooltip=f"Port '{port.name}' is optional and has no incoming pipe!"), bottom=-3,
+                        right=-5)], alignment=ft.Alignment.CENTER,
+                    visible=not self.pipeline_gui.pipeline.check_ports_occupied(self.module_id, [port.name]),
+                    opacity=0.2, width=40, height=40)
+                self.in_ports_Icons_occupied[port.name] = ft.Stack(
+                    [ft.Container(bgcolor=ft.Colors.GREEN, width=30, height=30, border_radius=ft.border_radius.all(45)),
+                     ft.IconButton(ft.Icons.CHECK, disabled=True, hover_color=ft.Colors.TRANSPARENT,
+                                   icon_color=ft.Colors.WHITE,
+                                   tooltip=f"Port '{port.name}' is optional and is satisfied.")],
+                    alignment=ft.Alignment.CENTER, opacity=0.2,
+                    visible=self.pipeline_gui.pipeline.check_ports_occupied(self.module_id, [port.name]), width=40,
+                    height=40)
 
-        in_ports = ft.Column([ft.Row([ft.Text(port.name,width=MODULE_WIDTH/2,weight=ft.FontWeight.BOLD,color=ft.Colors.WHITE),self.in_ports_Icons[port.name],self.in_ports_Icons_occupied[port.name]]) for port in self.module.inputs.values()],spacing=0)
-        out_ports = ft.Column([ft.Row([ft.Text(port.name,width=MODULE_WIDTH/2,weight=ft.FontWeight.BOLD,color=ft.Colors.WHITE)]) for port in self.module.outputs.values()])
-        input_text=ft.Text("Inputs:",size=20,weight=ft.FontWeight.BOLD,color=ft.Colors.WHITE)
-        output_text=ft.Text("Outputs:",size=20,weight=ft.FontWeight.BOLD,color=ft.Colors.WHITE)
+        in_ports = ft.Column([ft.Row(
+            [ft.Text(port.name, width=MODULE_WIDTH / 2, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE),
+             self.in_ports_Icons[port.name], self.in_ports_Icons_occupied[port.name]]) for port in
+            self.module.inputs.values()], spacing=0)
+        out_ports = ft.Column(
+            [ft.Row([ft.Text(port.name, width=MODULE_WIDTH / 2, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE)]) for
+             port in self.module.outputs.values()])
+        input_text = ft.Text("Inputs:", size=20, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE)
+        output_text = ft.Text("Outputs:", size=20, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE)
         if self.module.inputs != {}:
             control_list_ports.append(input_text)
             control_list_ports.append(in_ports)
@@ -129,44 +195,53 @@ class ModuleGUI(ft.GestureDetector):
             control_list_ports.append(out_ports)
 
         self.error_icon = ft.IconButton(ft.Icons.REPORT, icon_size=35, disabled=True,
-                                                         hover_color=ft.Colors.TRANSPARENT, icon_color=ft.Colors.RED,
-                                                         tooltip="An error occurred while executing!",
-                                                         highlight_color=ft.Colors.TRANSPARENT,
-                                                         padding=ft.padding.all(2))
+                                        hover_color=ft.Colors.TRANSPARENT, icon_color=ft.Colors.RED,
+                                        tooltip="An error occurred while executing!",
+                                        highlight_color=ft.Colors.TRANSPARENT,
+                                        padding=ft.padding.all(2))
         self.error_stack = ft.Stack([ft.Container(bgcolor=ft.Colors.WHITE, width=10, height=20, bottom=16, right=23,
-                                                        border_radius=ft.border_radius.all(45)),
-                                           self.error_icon],
-                                          visible=False, width=48, height=48, top=1,
-                                          left=MODULE_WIDTH - 75)
+                                                  border_radius=ft.border_radius.all(45)),
+                                     self.error_icon],
+                                    visible=False, width=48, height=48, top=1,
+                                    left=MODULE_WIDTH - 75)
 
-        self.warning_satisfied = ft.Stack([ft.Container(bgcolor=ft.Colors.WHITE,width=10,height=20,bottom=16,right=23,border_radius=ft.border_radius.all(45)),ft.IconButton(ft.Icons.WARNING_ROUNDED,icon_size=35,disabled=False,hover_color=ft.Colors.TRANSPARENT,icon_color=ft.Colors.RED,tooltip=f"Not all mandatory inputs are satisfied!",on_click=self.ports_in_out_clicked,highlight_color=ft.Colors.TRANSPARENT,padding=ft.padding.all(2))],visible=not self.pipeline_gui.pipeline.check_module_satisfied(self.module_id) and not show_mode,width=48,height=48,top=1,left=MODULE_WIDTH-75)
+        self.warning_satisfied = ft.Stack(
+            [ft.Container(bgcolor=ft.Colors.WHITE, width=10, height=20, bottom=16, right=23,
+                          border_radius=ft.border_radius.all(45)),
+             ft.IconButton(ft.Icons.WARNING_ROUNDED, icon_size=35, disabled=False, hover_color=ft.Colors.TRANSPARENT,
+                           icon_color=ft.Colors.RED, tooltip=f"Not all mandatory inputs are satisfied!",
+                           on_click=self.ports_in_out_clicked, highlight_color=ft.Colors.TRANSPARENT,
+                           padding=ft.padding.all(2))],
+            visible=not self.pipeline_gui.pipeline.check_module_satisfied(self.module_id) and not show_mode, width=48,
+            height=48, top=1, left=MODULE_WIDTH - 75)
         self.name_text = ft.Text(value=self.module.gui_config().name if not DEBUG else self.module_id,
-                                weight=ft.FontWeight.BOLD,
-                                width=MODULE_WIDTH-80,
-                                height=20,color=ft.Colors.BLACK,
-                                overflow=ft.TextOverflow.ELLIPSIS)
+                                 weight=ft.FontWeight.BOLD,
+                                 width=MODULE_WIDTH - 80,
+                                 height=20, color=ft.Colors.BLACK,
+                                 overflow=ft.TextOverflow.ELLIPSIS)
         self.module_container = ft.Container(
-                    content=ft.Column(
-                                [
-                                        ft.Container(ft.Row(
-                                                [
-                                                    self.name_text,
-                                                ],height=20
-                                              ),padding=ft.padding.only(left=5, top=5)),
-                                            self.tools,
-                                       ],
-                                    tight=True)
-                    ,bgcolor=self.color,width=MODULE_WIDTH
-                    ,height=MODULE_HEIGHT,
-                    border=ft.border.all(4, ft.Colors.RED if not self.pipeline_gui.pipeline.check_module_satisfied(self.module_id) and not show_mode else ft.Colors.BLACK12),
-                    border_radius=ft.border_radius.all(10),
-                )
+            content=ft.Column(
+                [
+                    ft.Container(ft.Row(
+                        [
+                            self.name_text,
+                        ], height=20
+                    ), padding=ft.padding.only(left=5, top=5)),
+                    self.tools,
+                ],
+                tight=True)
+            , bgcolor=self.color, width=MODULE_WIDTH
+            , height=MODULE_HEIGHT,
+            border=ft.border.all(4, ft.Colors.RED if not self.pipeline_gui.pipeline.check_module_satisfied(
+                self.module_id) and not show_mode else ft.Colors.BLACK12),
+            border_radius=ft.border_radius.all(10),
+        )
         self.ports_column = ft.Column(controls=control_list_ports, scroll=ft.ScrollMode.HIDDEN)
         self.ports_container = ft.Container(
             content=self.ports_column, bgcolor=self.color,
             width=MODULE_WIDTH,
-            border_radius=ft.border_radius.all(10), padding=10, top=cast(float, self.module_container.height)-15,
-            border=ft.border.all(8, ft.Colors.BLACK12), height=0,opacity=0,
+            border_radius=ft.border_radius.all(10), padding=10, top=cast(float, self.module_container.height) - 15,
+            border=ft.border.all(8, ft.Colors.BLACK12), height=0, opacity=0,
             animate_opacity=ft.Animation(duration=300, curve=ft.AnimationCurve.LINEAR_TO_EASE_OUT),
             animate=ft.Animation(duration=300, curve=ft.AnimationCurve.LINEAR_TO_EASE_OUT),
         )
@@ -183,13 +258,13 @@ class ModuleGUI(ft.GestureDetector):
                 self.warning_satisfied,
                 self.error_stack,
                 self.ignore_interactions_container,
-        ]
-        ),
-        self.connection_ports,
-        ],tight=True
-        )],height=self.module_container.height,
+            ]
+            ),
+                self.connection_ports,
+            ], tight=True
+            )], height=self.module_container.height,
         )
-        self.page_overlay = None #PageOverlay(self.pipeline_gui.page,self.module.settings,self.close_options)
+        self.page_overlay = None  # PageOverlay(self.pipeline_gui.page,self.module.settings,self.close_options)
         self._ports_lock = asyncio.Lock()
 
     def disable_tools(self):
@@ -200,9 +275,9 @@ class ModuleGUI(ft.GestureDetector):
         self.warning_satisfied.update()
         if self.port_selection:
             self.connect_clicked()
-        self.connect_button.disabled=True
+        self.connect_button.disabled = True
         self.connect_button.icon_color = DISABLED_BUTTONS_COLOR
-        self.options_button.disabled=True
+        self.options_button.disabled = True
         self.options_button.icon_color = DISABLED_BUTTONS_COLOR
         self.copy_button.disabled = True
         self.copy_button.icon_color = DISABLED_BUTTONS_COLOR
@@ -289,7 +364,7 @@ class ModuleGUI(ft.GestureDetector):
             self.warning_satisfied.visible = not self.pipeline_gui.pipeline.check_module_satisfied(self.module_id)
             self.warning_satisfied.update()
 
-    def connect_clicked(self,update:bool=True):
+    def connect_clicked(self, update: bool = True):
         """
         Handles the event when the connection button gets pressed.
         """
@@ -298,10 +373,10 @@ class ModuleGUI(ft.GestureDetector):
             if self.show_ports:
                 self.ports_in_out_clicked(False)
             if update:
-                self.pipeline_gui.set_in_background(self,True)
+                self.pipeline_gui.set_in_background(self, True)
             self.connect_button.icon_color = ft.Colors.BLACK38
             self.delete_button.visible = False
-            self.content.height = 40+self.module_container.height
+            self.content.height = 40 + self.module_container.height
             self.connection_ports.visible = True
             self.connection_ports.update()
             self.port_selection = True
@@ -321,10 +396,10 @@ class ModuleGUI(ft.GestureDetector):
         self.content.update()
         self.connect_button.update()
 
-    def ports_in_out_clicked(self, update: bool = True,disable:bool = None):
-        self.pipeline_gui.page.run_task(self.async_ports_in_out_clicked, update=update,disable=disable)
+    def ports_in_out_clicked(self, update: bool = True, disable: bool = None):
+        self.pipeline_gui.page.run_task(self.async_ports_in_out_clicked, update=update, disable=disable)
 
-    async def async_ports_in_out_clicked(self, update:bool=True,disable:bool=None):
+    async def async_ports_in_out_clicked(self, update: bool = True, disable: bool = None):
         """
         Handles the event when the show ports button gets pressed.
         """
@@ -346,7 +421,7 @@ class ModuleGUI(ft.GestureDetector):
                 if self.module_id in self.pipeline_gui.modules:
                     self.ports_container.update()
                 await asyncio.sleep(0.14)
-                self.ports_column.scroll=ft.ScrollMode.ALWAYS
+                self.ports_column.scroll = ft.ScrollMode.ALWAYS
                 if self.module_id in self.pipeline_gui.modules:
                     self.ports_column.update()
                 self.show_ports = True
@@ -362,7 +437,7 @@ class ModuleGUI(ft.GestureDetector):
                     if self.module_id in self.pipeline_gui.modules:
                         self.ports_in_out_button.update()
 
-                self.ports_column.scroll=ft.ScrollMode.HIDDEN
+                self.ports_column.scroll = ft.ScrollMode.HIDDEN
                 if self.module_id in self.pipeline_gui.modules:
                     self.ports_column.update()
                 self.ports_container.height = 0
@@ -374,7 +449,6 @@ class ModuleGUI(ft.GestureDetector):
                 if self.module_id in self.pipeline_gui.modules:
                     self.content.update()
                 self.show_ports = False
-
 
     def set_valid(self):
         """
@@ -392,7 +466,9 @@ class ModuleGUI(ft.GestureDetector):
         """
         self.valid = False
         self.click_container.bgcolor = INVALID_COLOR
-        self.module_container.border = ft.border.all(4, ft.Colors.RED if not self.pipeline_gui.pipeline.check_module_satisfied(self.module_id) or self.error_stack.visible else ft.Colors.BLACK12)
+        self.module_container.border = ft.border.all(4,
+                                                     ft.Colors.RED if not self.pipeline_gui.pipeline.check_module_satisfied(
+                                                         self.module_id) or self.error_stack.visible else ft.Colors.BLACK12)
         self.module_container.update()
         self.click_container.update()
 
@@ -417,12 +493,12 @@ class ModuleGUI(ft.GestureDetector):
             ports_chips.controls.append(
                 ft.Chip(
                     label=ft.Text(port_name),
-                    on_select=lambda e,name = port_name: self.select_port(e,name),
+                    on_select=lambda e, name=port_name: self.select_port(e, name),
                 )
             )
         return ports_chips
 
-    def select_port(self,e, port_name):
+    def select_port(self, e, port_name):
         """
         Handles the event if a port gets selected for connecting.
         """
@@ -462,23 +538,24 @@ class ModuleGUI(ft.GestureDetector):
             self.click_gesture.disabled = True
             self.click_gesture.visible = False
             self.click_gesture.update()
-            if (self.module_id not in self.pipeline_gui.pipeline.run_order and not self.pipeline_gui.pipeline.executing == self.module_id) or not self.pipeline_gui.pipeline.running:
+            if (
+                    self.module_id not in self.pipeline_gui.pipeline.run_order and not self.pipeline_gui.pipeline.executing == self.module_id) or not self.pipeline_gui.pipeline.running:
                 self.delete_button.visible = True
                 self.delete_button.update()
             self.connection_ports.visible = False
             self.connect_button.update()
-
 
     def add_connection(self):
         """
         Handles the last step of the adding event when the target gets selected.
         """
         if self.pipeline_gui.source_module is not None and self.pipeline_gui.transmitting_ports is not None and not self.detection and self.valid:
-            current_pipe = self.pipeline_gui.pipeline.get_pipe(self.pipeline_gui.source_module,self.module_id)
+            current_pipe = self.pipeline_gui.pipeline.get_pipe(self.pipeline_gui.source_module, self.module_id)
             if current_pipe is None:
-                self.pipeline_gui.add_connection(self.pipeline_gui.modules[self.pipeline_gui.source_module],self,self.pipeline_gui.transmitting_ports)
+                self.pipeline_gui.add_connection(self.pipeline_gui.modules[self.pipeline_gui.source_module], self,
+                                                 self.pipeline_gui.transmitting_ports)
             else:
-                self.pipeline_gui.expand_connection(current_pipe,self.pipeline_gui.transmitting_ports)
+                self.pipeline_gui.expand_connection(current_pipe, self.pipeline_gui.transmitting_ports)
             self.pipeline_gui.check_for_valid_all_modules()
 
     def remove_module(self):
@@ -486,9 +563,9 @@ class ModuleGUI(ft.GestureDetector):
         Removes a module and all its connections.
         """
         for pipe in list(self.pipeline_gui.pipeline.pipes_in[self.module_id]):
-            self.pipeline_gui.remove_connection(self.pipeline_gui.modules[pipe.source_module.module_id],self)
+            self.pipeline_gui.remove_connection(self.pipeline_gui.modules[pipe.source_module.module_id], self)
         for pipe in list(self.pipeline_gui.pipeline.pipes_out[self.module_id]):
-            self.pipeline_gui.remove_connection(self,self.pipeline_gui.modules[pipe.target_module.module_id])
+            self.pipeline_gui.remove_connection(self, self.pipeline_gui.modules[pipe.target_module.module_id])
 
         if self.show_mode:
             self.pipeline_gui.show_room_modules.remove(self)
@@ -530,7 +607,7 @@ class ModuleGUI(ft.GestureDetector):
         if self.show_mode:
             self.click_container.tooltip = None
             overlap_show_room = not (
-                    self.left + MODULE_WIDTH  < self.pipeline_gui.show_room_container.left or
+                    self.left + MODULE_WIDTH < self.pipeline_gui.show_room_container.left or
                     self.left > self.pipeline_gui.show_room_container.left + self.pipeline_gui.show_room_container.width or
                     self.top + MODULE_HEIGHT < self.pipeline_gui.show_room_container.top or
                     self.top > self.pipeline_gui.show_room_container.top + self.pipeline_gui.show_room_container.height
@@ -550,7 +627,7 @@ class ModuleGUI(ft.GestureDetector):
 
         self.update()
 
-    async def drop(self,e: ft.DragEndEvent):
+    async def drop(self, e: ft.DragEndEvent):
         """
         Handles the drop event.
         """
@@ -576,9 +653,9 @@ class ModuleGUI(ft.GestureDetector):
                 e.control.update()
                 return
 
-        #no need to calc cords because show_room_container and module with self.show_mode are in the same page_stack
-        overlap_show_room = not(
-                self.left + MODULE_WIDTH  < self.pipeline_gui.show_room_container.left or
+        # no need to calc cords because show_room_container and module with self.show_mode are in the same page_stack
+        overlap_show_room = not (
+                self.left + MODULE_WIDTH < self.pipeline_gui.show_room_container.left or
                 self.left > self.pipeline_gui.show_room_container.left + self.pipeline_gui.show_room_container.width or
                 self.top + MODULE_HEIGHT < self.pipeline_gui.show_room_container.top or
                 self.top > self.pipeline_gui.show_room_container.top + self.pipeline_gui.show_room_container.height
@@ -597,11 +674,11 @@ class ModuleGUI(ft.GestureDetector):
             self.pipeline_gui.modules[self.module_id] = self
             if DEBUG:
                 self.name_text.value = self.module_id
-            self.pipeline_gui.refill_show_room(self,self.visible,index,show_room_id)
+            self.pipeline_gui.refill_show_room(self, self.visible, index, show_room_id)
             self.pipeline_gui.page_stack.controls.remove(self)
             self.pipeline_gui.page_stack.update()
-            self.left = min(max(0,cast(int, check_left)),CANVAS_WIDTH-MODULE_WIDTH)
-            self.top = min(max(0,cast(int, check_top)),CANVAS_HEIGHT-MODULE_HEIGHT)
+            self.left = min(max(0, cast(int, check_left)), CANVAS_WIDTH - MODULE_WIDTH)
+            self.top = min(max(0, cast(int, check_top)), CANVAS_HEIGHT - MODULE_HEIGHT)
             self.pipeline_gui.controls.append(self)
             self.click_container.disabled = True
             self.ignore_interactions_container.ignore_interactions = True
@@ -628,27 +705,39 @@ class ModuleGUI(ft.GestureDetector):
         Generates with the user attributes tagged with the prefix 'user_' a gui overlay.
         """
         user_attributes = self.module.get_user_attributes
-        element_height= 60
+        element_height = 60
         spacing = 10
         padding = 20
-        height = element_height* len(user_attributes) + spacing * (len(user_attributes)-1)
+        height = element_height * len(user_attributes) + spacing * (len(user_attributes) - 1)
         limit_reached = len(user_attributes) > USER_OPTIONS_LIMIT
         if len(user_attributes) != 0:
-            return ft.Stack([ft.Row([ft.Column([ft.Card(
-                content=ft.Column(
-                    [ft.Container(ft.ListView(
-                        controls=self.create_attribute_list(user_attributes),
-                        width=500,
-                        spacing=spacing,
-                        height=(element_height* (USER_OPTIONS_LIMIT+1) + spacing * ((USER_OPTIONS_LIMIT+1)-1))-30  if limit_reached else height,
-                    ),padding=padding)]
-                )
-            )],
-            alignment=ft.MainAxisAlignment.CENTER,)],alignment=ft.MainAxisAlignment.CENTER)],alignment=ft.Alignment.CENTER)
+            return ft.Stack(
+                [
+                    ft.Row(
+                        [
+                            ft.Column(
+                                [
+                                    ft.Card(
+                                        content=ft.Column(
+                                            [
+                                                ft.Container(
+                                                    ft.ListView(
+                                                        controls=self.create_attribute_list(user_attributes),
+                                                        width=500,
+                                                        spacing=spacing,
+                                                        height=(element_height * (USER_OPTIONS_LIMIT + 1) + spacing * ((
+                                                                                                                               USER_OPTIONS_LIMIT + 1) - 1)) - 30 if limit_reached else height,
+                                                    ), padding=padding)
+                                            ]
+                                        )
+                                    )
+                                ], alignment=ft.MainAxisAlignment.CENTER)
+                        ], alignment=ft.MainAxisAlignment.CENTER)
+                ], alignment=ft.Alignment.CENTER)
         else:
             return None
 
-    def create_attribute_list(self,attributes=None):
+    def create_attribute_list(self, attributes=None):
         """
         Creates a text field for each user attribute and combines them into a single list.
         Allowed types are:
@@ -665,36 +754,43 @@ class ModuleGUI(ft.GestureDetector):
             typ = type(value)
             if typ in (int, float, str):
                 ref = ft.Ref[ft.Text]()
-                setattr(self.module,"ref_" + attribute_name, ref)
-                items.append(ft.TextField(
-                            label=attribute_name.removeprefix("user_"),
-                            border_color=ft.Colors.BLUE_ACCENT,
-                            value=str(value),
-                            ref=ref,
-                            on_blur=lambda e,attr_name= attribute_name,reference=ref,type_atr = typ: self.on_change(e,attr_name,reference,type_atr),
-                            height=60,
-                        ))
+                setattr(self.module, "ref_" + attribute_name, ref)
+                items.append(
+                    ft.TextField(
+                        label=attribute_name.removeprefix("user_"),
+                        border_color=ft.Colors.BLUE_ACCENT,
+                        value=str(value),
+                        ref=ref,
+                        on_blur=lambda e, attr_name=attribute_name, reference=ref, type_atr=typ:
+                        self.on_change(e,
+                                       attr_name,
+                                       reference,
+                                       type_atr),
+                        height=60,
+                    )
+                )
             elif typ == bool:
-                text = ft.Text(attribute_name.removeprefix("user_"),weight=ft.FontWeight.BOLD)
+                text = ft.Text(attribute_name.removeprefix("user_"), weight=ft.FontWeight.BOLD)
                 index = 0 if not value else 1
-                setattr(self.module,"on_change_" + attribute_name, lambda: None)
+                setattr(self.module, "on_change_" + attribute_name, lambda: None)
                 slider_bool = ft.CupertinoSlidingSegmentedButton(
                     selected_index=index,
                     thumb_color=ft.Colors.BLUE_400,
-                    on_change=lambda e, attr_name=attribute_name: self.update_bool(e,attr_name),
+                    on_change=lambda e, attr_name=attribute_name: self.update_bool(e, attr_name),
                     padding=ft.padding.symmetric(0, 0),
                     controls=[
                         ft.Text("False"),
                         ft.Text("True")
                     ],
                 )
-                bool_choosing = ft.Container(ft.Row([text, slider_bool], alignment=ft.MainAxisAlignment.SPACE_BETWEEN), padding=ft.Padding(0, 10, 0, 10))
+                bool_choosing = ft.Container(ft.Row([text, slider_bool], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                                             padding=ft.Padding(0, 10, 0, 10))
                 items.append(bool_choosing)
             elif typ == FilePath:
                 text_field = ft.TextField(
                     label=attribute_name.removeprefix("user_"),
                     border_color=ft.Colors.BLUE_ACCENT,
-                    value=format_directory_path(value.path,50),
+                    value=format_directory_path(value.path, 50),
                     height=60,
                     read_only=True,
                     disabled=True,
@@ -703,15 +799,25 @@ class ModuleGUI(ft.GestureDetector):
                 attr = getattr(self.module, attribute_name)
                 file_picker = ft.FilePicker()
                 self.pipeline_gui._page.services.append(file_picker)
-                items.append(ft.Stack([text_field,ft.Container(
+                items.append(
+                    ft.Stack(
+                        [
+                            text_field,
+                            ft.Container(
                                 content=ft.IconButton(
                                     icon=ft.Icons.UPLOAD_FILE,
                                     tooltip="Pick file",
-                                    on_click=lambda a,attr_name= attribute_name,content=text_field: self.pipeline_gui.page.run_task(self.on_select_file,a,file_picker,attr.suffix,attr_name,content),
-                                ),
-                                alignment=ft.Alignment.TOP_RIGHT
-                            ,right=10,top=5)
-                    ]))
+                                    on_click=lambda a, attr_name=attribute_name,
+                                                    content=text_field: self.pipeline_gui.page.run_task(
+                                        self.on_select_file,
+                                        a,
+                                        file_picker,
+                                        attr.suffix,
+                                        attr_name,
+                                        content),
+                                ), alignment=ft.Alignment.TOP_RIGHT, right=10, top=5)
+                        ]
+                    ))
             elif typ == DirectoryPath:
                 text_field = ft.TextField(
                     label=attribute_name.removeprefix("user_"),
@@ -723,43 +829,55 @@ class ModuleGUI(ft.GestureDetector):
                     expand=True
                 )
                 file_picker = ft.FilePicker()
-                items.append(ft.Stack([text_field, ft.Container(
-                        content=ft.IconButton(
-                            icon=ft.Icons.FOLDER_OPEN,
-                            tooltip="Choose directory",
-                            on_click=lambda a, attr_name=attribute_name, content=text_field: self.pipeline_gui.page.run_task(self.on_select_dir,a,file_picker, attr_name, content),
-                        ),
-                        alignment=ft.Alignment.TOP_RIGHT,right=10,top=5
+                items.append(
+                    ft.Stack(
+                        [
+                            text_field,
+                            ft.Container(
+                                content=ft.IconButton(
+                                    icon=ft.Icons.FOLDER_OPEN,
+                                    tooltip="Choose directory",
+                                    on_click=lambda a, attr_name=attribute_name,
+                                                    content=text_field: self.pipeline_gui.page.run_task(
+                                        self.on_select_dir, a,
+                                        file_picker, attr_name,
+                                        content),
+                                ),
+                                alignment=ft.Alignment.TOP_RIGHT, right=10, top=5
+                            )
+                        ]
                     )
-                ]))
+                )
             else:
                 raise ValueError(f"Unsupported 'user_' attribute file type: {typ}")
         return items
 
-    async def on_select_file(self,e: ft.Event[ft.Button],file_picker,suffix,attr_name,text):
+    async def on_select_file(self, e: ft.Event[ft.Button], file_picker, suffix, attr_name, text):
         """
         Handles if a file is selected.
         """
-        files = await file_picker.pick_files(allow_multiple=False,file_type=ft.FilePickerFileType.CUSTOM if suffix is not None else ft.FilePickerFileType.ANY,allowed_extensions=suffix if suffix is not None else [],)
+        files = await file_picker.pick_files(allow_multiple=False,
+                                             file_type=ft.FilePickerFileType.CUSTOM if suffix is not None else ft.FilePickerFileType.ANY,
+                                             allowed_extensions=suffix if suffix is not None else [], )
         if files is not None and len(files) > 0:
             current_file_path = getattr(self.module, attr_name)
             current_file_path.path = files[0].path
-            text.value = format_directory_path(files[0].path,50)
+            text.value = format_directory_path(files[0].path, 50)
             text.update()
             self.pipeline_gui.pipeline.event_manager.notify(OnPipelineChangeEvent("user_attr_change"))
 
-    async def on_select_dir(self,e: ft.Event[ft.Button],file_picker,attr_name,text):
+    async def on_select_dir(self, e: ft.Event[ft.Button], file_picker, attr_name, text):
         """
         Handles if a directory is selected.
         """
         dir = await file_picker.get_directory_path()
         if dir is not None:
             setattr(self.module, attr_name, FilePath(dir))
-            text.value = format_directory_path(dir,50)
+            text.value = format_directory_path(dir, 50)
             text.update()
             self.pipeline_gui.pipeline.event_manager.notify(OnPipelineChangeEvent("user_attr_change"))
 
-    def on_change(self,e,attr_name,reference,typ:type):
+    def on_change(self, e, attr_name, reference, typ: type):
         """
         Handles changes to the attribute for different types.
         """
@@ -777,11 +895,13 @@ class ModuleGUI(ft.GestureDetector):
             setattr(self.module, attr_name, typ(e.control.value))
             self.pipeline_gui.pipeline.event_manager.notify(OnPipelineChangeEvent("user_attr_change"))
         except ValueError:
-            self.pipeline_gui.page.show_dialog(ft.SnackBar(ft.Text(f"{attribute_name_without_prefix} only allows {typ.__name__}'s.",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
+            self.pipeline_gui.page.show_dialog(ft.SnackBar(
+                ft.Text(f"{attribute_name_without_prefix} only allows {typ.__name__}'s.", color=ft.Colors.WHITE),
+                bgcolor=ft.Colors.RED))
             reference.current.value = str(getattr(self.module, attr_name))
             reference.current.update()
 
-    def update_bool(self,e,attr_name):
+    def update_bool(self, e, attr_name):
         """
         Handels changes to the attribute for booleans.
         """
@@ -801,7 +921,7 @@ class ModuleGUI(ft.GestureDetector):
             page = self.pipeline_gui._page
             self.page_overlay = PageOverlay(page, self.module.settings, self.close_options)
 
-    def open_options(self,e):
+    def open_options(self, e):
         """
         Open options overlay of the module.
         """
@@ -809,7 +929,7 @@ class ModuleGUI(ft.GestureDetector):
         self.options_button.icon_color = ft.Colors.BLACK38
         self.options_button.update()
 
-    def close_options(self,e):
+    def close_options(self, e):
         """
         Called when the overlay gets dismissed.
         """
@@ -825,7 +945,8 @@ class ModuleGUI(ft.GestureDetector):
         self.copy_button.icon_color = ft.Colors.BLACK38
         self.copy_button.update()
         copy_dict = self.to_dict()
-        self.pipeline_gui.add_module(type(self.module),x=cast(float, self.left)+20,y=cast(float, self.top)+20,module_dict=copy_dict)
+        self.pipeline_gui.add_module(type(self.module), x=cast(float, self.left) + 20, y=cast(float, self.top) + 20,
+                                     module_dict=copy_dict)
         self.copy_button.icon_color = ft.Colors.WHITE60
         self.copy_button.update()
 
@@ -835,19 +956,19 @@ class ModuleGUI(ft.GestureDetector):
         """
         user_attributes: List[Dict[str, Any]] = []
         for attr_name in self.module.get_user_attributes:
-            value = getattr(self.module,attr_name)
+            value = getattr(self.module, attr_name)
             value_type = type(value).__name__
-            if isinstance(value,FilePath) or isinstance(value,DirectoryPath):
+            if isinstance(value, FilePath) or isinstance(value, DirectoryPath):
                 value = value.path
-            user_attributes.append({"name": attr_name,"value": value,"attr_type":value_type})
+            user_attributes.append({"name": attr_name, "value": value, "attr_type": value_type})
         return {
             "module_id": self.module_id,
             "module_name": self.module.gui_config().name,
-            "position": {"x":self.left, "y":self.top},
+            "position": {"x": self.left, "y": self.top},
             "user_attributes": user_attributes,
         }
 
-    def update_user_attr(self,module_dict:dict):
+    def update_user_attr(self, module_dict: dict):
         """
         Update user_attributes with a module dict.
         """
@@ -858,4 +979,3 @@ class ModuleGUI(ft.GestureDetector):
                     getattr(self.module, attr["name"]).path = attr["value"]
                 else:
                     setattr(self.module, attr["name"], attr["value"])
-
