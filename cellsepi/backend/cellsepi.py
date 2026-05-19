@@ -1,0 +1,46 @@
+import torch
+from backend.config_file import ConfigFile
+from pathlib import Path
+import platformdirs
+
+APP_NAME = "CellSePi"
+
+class CellSePi:
+    def __init__(self):
+        super().__init__()
+        self.app_dir,self.models_dir,self.plugins_dir =self.createDirectory()
+        self.config: ConfigFile = ConfigFile(self.app_dir)
+        self.segmentation_running = False
+        self.segmentation_thread = None
+        self.training_running = False
+        self.model_path = None
+        self.model_type = None # Options are: "CustomV3", "CustomV4", "Cellpose", "CellposeSAM"
+        self.re_train_model_path=None
+        self.readout_running = False
+        self.readout_thread = None
+        self.readout_path = None
+        self.linux_or_3d = False
+        self.gpu = torch.cuda.is_available()
+
+        self.image_id = None
+        self.channel_id = None
+        self.current_channel_prefix = None
+        self.current_mask_suffix = None
+
+        self.readout = None
+
+        self.adjusted_image_path = None
+        self.image_paths = None #[image_id, different images sorted by channel]
+        self.linux_images = None #[image_id][channel_id] = base64 png image
+        self.mask_paths = None
+        self.working_directory = None
+
+    def createDirectory(self):
+        app_dir = Path(platformdirs.user_config_dir(APP_NAME))
+
+        app_dir.mkdir(parents=True, exist_ok=True)
+        models_dir = app_dir / "models"
+        plugins_dir = app_dir / "plugins"
+        models_dir.mkdir(parents=True, exist_ok=True)
+        plugins_dir.mkdir(parents=True, exist_ok=True)
+        return app_dir,models_dir,plugins_dir

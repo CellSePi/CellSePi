@@ -1,4 +1,0 @@
-[project]
-dependencies = [
-    "flet-extended-interactive-viewer == 0.2.0",
-]

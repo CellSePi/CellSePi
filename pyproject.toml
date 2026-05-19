@@ -1,31 +1,33 @@
 [tool.flet.app]
-path = "src"
+path = "cellsepi"
 
 [tool.poetry]
 name = "cellsepi"
-version = "1.1.9.9.4"
+version = "2.0"
 description = "Segmentation of microscopy images and data analysis pipeline with a graphical user interface, powered by Cellpose."
 authors = ["Jenna Ahlvers", "Santosh Chhetri Thapa", "Nike Dratt", "Pascal Heß", "Florian Hock"]
 license = "Apache-2.0"
-homepage = "https://github.com/PraiseTheDarkFlo/CellSePi"
+homepage = "https://github.com/CellSePi/CellSePi"
 readme = "README.md"
 packages = [
-    { include = "cellsepi", from = "src" }
+    { include = "cellsepi"}
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.11,<3.14"
+python = ">=3.11,<3.13"
 numpy = "2.1.0"
+numba = "0.65.1"
 scipy = "1.17.1"
 pillow = "12.2.0"
 pandas = "2.2.3"
 openpyxl = "3.1.5"
+opencv-python = "4.13.0.92"
 cellpose = "4.1.1"
 flet = "0.84.0"
 flet-cli = "0.84.0"
 flet-desktop = "0.84.0"
 flet-color-pickers = "0.84.0"
-flet-extended-interactive-viewer = "0.2.0"
+flet-extended-interactive-viewer = "0.2.1"
 bioio = "3.3.0"
 bioio-lif = "1.4.2"
 bioio-nd2 = "1.7.0"
@@ -34,7 +36,7 @@ bioio-tifffile = "1.3.0"
 bioio-ome-tiff = "1.4.0"
 torchvision = "0.17.2"
 jsonschema = "4.25.1"
-big-fish = "0.6.2"
+torch = "2.6.0"
 cellsepi-drawing = { git = "https://github.com/CellSePi/CellSePiDrawing.git", branch = "master" }
 
 [tool.poetry.group.dev.dependencies]
@@ -43,15 +45,10 @@ pytest = "8.3.4"
 [tool.poetry.scripts]
 cellsepi = "cellsepi.main:main"
 
-
 [[tool.poetry.include]]
-path = "src/cellsepi/models/**/*"
+path = "cellsepi/models/**/*"
 [[tool.poetry.include]]
-path = "src/cellsepi/config.json"
-[[tool.poetry.include]]
-path = "src/cellsepi/csp.schema.json"
-[[tool.poetry.include]]
-path = "src/cellsepi/pyproject.toml"
+path = "cellsepi/csp.schema.json"
 
 [build-system]
 requires = ["poetry-core>=1.3.0"]

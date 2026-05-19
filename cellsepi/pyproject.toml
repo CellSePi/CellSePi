@@ -1,0 +1,5 @@
+[project]
+dependencies = [
+    "flet-extended-interactive-viewer == 0.2.1",
+    "flet-color-pickers == 0.84.0"
+]
