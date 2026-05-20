@@ -156,48 +156,7 @@ class GUI:
                                                     )
                                                 ])
                                         ]),
-                                    ft.Row(
-                                        [
-                                            self.gui_config,
-                                            ft.Column(
-                                                [
-                                                    ft.Card(
-                                                        content=ft.Container(
-                                                            content=ft.Column(
-                                                                [
-                                                                    ft.Row(
-                                                                        [
-                                                                            self.brightness_icon,
-                                                                            ft.Container(
-                                                                                self.brightness_slider,
-                                                                                padding=-15
-                                                                            )
-                                                                        ]
-                                                                    ),
-                                                                    ft.Row(
-                                                                        [
-                                                                            self.contrast_icon,
-                                                                            ft.Container(
-                                                                                self.contrast_slider,
-                                                                                padding=-15
-                                                                            )
-                                                                        ]
-                                                                    )
-                                                                ]
-                                                            ),
-                                                            padding=10
-                                                        )
-                                                    ),
-                                                    ft.Row(
-                                                        [
-                                                            ft.Card(content=self.auto_brightness_contrast),
-                                                            ft.Card(content=self.diameter_display)
-                                                        ]
-                                                    )
-                                                ]
-                                            )
-                                        ]
-                                    ),
+
                                     self.segmentation_card
                                 ],
                                 expand=True,

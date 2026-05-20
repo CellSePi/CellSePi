@@ -24,10 +24,6 @@ from reportlab.lib import colors
 from reportlab.lib import pagesizes
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-from tifffile import tifffile
-
-from backend.expert_mode.event_manager import EventManager
-from backend.expert_mode.listener import ProgressEvent
 
 from bioio import BioImage
 from bioio_base.dimensions import Dimensions
@@ -70,11 +66,6 @@ def organize_files(files, channel_prefix, mask_suffix=""):
 
     return id_to_file
 
-
-class ReturnTypePath(Enum):
-    IMAGE_PATHS = auto()
-    MASK_PATHS = auto()
-    BOTH_PATHS = auto()
 
 
 def load_directory(directory, channel_prefix=None, mask_suffix=None,

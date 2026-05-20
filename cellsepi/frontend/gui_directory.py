@@ -7,10 +7,6 @@ import shutil
 import flet as ft
 import numpy as np
 
-from backend.expert_mode.event_manager import EventManager
-from backend.expert_mode.listener import ProgressEvent
-from backend.expert_mode.pipeline_manager import PipelineRunningException
-from frontend.gui_canvas import update_main_image
 from frontend.gui_fluorescence import FluorescenceReadoutControl
 from backend.constants import FileType, SourceType, DirectoryManager, CSP_CHANNEL_PREFIX
 from backend.data_util import consistent_hash, extract_from_directory
@@ -20,7 +16,7 @@ from cellsepi.backend.expert_mode.event_manager import EventManager
 from cellsepi.backend.expert_mode.listener import ProgressEvent
 from cellsepi.backend.expert_mode.pipeline_manager import PipelineRunningException
 from cellsepi.frontend.gui_canvas import update_main_image
-from cellsepi.frontend.gui_fluorescence import fluorescence_button
+
 
 
 def format_directory_path(dir_path: str, max_length=30):
