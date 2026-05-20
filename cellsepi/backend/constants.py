@@ -21,17 +21,17 @@ class SourceType(Enum):
 
 
 class FileType(Enum):
-    LIF = SimpleNamespace({"name": "Lif", "extensions": ["lif"], "source": SourceType.FILE})
-    ND2 = SimpleNamespace({"name": "ND2", "extensions": ["nd2"], "source": SourceType.FILE})
-    ND2_DIR = SimpleNamespace({"name": "ND2 Dir", "extensions": ["nd2"], "source": SourceType.DIRECTORY})
-    CZI = SimpleNamespace({"name": "CZI", "extensions": ["czi"], "source": SourceType.FILE})
-    OME_TIFF = SimpleNamespace({"name": "OME-TIFF", "extensions": ["ome.tiff", "ome.tif"], "source": SourceType.FILE})
-    TIFF_DIR = SimpleNamespace({"name": "TIFF Dir", "extensions": ["tiff", "tif"], "source": SourceType.DIRECTORY})
+    LIF = SimpleNamespace(name= "Lif", extensions=["lif"], source= SourceType.FILE)
+    ND2 = SimpleNamespace(name= "ND2", extensions= ["nd2"], source= SourceType.FILE)
+    ND2_DIR = SimpleNamespace(name="ND2 Dir", extensions= ["nd2"], source= SourceType.DIRECTORY)
+    CZI = SimpleNamespace(name= "CZI", extensions= ["czi"], source= SourceType.FILE)
+    OME_TIFF = SimpleNamespace(name= "OME-TIFF",extensions= ["ome.tiff", "ome.tif"],source= SourceType.FILE)
+    TIFF_DIR = SimpleNamespace(name= "TIFF Dir", extensions= ["tiff", "tif"], source=SourceType.DIRECTORY)
 
 
 class Suffixes(Enum):
-    SEGMENTATION_MASK = SimpleNamespace({"name": "SEGMENTATION_MASK", "suffixes": ["_seq"], "extensions": ["npy"]})
-    SPOT_MASK = SimpleNamespace({"name": "SPOT_MASK", "suffixes": ["_sdm"], "extensions": ["npy"]})
+    SEGMENTATION_MASK = SimpleNamespace(name= "SEGMENTATION_MASK", suffixes= ["_seq"],  extensions=  ["npy"])
+    SPOT_MASK = SimpleNamespace(name = "SPOT_MASK", suffixes= ["_sdm"],  extensions=  ["npy"])
 
 
 class DirectoryManager:

@@ -208,15 +208,15 @@ def extract_from_lif3d_file(lif3d_path, target_dir, channel_prefix, event_manage
         event_manager.notify(
             event=ProgressEvent(100, process=f"Finished extracting Series!"))
 
-
+"""
 def extract_from_lif_file(lif_path, target_dir, channel_prefix, event_manager: EventManager = None):
-    """
-    Extracts all series from the lif file using the bioio-lif library and
-    copies the images to the target directory.
-    Arguments:
-          lif_path {str} -- The path to the lif file.
-          target_dir {str} -- The path to the target directory.
-    """
+    
+    #Extracts all series from the lif file using the bioio-lif library and
+    #copies the images to the target directory.
+    #Arguments:
+     #     lif_path {str} -- The path to the lif file.
+    #      target_dir {str} -- The path to the target directory.
+    
 
     lif_path = pathlib.Path(lif_path)
     target_dir = pathlib.Path(target_dir)
@@ -281,7 +281,7 @@ def extract_from_lif_file(lif_path, target_dir, channel_prefix, event_manager: E
         if event_manager is not None:
             event_manager.notify(
                 event=ProgressEvent(100, process=f"Finished extracting Series!"))
-
+"""
 
 class CellSePiImage:
 
