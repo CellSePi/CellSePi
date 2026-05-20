@@ -1,3 +1,4 @@
+import base64
 import os
 import base64
 import hashlib
@@ -9,12 +10,22 @@ import platform
 import shutil
 import stat
 from collections import defaultdict
+from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from io import BytesIO
 from typing import Any
 
+import bioio_lif
 import numpy as np
+import pandas as pd
 from PIL import Image
+from bioio import BioImage
+from reportlab.lib import colors
+from reportlab.lib import pagesizes
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from tifffile import tifffile
+
 from backend.expert_mode.event_manager import EventManager
 from backend.expert_mode.listener import ProgressEvent
 
@@ -58,6 +69,12 @@ def organize_files(files, channel_prefix, mask_suffix=""):
     id_to_file = dict(sorted(id_to_file.items()))
 
     return id_to_file
+
+
+class ReturnTypePath(Enum):
+    IMAGE_PATHS = auto()
+    MASK_PATHS = auto()
+    BOTH_PATHS = auto()
 
 
 def load_directory(directory, channel_prefix=None, mask_suffix=None,
@@ -156,29 +173,36 @@ def load_lif3d_bioimage(lif3d_path):
     # See Readme at https://github.com/bioio-devs/bioio
     bio_img = BioImage(lif3d_path)
 
-    # test_data = np.squeeze(bio_img.get_stack(), axis=1)
-    images = []
-    series_ids = []
+    shapes = []
+
+    # Collect shapes
     for scene in bio_img.scenes:
         bio_img.set_scene(scene)
-        cur_data = bio_img.data
-        shape = cur_data.shape
+        current_shape = (bio_img.dims.X, bio_img.dims.Y, bio_img.dims.Z)
+        shapes.append(current_shape)
 
-        if shape[-1] != 1024 or shape[-2] != 1024:
-            # Special case of a single series in a .lif file having a resolution of 512 x 512
+    if not shapes:
+        return [], np.array([])
+
+    # get the primary shape in the image array
+    most_common_shape = Counter(shapes).most_common(1)[0][0]
+
+    images = []
+    series_ids = []
+
+    # only load the images that are comform with the most common shape
+    for scene, shape in zip(bio_img.scenes, shapes):
+        if shape == most_common_shape:
+            bio_img.set_scene(scene)
+            cur_data = bio_img.get_image_data("TCXYZ")
+            images.append(cur_data)
+            series_ids.append(scene)
+        else:
             continue
 
-        cur_data = cur_data.reshape((shape[0], -1, shape[-2], shape[-1])).reshape(shape[0], shape[2], shape[1],
-                                                                                  shape[-2], shape[-1])
-        shape = cur_data.shape
-        series_ids.append(scene)
-        images.append(cur_data)
-        # fig, axes = plt.subplots(ncols=shape[2], nrows=shape[1], sharex=True, sharey=True)
-        # for iR in range(shape[1]):
-        #    for iC in range(shape[2]):
-        #        axes[iR, iC].imshow(test_data[0, iR, iC])
-        # plt.tight_layout()
-        # plt.show()
+    if not images:
+        return series_ids, np.array([])
+
     images = np.stack(images)
     images = np.squeeze(images)
     return series_ids, images
@@ -409,6 +433,7 @@ class CellSePiImage:
             Input array whose bit depth is to be adjusted. Its elements are expected
             to conform to the original bit depth defined in the instance.
 
+def load_image_to_numpy(path):
         Returns:
         np.ndarray
             A transformed array with the same shape as the input, but with its bit
@@ -806,3 +831,43 @@ def consistent_hash(data):
     data_bytes = data.encode('utf-8')
     c_hash = hashlib.sha256(data_bytes).hexdigest()
     return c_hash
+
+
+
+def export_dataframe_to_pdf(df: pd.DataFrame, output_path: str):
+    # Setup document geometry (Standard Letter size)
+    doc = SimpleDocTemplate(output_path, pagesize=pagesizes.A4, rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
+    story = []
+
+    # Add a title header
+    styles = getSampleStyleSheet()
+    title_style = styles['Heading1']
+    story.append(Paragraph("Fluorescence Values", title_style))
+    story.append(Spacer(1, 15))  # 15 point vertical spacing
+
+    # Prepare data matrix: Include headers + all row values
+    data_matrix = [df.columns.to_list()] + df.values.tolist()
+
+    # Create the ReportLab dynamic Table widget
+    pdf_table = Table(data_matrix)
+
+    # Apply a clean, modern aesthetic theme (JetBrains-style dark/light structure)
+    pdf_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#1A73E8")),  # Primary header color
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 11),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+        ('TOPPADDING', (0, 0), (-1, 0), 8),
+        # Zebra striping for structural readability
+        ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor("#F8F9FA")),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor("#E0E0E0")),
+        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 1), (-1, -1), 9),
+        ('BOTTOMPADDING', (0, 1), (-1, -1), 6),
+        ('TOPPADDING', (0, 1), (-1, -1), 6),
+    ]))
+
+    story.append(pdf_table)
+    doc.build(story)

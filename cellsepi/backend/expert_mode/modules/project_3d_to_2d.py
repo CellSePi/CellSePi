@@ -7,8 +7,13 @@ from PIL import Image
 from backend.expert_mode.listener import ProgressEvent
 from backend.expert_mode.module import *
 
+
 class Project3dTo2d(Module, ABC):
-    _gui_config = ModuleGuiConfig("Project3Dto2D",Categories.FILTERS,"This modules handles the conversion from 3D data to 2D data based on an max z projection.")
+    _gui_config = ModuleGuiConfig(
+        "Project3Dto2D",
+        Categories.FILTERS,
+        "This modules handles the conversion from 3D data to 2D data based on an max z projection.")
+
     def __init__(self, module_id: str = None) -> None:
         super().__init__(module_id)
         self.inputs = {
@@ -23,25 +28,22 @@ class Project3dTo2d(Module, ABC):
         outputs_images = {}
         n_series = len(images)
         self.event_manager.notify(ProgressEvent(percent=0, process=f"Projecting Series: Starting"))
-        for iN,series in enumerate(images):
+        for iN, series in enumerate(images):
             outputs_images[series] = {}
             for channel in images[series]:
                 image_path = images[series][channel]
-                image = tifffile.imread(image_path) #dimensions are: Z,Y,X
-                image_max = np.max(image,axis=0)
+                image = tifffile.imread(image_path)  # dimensions are: Z,Y,X
+                image_max = np.max(image, axis=0)
                 base_dir = os.path.dirname(image_path)
                 proj_dir = os.path.join(base_dir, "projections")
                 os.makedirs(proj_dir, exist_ok=True)
-                name =os.path.basename(image_path)
+                name = os.path.basename(image_path)
                 new_path = os.path.join(proj_dir, name)
                 img = Image.fromarray(image_max)
                 img.save(new_path, format="TIFF")
                 outputs_images[series][channel] = new_path
 
-            self.event_manager.notify(ProgressEvent(percent=int((iN+1) / n_series * 100), process=f"Projecting Series: {iN+1}/{n_series}"))
+            self.event_manager.notify(ProgressEvent(percent=int((iN + 1) / n_series * 100),
+                                                    process=f"Projecting Series: {iN + 1}/{n_series}"))
         self.outputs["image_paths"].data = outputs_images
         self.event_manager.notify(ProgressEvent(percent=100, process=f"Projecting Series: Finished"))
-
-
-
-

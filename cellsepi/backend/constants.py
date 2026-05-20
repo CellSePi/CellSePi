@@ -1,6 +1,7 @@
 import os
 import shutil
 from enum import Enum, auto
+from enum import Enum
 from types import SimpleNamespace
 from pathlib import Path
 from typing import Optional
@@ -28,6 +29,11 @@ class FileType(Enum):
     OME_TIFF = SimpleNamespace(name= "OME-TIFF",extensions= ["ome.tiff", "ome.tif"],source= SourceType.FILE)
     TIFF_DIR = SimpleNamespace(name= "TIFF Dir", extensions= ["tiff", "tif"], source=SourceType.DIRECTORY)
 
+class ExportFileType(Enum):
+    EXCEL = SimpleNamespace({"name": "EXCEL", "extension": ".xlsx", "seperator": None})
+    TSV = SimpleNamespace({"name": "TSV", "extension": ".tsv", "seperator": "\t"})
+    CSV = SimpleNamespace({"name": "CSV", "extension": ".csv", "seperator": ","})
+    PDF = SimpleNamespace({"name": "PDF", "extension": ".pdf", "seperator": None})
 
 class Suffixes(Enum):
     SEGMENTATION_MASK = SimpleNamespace(name= "SEGMENTATION_MASK", suffixes= ["_seq"],  extensions=  ["npy"])

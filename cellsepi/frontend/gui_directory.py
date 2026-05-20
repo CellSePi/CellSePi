@@ -7,6 +7,11 @@ import shutil
 import flet as ft
 import numpy as np
 
+from backend.expert_mode.event_manager import EventManager
+from backend.expert_mode.listener import ProgressEvent
+from backend.expert_mode.pipeline_manager import PipelineRunningException
+from frontend.gui_canvas import update_main_image
+from frontend.gui_fluorescence import FluorescenceReadoutControl
 from backend.constants import FileType, SourceType, DirectoryManager, CSP_CHANNEL_PREFIX
 from backend.data_util import consistent_hash, extract_from_directory
 from cellsepi.backend.data_util import extract_from_file, load_directory, transform_image_path, \
@@ -175,7 +180,7 @@ class DirectoryCard(ft.Card):
         self.gui.open_button.visible = False
         self.gui.start_button.disabled = True
         self.gui.training_environment.start_button.disabled = True
-        fluorescence_button.visible = False
+        FluorescenceReadoutControl().visible = False
         self.gui.progress_bar_text.value = "Waiting for Input"
         self.gui.progress_bar.value = 0
         self.gui.contrast_slider.disabled = True
@@ -699,13 +704,14 @@ class DirectoryCard(ft.Card):
                     for image_id in self.gui.csp.image_paths
                 )
             )
+            fluorescence_readout_control = FluorescenceReadoutControl()
 
-            if all_mask_present and self.gui.csp.image_paths is not None and len(self.gui.csp.image_paths) != 0:
-                fluorescence_button.visible = True
-                fluorescence_button.update()
+            if all_mask_present and self.gui.csp.image_paths is not None and len(self.gui.csp.image_paths) != 0 :
+                fluorescence_readout_control.visible = True
+                fluorescence_readout_control.update()
             else:
-                fluorescence_button.visible = False
-                fluorescence_button.update()
+                fluorescence_readout_control.visible = False
+                fluorescence_readout_control.update()
 
 
 class ChoiceDialog:

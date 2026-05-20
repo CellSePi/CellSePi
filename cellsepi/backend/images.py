@@ -1,4 +1,5 @@
 import os
+import pathlib
 import threading
 
 import pandas as pd
@@ -12,7 +13,8 @@ from scipy.ndimage import binary_erosion
 from tifffile import tifffile
 import cv2
 
-from backend.data_util import load_image_to_numpy
+from backend.constants import ExportFileType
+from backend.data_util import load_image_to_numpy, export_dataframe_to_pdf
 from backend.expert_mode.event_manager import EventManager
 from backend.expert_mode.listener import ProgressEvent
 from backend.notifier import Notifier
@@ -23,12 +25,13 @@ class BatchImageSegmentation(Notifier):
     """
     This class handles the segmentation of the images.
     """
+
     def __init__(self,
-                 segmentation = None,
-                 gui = None,
-                 segmentation_channel:str = "",
-                 diameter:float = 125.0,
-                 suffix:str = "_seg"):
+                 segmentation=None,
+                 gui=None,
+                 segmentation_channel: str = "",
+                 diameter: float = 125.0,
+                 suffix: str = "_seg"):
         if gui is not None:
             super().__init__()
             self.segmentation = segmentation
@@ -54,7 +57,7 @@ class BatchImageSegmentation(Notifier):
     def _is_cellpose_model(self, model_path):
         try:
             from cellpose import models
-            _ = models.CellposeModel(pretrained_model=model_path,gpu=self.gui.csp.gpu)
+            _ = models.CellposeModel(pretrained_model=model_path, gpu=self.gui.csp.gpu)
             return True
         except Exception:
             return False
@@ -93,7 +96,7 @@ class BatchImageSegmentation(Notifier):
             for segmentation_channel, path in channels.items():
                 if segmentation_channel == self.segmentation_channel:
                     if os.path.exists(path):
-                        #needed to add error catches to handle listener with ui thread (can not update page ui in listener thread in version 0.84)
+                        # needed to add error catches to handle listener with ui thread (can not update page ui in listener thread in version 0.84)
                         try:
                             if os.path.getsize(path) == 0:
                                 print("Empty file:", path)
@@ -139,9 +142,9 @@ class BatchImageSegmentation(Notifier):
                         backup_path = self.gui.csp.mask_paths[image_id].get(segmentation_channel)
                         if backup_path:
                             np.save(backup_path, mask)
-                            if image_id == self.gui.csp.image_id and segmentation_channel == self.gui.csp.config.get_bf_channel(): #refreshes or delete the current generated mask
-                                self.gui.page.run_task(self.gui.canvas.update_mask_image,True)
-                                self.gui.mask_update(image_id,True)
+                            if image_id == self.gui.csp.image_id and segmentation_channel == self.gui.csp.config.get_bf_channel():  # refreshes or delete the current generated mask
+                                self.gui.page.run_task(self.gui.canvas.update_mask_image, True)
+                                self.gui.mask_update(image_id, True)
                     else:
                         if segmentation_channel in self.gui.csp.mask_paths[image_id]:
                             path = self.gui.csp.mask_paths[image_id][segmentation_channel]
@@ -160,7 +163,6 @@ class BatchImageSegmentation(Notifier):
             if image_id in self.gui.csp.mask_paths:
                 del self.gui.csp.mask_paths[image_id]
 
-
     # the following methods handle the different actions and handle accordingly
     def cancel_action(self):
         self.cancel_now = True
@@ -175,7 +177,7 @@ class BatchImageSegmentation(Notifier):
     def resume_action(self):
         self.resume_now = True
 
-    def run(self, event_manager: EventManager= None, image_paths = None, mask_paths=None, model_path = None):
+    def run(self, event_manager: EventManager = None, image_paths=None, mask_paths=None, model_path=None):
         """
         Applies the segmentation model to every image and stores the resulting masks.
         """
@@ -197,7 +199,6 @@ class BatchImageSegmentation(Notifier):
                 self.resume_now = False
                 self.segmentation.is_resuming()
 
-
         if event_manager is None:
             self._call_start_listeners()
         if event_manager is None:
@@ -217,14 +218,14 @@ class BatchImageSegmentation(Notifier):
 
         device = torch.device("cuda" if self.gui.csp.gpu else "cpu")  # converts string to device object
 
-        #if self._is_cellpose_model(segmentation_model):
+        # if self._is_cellpose_model(segmentation_model):
         if self.gui.csp.model_type == "CustomV3":
             model_type = 'CustomV3'
-            model = modelsV3.CellposeModel(pretrained_model=segmentation_model,gpu=self.gui.csp.gpu)
+            model = modelsV3.CellposeModel(pretrained_model=segmentation_model, gpu=self.gui.csp.gpu)
             ioV3.logger_setup()
         elif self.gui.csp.model_type == "Cellpose":
             model_type = 'Cellpose'
-            model = modelsV3.CellposeModel(model_type="cyto3",gpu=self.gui.csp.gpu)
+            model = modelsV3.CellposeModel(model_type="cyto3", gpu=self.gui.csp.gpu)
             ioV3.logger_setup()
         elif self.gui.csp.model_type == "CellposeSAM":
             model_type = 'CellposeSAM'
@@ -232,7 +233,7 @@ class BatchImageSegmentation(Notifier):
             io.logger_setup()
         elif self.gui.csp.model_type == "CustomV4":
             model_type = 'CustomV4'
-            model = models.CellposeModel(pretrained_model=segmentation_model,gpu=self.gui.csp.gpu)
+            model = models.CellposeModel(pretrained_model=segmentation_model, gpu=self.gui.csp.gpu)
             io.logger_setup()
         """else:
             model_type = 'pytorch'
@@ -248,7 +249,8 @@ class BatchImageSegmentation(Notifier):
 
         start_index = self.num_seg_images
         for iN, image_id in enumerate(list(image_paths)[start_index:], start=start_index):
-            if segmentation_channel in image_paths[image_id] and os.path.isfile(image_paths[image_id][segmentation_channel]):
+            if segmentation_channel in image_paths[image_id] and os.path.isfile(
+                    image_paths[image_id][segmentation_channel]):
                 if event_manager is None:
                     if self.cancel_now:
                         self.cancel_now = False
@@ -284,15 +286,16 @@ class BatchImageSegmentation(Notifier):
 
                 # model evaluates image
                 if model_type == 'Cellpose' or model_type == 'CustomV3':
-                    if image.ndim == 3: #x,y,z dimensions
-                        res = model.eval(image, diameter=diameter, channels=[0, 0],z_axis=0,do_3D=False,stitch_threshold=0.5)
+                    if image.ndim == 3:  # x,y,z dimensions
+                        res = model.eval(image, diameter=diameter, channels=[0, 0], z_axis=0, do_3D=False,
+                                         stitch_threshold=0.5)
                     else:
                         res = model.eval(image, diameter=diameter, channels=[0, 0])
                     mask, flow, style = res[:3]
 
                 elif model_type == 'CellposeSAM' or model_type == 'CustomV4':
-                    if image.ndim == 3: #x,y,z dimensions
-                        res = model.eval(image, diameter=diameter,z_axis=0,do_3D=False,stitch_threshold=0.5)
+                    if image.ndim == 3:  # x,y,z dimensions
+                        res = model.eval(image, diameter=diameter, z_axis=0, do_3D=False, stitch_threshold=0.5)
                     else:
                         res = model.eval(image, diameter=diameter)
                     mask, flow, style = res[:3]
@@ -337,7 +340,7 @@ class BatchImageSegmentation(Notifier):
                             os.remove(backup_path)
                         os.rename(default_suffix_path, backup_path)
                 # Save the segmentation results directly with the default name first
-                if model_type == 'Cellpose' or model_type ==  'CustomV3':
+                if model_type == 'Cellpose' or model_type == 'CustomV3':
                     print(mask.dtype, mask.shape, np.unique(mask)[:10])
                     ioV3.masks_flows_to_seg([image], [mask], [flow], [image_path])
                     seg = np.load(default_suffix_path, allow_pickle=True).item()
@@ -367,7 +370,7 @@ class BatchImageSegmentation(Notifier):
                             os.rename(backup_path, default_suffix_path)
                 if event_manager is None:
                     if image_id not in self.gui.csp.mask_paths:
-                            self.gui.csp.mask_paths[image_id] = {}
+                        self.gui.csp.mask_paths[image_id] = {}
                 else:
                     if image_id not in mask_paths:
                         mask_paths[image_id] = {}
@@ -377,68 +380,72 @@ class BatchImageSegmentation(Notifier):
                 else:
                     mask_paths[image_id][segmentation_channel] = new_path
 
-                percent= round((iN + 1) / n_images * 100)
+                percent = round((iN + 1) / n_images * 100)
                 progress = str(percent) + " %"
                 if event_manager is None:
                     current_image = {"image_id": image_id, "path": image_path}
                     self._call_update_listeners(progress, current_image)
                 else:
-                    event_manager.notify(ProgressEvent(percent=percent,process=f"Segmenting Images: {iN+1}/{n_images} (Latest Image: {image_id})"))
+                    event_manager.notify(ProgressEvent(percent=percent,
+                                                       process=f"Segmenting Images: {iN + 1}/{n_images} (Latest Image: {image_id})"))
                 self.num_seg_images = self.num_seg_images + 1
                 if event_manager is None:
                     self.gui.directory.update_mask_check(image_id)
                     self.gui.diameter_text.value = self.gui.average_diameter.get_avg_diameter()
             else:
-                percent= round((iN + 1) / n_images * 100)
+                percent = round((iN + 1) / n_images * 100)
                 progress = str(percent) + " %"
                 if event_manager is None:
                     current_image = {"image_id": image_id, "path": None}
                     self._call_update_listeners(progress, current_image)
                 else:
-                    event_manager.notify(ProgressEvent(percent=percent,process=f"Segmenting Images: {iN+1}/{n_images} (Latest Image: {image_id})"))
+                    event_manager.notify(ProgressEvent(percent=percent,
+                                                       process=f"Segmenting Images: {iN + 1}/{n_images} (Latest Image: {image_id})"))
                 self.num_seg_images = self.num_seg_images + 1
 
         if event_manager is None:
             self._call_completion_listeners()
         else:
-            event_manager.notify(ProgressEvent(percent=100 ,process=f"All images segmented."))
+            event_manager.notify(ProgressEvent(percent=100, process=f"All images segmented."))
         # reset variables
         self.num_seg_images = 0
 
+
 class BatchImageReadout(Notifier):
 
-    def __init__(self, image_paths,
+    def __init__(self,
+                 image_paths,
                  mask_paths,
+                 export_file_type: ExportFileType,
+                 file_path: pathlib.Path,
                  segmentation_channel,
                  channel_prefix="c",
-                 directory=None,module:bool = False):
+                 module: bool = False
+                 ):
         if not module:
             super().__init__()
 
-        if directory is None:
-            directory = ""
-
         self.image_paths = image_paths
         self.mask_paths = mask_paths
+        self.export_file_type = export_file_type
+        self.file_path = file_path
         self.segmentation_channel = segmentation_channel
         self.channel_prefix = channel_prefix
-        self.directory = directory
 
     def _channel_name(self, channel_id):
         return self.channel_prefix + str(channel_id)
 
-    def run(self,event_manager: EventManager = None):
+    def run(self, event_manager: EventManager = None):
         image_paths = self.image_paths
         n_images = len(image_paths)
 
         if event_manager is None:
             self._call_start_listeners()
         else:
-            event_manager.notify(ProgressEvent(0,f"Readout Images: 0/{n_images}"))
+            event_manager.notify(ProgressEvent(0, f"Readout Images: 0/{n_images}"))
 
         mask_paths = self.mask_paths
         segmentation_channel = self.segmentation_channel
-
 
         row_entries = []
 
@@ -453,7 +460,7 @@ class BatchImageReadout(Notifier):
             if not image_id in mask_paths or not segmentation_channel in mask_paths[image_id]:
                 continue
             mask_path = mask_paths[image_id][segmentation_channel]
-            mask_data = np.load(mask_path,allow_pickle=True).item()
+            mask_data = np.load(mask_path, allow_pickle=True).item()
             mask = mask_data["masks"].astype(np.uint16)
 
             cell_ids = np.unique(mask)
@@ -498,20 +505,29 @@ class BatchImageReadout(Notifier):
                     cur_row_entries[iX][f"background {channel_name}"] = background_val
             row_entries += cur_row_entries
 
-
             if event_manager is None:
                 kwargs = {"progress": str(int((iN + 1) / n_images * 100)) + "%",
                           "current_image": {"image_id": image_id}}
                 self._call_update_listeners(**kwargs)
             else:
-                event_manager.notify(ProgressEvent(percent=int((iN + 1) / n_images * 100),process=f"Readout Images: {iN+1}/{n_images} (Latest Image: {image_id})"))
+                event_manager.notify(ProgressEvent(percent=int((iN + 1) / n_images * 100),
+                                                   process=f"Readout Images: {iN + 1}/{n_images} (Latest Image: {image_id})"))
 
-
-        readout_path = os.path.join(self.directory, "readout.xlsx")
+        readout_path = self.file_path
         df = pd.DataFrame(row_entries)
-        df.to_excel(readout_path, index=False)
+
+        match self.export_file_type:
+            case ExportFileType.EXCEL:
+                df.to_excel(readout_path, index=False)
+            case ExportFileType.CSV:
+                df.to_csv(readout_path, index=False)
+            case ExportFileType.TSV:
+                df.to_csv(readout_path, sep="\t", index=False)
+            case ExportFileType.PDF:
+                export_dataframe_to_pdf(df, str(readout_path.absolute()))
+
         if event_manager is None:
             kwargs = {}
             self._call_completion_listeners(readout=df, readout_path=readout_path, **kwargs)
         else:
-            event_manager.notify(ProgressEvent(100,"Completed Readout"))
+            event_manager.notify(ProgressEvent(100, "Completed Readout"))
