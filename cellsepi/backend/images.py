@@ -14,7 +14,7 @@ from tifffile import tifffile
 import cv2
 
 from backend.constants import ExportFileType
-from backend.data_util import export_dataframe_to_pdf
+from backend.data_util import load_image_to_numpy,export_dataframe_to_pdf
 from backend.expert_mode.event_manager import EventManager
 from backend.expert_mode.listener import ProgressEvent
 from backend.notifier import Notifier
@@ -493,7 +493,9 @@ class BatchImageReadout(Notifier):
                 image_path = image_paths[image_id][channel_id]
                 channel_name = self._channel_name(channel_id)
 
-                np_image = np.load(mask_path, allow_pickle=True).item()
+                np_image = load_image_to_numpy(image_path)
+                np_image = np.squeeze(np_image)
+
                 background_mask = mask == 0
                 background_val = np.mean(np_image[background_mask])
 
