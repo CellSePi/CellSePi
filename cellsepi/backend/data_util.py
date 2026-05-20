@@ -208,8 +208,7 @@ def extract_from_lif3d_file(lif3d_path, target_dir, channel_prefix, event_manage
         for c_idx, channel_3d in enumerate(series):
             file_name = f"{series_id}{channel_prefix}{c_idx + 1}.tif"
             target_path = target_dir / file_name
-            clean_data = np.squeeze(channel_3d)
-            tifffile.imwrite(target_path, clean_data)
+            writeImageWithPreprocessing(target_path,channel_3d)
         if event_manager is not None:
             event_manager.notify(event=ProgressEvent(int((s_idx + 1) / total_scenes * 100),
                                                      process=f"Extracted Series: {s_idx + 1}/{total_scenes}"))
@@ -291,6 +290,12 @@ def extract_from_lif_file(lif_path, target_dir, channel_prefix, event_manager: E
             event_manager.notify(
                 event=ProgressEvent(100, process=f"Finished extracting Series!"))
 """
+
+def write_image_with_preprocessing(target_path,image_data):
+    #TODO:PREPROCESSING (resize,dark corners,etc...)
+    clean_data = np.squeeze(image_data)
+    tifffile.imwrite(target_path, clean_data)
+
 
 class CellSePiImage:
 
@@ -507,8 +512,7 @@ def extract_from_file(
             target_path = target_dir / file_name
 
             # Store 3D data to disk
-            clean_data = np.squeeze(image_data)
-            tifffile.imwrite(target_path, clean_data)
+            writeImageWithPreprocessing(target_path, image_data)
 
         if event_manager is not None:
             event_manager.notify(event=ProgressEvent(int((index + 1) / total_scenes * 100),
@@ -607,8 +611,7 @@ def extract_from_directory(
             target_path = target_dir / file_name
 
             # Store 3D data to disk
-            clean_data = np.squeeze(image_data)
-            tifffile.imwrite(target_path, clean_data)
+            writeImageWithPreprocessing(target_path,image_data)
 
         for channel_id, mpath in scenes_masks[scene]:
             # Copy all associated mask information
