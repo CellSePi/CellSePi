@@ -604,7 +604,13 @@ def process_channel(channel_id, channel_path):
     image = tifffile.imread(channel_path)
     if image.ndim == 3:
         image = np.max(image, axis=0)
-    down_scaled_image = cv2.resize(image, (150, 150), interpolation=cv2.INTER_AREA)
+
+    h, w = image.shape[:2]
+
+    max_size = 150
+    scale = max_size / max(h, w)
+    new_w, new_h = int(w * scale), int(h * scale)
+    down_scaled_image = cv2.resize(image, (new_w, new_h), interpolation=cv2.INTER_AREA)
     _, buffer = cv2.imencode('.png', down_scaled_image, [cv2.IMWRITE_PNG_COMPRESSION, 1])
 
     return channel_id, base64.b64encode(buffer).decode('utf-8')
