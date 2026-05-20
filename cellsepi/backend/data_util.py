@@ -693,3 +693,8 @@ def export_dataframe_to_pdf(df: pd.DataFrame, output_path: str):
 
     story.append(pdf_table)
     doc.build(story)
+
+def load_image_to_numpy(path):
+    im = tifffile.imread(path)
+    array = np.array(im)
+    return array
