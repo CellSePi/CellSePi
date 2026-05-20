@@ -732,7 +732,11 @@ def export_dataframe_to_pdf(df: pd.DataFrame, output_path: str):
     story.append(Spacer(1, 15))  # 15 point vertical spacing
 
     # Prepare data matrix: Include headers + all row values
-    data_matrix = [df.columns.to_list()] + df.values.tolist()
+    #if no mask was detected pdf with
+    if df.empty or len(df.columns) == 0:
+        data_matrix = [["No mask was generated"]]
+    else:
+        data_matrix = [df.columns.to_list()] + df.values.tolist()
 
     # Create the ReportLab dynamic Table widget
     pdf_table = Table(data_matrix)

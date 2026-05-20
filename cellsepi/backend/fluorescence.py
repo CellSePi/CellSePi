@@ -59,8 +59,7 @@ class Fluorescence(Notifier):
                                                     export_file_type=export_file_type,
                                                     file_path=file_path,
                                                     segmentation_channel=brightfield_channel,
-                                                    channel_prefix=prefix,
-                                                    directory=working_directory)
+                                                    channel_prefix=prefix)
             batch_image_readout.add_update_listener(listener=on_update)
             batch_image_readout.add_completion_listener(listener=completed_readout)
 
