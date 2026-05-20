@@ -97,13 +97,13 @@ class DirectoryCard(ft.Card):
             self.directory_row = self.create_dir_row()
             self.files_row = self.create_files_row()
             self.lif_slider_blocker = ft.Container(
-                width=80,
                 height=30,
+                expand=True,
                 bgcolor=ft.Colors.TRANSPARENT,
                 on_click=None,
                 visible=False,
             )
-            self.lif_row = ft.Row(
+            self.lif_row = ft.Column(
                 [
                     ft.Stack(
                         [
@@ -111,8 +111,6 @@ class DirectoryCard(ft.Card):
                             self.lif_slider_blocker
                         ]
                     ),
-                    self.directory_row,
-                    self.files_row
                 ],
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN
             )
@@ -614,13 +612,12 @@ class DirectoryCard(ft.Card):
                     ft.Container(
                         content=ft.Column(
                             [
-                                self.path_list_tile,
+                                ft.Row([self.path_list_tile]),
                                 self.lif_row
                             ]
                         )
                     ),
-                    ft.Container(
-                        content=ft.Container(
+                    ft.Row([ft.Container(
                             content=ft.IconButton(
                                 icon=ft.Icons.COPY,
                                 tooltip="Copy to clipboard",
@@ -628,9 +625,8 @@ class DirectoryCard(ft.Card):
                                                                    self.gui.directory.directory_path.value,
                                                                    "Directory path")
                             ),
-                            alignment=ft.Alignment.TOP_RIGHT,
-                        )
-                    )
+
+                        ),self.directory_row,self.files_row,],alignment=ft.MainAxisAlignment.END)
                 ]
 
             ),

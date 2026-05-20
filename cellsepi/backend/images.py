@@ -276,14 +276,6 @@ class BatchImageSegmentation(Notifier):
                 else:
                     image = np.zeros_like(image)
 
-                # Scale down image resolution to accelerate segmentation
-                """scale = 0.5
-                image = cv2.resize(
-                    image,
-                    (int(image.shape[1] * scale), int(image.shape[0] * scale)),
-                    interpolation=cv2.INTER_AREA
-                )"""
-
                 # model evaluates image
                 if model_type == 'Cellpose' or model_type == 'CustomV3':
                     if image.ndim == 3:  # z, y, x dimensions

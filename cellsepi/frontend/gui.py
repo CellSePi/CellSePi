@@ -159,7 +159,7 @@ class GUI:
 
                                     self.segmentation_card
                                 ],
-                                expand=True,
+                                expand=6,
                                 alignment=ft.MainAxisAlignment.START,
                                 visible=True,
                                 ref=self.ref_seg_environment
@@ -169,7 +169,7 @@ class GUI:
                                     self.training_environment.add_parameter_container(),
                                     self.training_environment.create_training_card()
                                 ],
-                                expand=True,
+                                expand=6,
                                 alignment=ft.MainAxisAlignment.START,
                                 visible=False,
                                 ref=self.ref_training_environment
@@ -198,7 +198,7 @@ class GUI:
                                         expand=True
                                     ),
                                 ],
-                                expand=True,
+                                expand=4,
                                 ref=self.ref_gallery_environment
                             ),
                             ft.Column(

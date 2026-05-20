@@ -116,11 +116,13 @@ class GUISegmentation:
                 model_choose_button.visible = True
                 model_text.value = "Choose model"
                 model_text.color = None
+                self.gui.csp.model_path = None
                 self.gui.csp.model_type = "CustomV3"
             elif model_drop_down.value == "Custom CellposeSAM Model":
                 model_choose_button.visible = True
                 model_text.value = "Choose model"
                 model_text.color = None
+                self.gui.csp.model_path = None
                 self.gui.csp.model_type = "CustomV4"
             elif model_drop_down.value == "CellposeSAM":
                 if self.gui.ready_to_start:
@@ -128,6 +130,7 @@ class GUISegmentation:
                     start_button.disabled = False
                 model_text.value = "Cellpose SAM"
                 model_text.color = None
+                self.gui.csp.model_path = "pre_def"
                 model_choose_button.visible = False
                 self.gui.csp.model_type = "CellposeSAM"
             elif model_drop_down.value == "Cellpose":
@@ -137,6 +140,7 @@ class GUISegmentation:
                 model_text.value = "Cellpose"
                 model_text.color = None
                 model_choose_button.visible = False
+                self.gui.csp.model_path = "pre_def"
                 self.gui.csp.model_type = "Cellpose"
             self.gui.page.update()
 
@@ -366,7 +370,7 @@ class GUISegmentation:
             )
             path = pathlib.Path(chosen_path)
 
-            self.fluorescence.readout_fluorescence(export_ft, path)
+            self.gui.page.run_thread(self.fluorescence.readout_fluorescence,export_ft, path)
             FluorescenceReadoutControl().disabled = True
             start_button.disabled = True
             self.gui.open_button.visible = False
@@ -383,19 +387,24 @@ class GUISegmentation:
             self.progress_bar_text.value = "0 %"
             self.gui.page.update()
 
-        def complete_fl():
+        async def complete_fl_ui():
             self.progress_bar.value = 0
             if not platform.system() == "Linux":
                 self.gui.page.window.progress_bar = -1
+
             if self.gui.csp.model_path is not None:
                 self.progress_bar_text.value = "Ready to start"
             else:
                 self.progress_bar_text.value = "Waiting for Input"
+
             self.gui.directory.enable_path_choosing()
             model_title.disabled = False
             model_chooser.disabled = False
             self.gui.page.update()
             self.gui.readout_event.set()
+
+        def complete_fl(*args, **kwargs):
+            self.gui.page.run_task(complete_fl_ui)
 
         fluorescence_readout_control.button.on_click = fluorescence_readout
         self.fluorescence.add_start_listener(listener=start_fl)

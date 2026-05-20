@@ -611,7 +611,8 @@ def process_channel(channel_id, channel_path):
     scale = max_size / max(h, w)
     new_w, new_h = int(w * scale), int(h * scale)
     down_scaled_image = cv2.resize(image, (new_w, new_h), interpolation=cv2.INTER_AREA)
-    _, buffer = cv2.imencode('.png', down_scaled_image, [cv2.IMWRITE_PNG_COMPRESSION, 1])
+    image_8bit = cv2.convertScaleAbs(down_scaled_image, alpha=1 / 256.0)
+    _, buffer = cv2.imencode('.png', image_8bit, [cv2.IMWRITE_PNG_COMPRESSION, 1])
 
     return channel_id, base64.b64encode(buffer).decode('utf-8')
 
