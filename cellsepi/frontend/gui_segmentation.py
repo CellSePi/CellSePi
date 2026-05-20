@@ -1,4 +1,5 @@
 import os
+import pathlib
 import platform
 import re
 import subprocess
@@ -6,8 +7,9 @@ import sys
 
 import flet as ft
 
+from backend.constants import ExportFileType
 from backend.fluorescence import Fluorescence
-from frontend.gui_fluorescence import fluorescence_button
+from frontend.gui_fluorescence import FluorescenceReadoutControl
 from backend.segmentation import Segmentation
 
 
@@ -15,6 +17,7 @@ class GUISegmentation:
     """
     This class handles the segmentation, which can be controlled by the start, pause, resume and cancel buttons.
     """
+
     def __init__(self, gui):
         self.gui = gui
         self.segmentation = Segmentation(self, gui)
@@ -26,7 +29,6 @@ class GUISegmentation:
         self.progress_bar = ft.ProgressBar(value=0, width=180)
         self.progress_bar_text = ft.Text("Waiting for Input")
 
-
     def create_segmentation_card(self):
         """
         This method creates a segmentation card for the GUI, which contains the progress bar and several buttons for
@@ -36,20 +38,20 @@ class GUISegmentation:
             segmentation_card (ft.Card): the card containing all the elements needed to run the segmentation
         """
         # creating all the necessary buttons and their initial properties
-        start_button = ft.Button( # button to start the segmentation calculation
+        start_button = ft.Button(  # button to start the segmentation calculation
             content="Start",
             icon=ft.Icons.PLAY_CIRCLE,
             tooltip="Start the segmentation",
             disabled=True,
             on_click=None
         )
-        pause_button = ft.Button( # button to pause the segmentation calculation while it is running
+        pause_button = ft.Button(  # button to pause the segmentation calculation while it is running
             content="Pause",
             icon=ft.Icons.PAUSE_CIRCLE,
             visible=False,
             on_click=None,
         )
-        cancel_button = ft.Button( # button to completely cancel the currently running segmentation calculation
+        cancel_button = ft.Button(  # button to completely cancel the currently running segmentation calculation
             content="Cancel",
             icon=ft.Icons.CANCEL,
             visible=False,
@@ -57,7 +59,7 @@ class GUISegmentation:
             color=ft.Colors.RED,
             icon_color=ft.Colors.RED,
         )
-        resume_button = ft.Button( # button to resume the segmentation calculation after it has been paused
+        resume_button = ft.Button(  # button to resume the segmentation calculation after it has been paused
             content="Resume",
             icon=ft.Icons.PLAY_CIRCLE,
             visible=False,
@@ -65,7 +67,8 @@ class GUISegmentation:
         )
 
         # button to start the fluorescence readout
-        fl_button = fluorescence_button
+        # fl_button = fluorescence_button
+        fluorescence_readout_control = FluorescenceReadoutControl()
 
         # progress bar, which is updated throughout the segmentation calculation and fluorescence readout
         self.progress_bar = ft.ProgressBar(value=0, width=180)
@@ -80,9 +83,9 @@ class GUISegmentation:
 
         open_button = ft.IconButton(
             icon=ft.Icons.OPEN_IN_NEW_ROUNDED,
-            tooltip = "Open fluorescence file",
+            tooltip="Open fluorescence file",
             on_click=open_readout,
-            visible= False
+            visible=False
         )
 
         # the following methods are called when clicking on the corresponding button
@@ -97,7 +100,7 @@ class GUISegmentation:
                                                      initial_directory=model_directory
                                                      )
             if files is None or len(files) == 0:
-                #case: no model selected
+                # case: no model selected
                 pass
             elif files[0].path is not None:
                 if self.gui.ready_to_start:
@@ -108,17 +111,18 @@ class GUISegmentation:
                 self.gui.csp.model_path = files[0].path
                 self.gui.page.update()
 
-
         def new_pick_model_result(e: ft.Event[ft.Button]):
             if model_drop_down.value == "Custom Cellpose Model":
                 model_choose_button.visible = True
                 model_text.value = "Choose model"
                 model_text.color = None
+                self.gui.csp.model_path = None
                 self.gui.csp.model_type = "CustomV3"
             elif model_drop_down.value == "Custom CellposeSAM Model":
                 model_choose_button.visible = True
                 model_text.value = "Choose model"
                 model_text.color = None
+                self.gui.csp.model_path = None
                 self.gui.csp.model_type = "CustomV4"
             elif model_drop_down.value == "CellposeSAM":
                 if self.gui.ready_to_start:
@@ -126,6 +130,7 @@ class GUISegmentation:
                     start_button.disabled = False
                 model_text.value = "Cellpose SAM"
                 model_text.color = None
+                self.gui.csp.model_path = "pre_def"
                 model_choose_button.visible = False
                 self.gui.csp.model_type = "CellposeSAM"
             elif model_drop_down.value == "Cellpose":
@@ -135,18 +140,17 @@ class GUISegmentation:
                 model_text.value = "Cellpose"
                 model_text.color = None
                 model_choose_button.visible = False
+                self.gui.csp.model_path = "pre_def"
                 self.gui.csp.model_type = "Cellpose"
             self.gui.page.update()
 
-
-
-        def start_segmentation(e): # called when the start button is clicked
+        def start_segmentation(e):  # called when the start button is clicked
             """
             The start of the segmentation is initialized.
             This includes error handling for the case where something other than a model is chosen.
             """
             # visibility of buttons before start of segmentation (needed in case of error)
-            state_fl_button = fl_button.visible
+            state_fl_button = FluorescenceReadoutControl().visible
             state_open_button = self.gui.open_button.visible
             try:
                 start_button.visible = False
@@ -154,7 +158,7 @@ class GUISegmentation:
                 cancel_button.visible = True
                 model_title.disabled = True
                 model_chooser.disabled = True
-                fl_button.visible = False
+                FluorescenceReadoutControl().visible = False
                 cancel_button.color = ft.Colors.RED
                 cancel_button.icon_color = ft.Colors.RED
                 self.gui.open_button.visible = False
@@ -162,9 +166,11 @@ class GUISegmentation:
                 self.gui.directory.disable_path_choosing()
 
                 self.gui.page.update()
-                self.gui.page.run_thread(self.segmentation.run) # this will throw an error if something other than a model was chosen
+                # this will throw an error if something other than a model was chosen
+                self.gui.page.run_thread(self.segmentation.run)
             except:
-                self.gui.page.show_dialog(ft.SnackBar(ft.Text("You have selected an incompatible file for the segmentation model.")))
+                self.gui.page.show_dialog(
+                    ft.SnackBar(ft.Text("You have selected an incompatible file for the segmentation model.")))
                 self.gui.training_environment.enable_switch_environment()
                 start_button.visible = True
                 start_button.disabled = True
@@ -173,7 +179,7 @@ class GUISegmentation:
                 model_title.disabled = False
                 model_text.color = ft.Colors.RED
                 model_chooser.disabled = False
-                fl_button.visible = state_fl_button
+                FluorescenceReadoutControl().visible = state_fl_button
                 self.gui.open_button.visible = state_open_button
                 self.gui.directory.enable_path_choosing()
                 self.gui.csp.segmentation_running = False
@@ -181,8 +187,7 @@ class GUISegmentation:
                 self.gui.csp.model_path = None
                 self.gui.page.update()
 
-
-        def cancel_segmentation(): # called when the cancel button is clicked
+        def cancel_segmentation():  # called when the cancel button is clicked
             """
             The running segmentation is cancelled and everything returns to the start state.
             The masks calculated so far are deleted and the previously calculated masks are restored.
@@ -203,8 +208,7 @@ class GUISegmentation:
                 self.progress_bar_text.value = "Cancelling: " + self.progress_bar_text.value
             self.gui.page.update()
 
-
-        def pause_segmentation(e): # called when the pause button is clicked
+        def pause_segmentation(e):  # called when the pause button is clicked
             """
             The running segmentation is paused (the progress of the segmentation so far is stored).
             """
@@ -219,7 +223,7 @@ class GUISegmentation:
             self.segmentation_pausing = True
             self.segmentation.to_be_paused()
 
-        def resume_segmentation(e): # called when the resume button is clicked
+        def resume_segmentation(e):  # called when the resume button is clicked
             """
             The segmentation is resumed again from the previously paused state.
             """
@@ -229,14 +233,13 @@ class GUISegmentation:
             pause_button.disabled = True
             cancel_button.disabled = True
             extracted_percentage = re.search(r'\d+', self.progress_bar_text.value)
-            self.progress_bar_text.value =  extracted_percentage.group(0) + " %" # remove "paused at " from string
+            self.progress_bar_text.value = extracted_percentage.group(0) + " %"  # remove "paused at " from string
             cancel_button.color = None
             cancel_button.icon_color = None
             self.gui.page.update()
             self.segmentation.to_be_resumed()
             self.segmentation_resuming = True
             self.segmentation.run()
-
 
         # define behavior of buttons when they are clicked
         start_button.on_click = start_segmentation
@@ -252,8 +255,8 @@ class GUISegmentation:
             self.progress_bar_text.value = "Finished"
             pause_button.visible = False
             cancel_button.visible = False
-            fl_button.visible = True
-            fl_button.disabled = False
+            FluorescenceReadoutControl().visible = True
+            FluorescenceReadoutControl().disabled = False
             start_button.visible = True
             start_button.disabled = False
             model_title.disabled = False
@@ -336,14 +339,14 @@ class GUISegmentation:
                     self.gui.page.window.progress_bar = self.progress_bar.value
 
             if current_image is not None:
-                if current_image["image_id"] == self.gui.csp.image_id and self.segmentation.batch_image_segmentation.segmentation_channel == self.gui.csp.config.get_bf_channel():
+                if (current_image["image_id"] == self.gui.csp.image_id
+                        and self.segmentation.batch_image_segmentation.segmentation_channel == self.gui.csp.config.get_bf_channel()):
                     await self.gui.canvas.update_mask_image(True)
 
             self.gui.page.update()
 
-        def update_progress_bar(progress,current_image):
-            self.gui.page.run_task(_update_progress_bar,progress,current_image)
-
+        def update_progress_bar(progress, current_image):
+            self.gui.page.run_task(_update_progress_bar, progress, current_image)
 
         # listeners for getting different information from the state of the segmentation process
         self.segmentation.add_update_listener(listener=update_progress_bar)
@@ -352,12 +355,23 @@ class GUISegmentation:
         self.segmentation.add_pause_listener(listener=paused_segmentation)
         self.segmentation.add_resume_listener(listener=resumed_segmentation)
 
-        def fluorescence_readout(e):
+        async def fluorescence_readout(e):
             """
             Updates the segmentation card and starts readout of the fluorescence data when the fluorescence button is clicked.
             """
-            self.fluorescence.readout_fluorescence()
-            fl_button.disabled = True
+            # ToDo EK: Retrieve here the export format of the data from the FluorescenceReadoutControl slider
+            export_ft = list(ExportFileType)[FluorescenceReadoutControl().slider.selected_index]
+
+
+            file_picker = ft.FilePicker()
+            chosen_path = await file_picker.save_file(
+                dialog_title="Save fluorescence data",
+                file_name=f"fluorescence_readout{export_ft.value.extension}"       # the "." is already part of the extension
+            )
+            path = pathlib.Path(chosen_path)
+
+            self.gui.page.run_thread(self.fluorescence.readout_fluorescence,export_ft, path)
+            FluorescenceReadoutControl().disabled = True
             start_button.disabled = True
             self.gui.open_button.visible = False
             self.progress_bar_text.value = "Reading fluorescence"
@@ -373,81 +387,108 @@ class GUISegmentation:
             self.progress_bar_text.value = "0 %"
             self.gui.page.update()
 
-        def complete_fl():
+        async def complete_fl_ui():
             self.progress_bar.value = 0
             if not platform.system() == "Linux":
                 self.gui.page.window.progress_bar = -1
+
             if self.gui.csp.model_path is not None:
                 self.progress_bar_text.value = "Ready to start"
             else:
                 self.progress_bar_text.value = "Waiting for Input"
+
             self.gui.directory.enable_path_choosing()
             model_title.disabled = False
             model_chooser.disabled = False
             self.gui.page.update()
             self.gui.readout_event.set()
 
+        def complete_fl(*args, **kwargs):
+            self.gui.page.run_task(complete_fl_ui)
 
-        fl_button.on_click = fluorescence_readout
+        fluorescence_readout_control.button.on_click = fluorescence_readout
         self.fluorescence.add_start_listener(listener=start_fl)
         self.fluorescence.add_update_listener(listener=update_progress_bar)
         self.fluorescence.add_completion_listener(listener=complete_fl)
 
         pick_model_row = ft.Row(
             [
-                ft.Container(content=ft.Row([self.progress_bar,self.progress_bar_text ])),
-                ft.Container(content=ft.Row([start_button, pause_button, resume_button, cancel_button, fl_button, open_button]))
+                ft.Container(
+                    content=ft.Row(
+                        [
+                            self.progress_bar,
+                            self.progress_bar_text
+                        ]
+                    )
+                ),
+                ft.Container(
+                    content=ft.Row(
+                        [
+                            start_button,
+                            pause_button,
+                            resume_button,
+                            cancel_button
+                        ]
+                    )
+                )
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN
         )
-        model_text = ft.Text("Model name",color=ft.Colors.GREY_500)
+
+        fluorescence_readout_row = ft.Row(
+            [
+                fluorescence_readout_control,
+                open_button,
+            ], alignment=ft.MainAxisAlignment.END,
+        )
+        model_text = ft.Text("Model name", color=ft.Colors.GREY_500)
         model_title = ft.ListTile(
-                                        leading=ft.Icon(icon=ft.Icons.HUB_OUTLINED),
-                                        title= model_text,
-                                    )
+            leading=ft.Icon(icon=ft.Icons.HUB_OUTLINED),
+            title=model_text,
+        )
 
         segmentation_container = ft.Container(
-                            content=ft.Column(
-                                [model_title,
-                                 pick_model_row,
-                                 ]
-                            )
-                        )
+            content=ft.Column(
+                [
+                    model_title,
+                    pick_model_row,
+                    fluorescence_readout_row,
+                ]
+            )
+        )
 
-        project_root =os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         model_directory = os.path.join(project_root, "models")
 
         model_drop_down = ft.DropdownM2(
-                width=220,
-                label="Choose model",
-                border_color=ft.Colors.BLUE_ACCENT,
-                options=[ft.dropdownm2.Option(key="Cellpose", text="Cellpose"),
+            width=250,
+            label="Choose model",
+            border_color=ft.Colors.BLUE_ACCENT,
+            options=[ft.dropdownm2.Option(key="Cellpose", text="Cellpose"),
                      ft.dropdownm2.Option(key="CellposeSAM", text="CellposeSAM"),
                      ft.dropdownm2.Option(key="Custom CellposeSAM Model", text="CustomV4"),
                      ft.dropdownm2.Option(key="Custom Cellpose Model", text="CustomV3")],
-                on_change=lambda e: new_pick_model_result(e))
+            on_change=lambda e: new_pick_model_result(e))
 
         model_choose_button = ft.IconButton(
-                icon=ft.Icons.UPLOAD_FILE,
-                tooltip="Select custom model",
-                visible=False,
-                on_click=lambda e: e.page.run_task(pick_model_result,e))
+            icon=ft.Icons.UPLOAD_FILE,
+            tooltip="Select custom model",
+            visible=False,
+            on_click=lambda e: e.page.run_task(pick_model_result, e))
 
         model_chooser = ft.Container(ft.Row(
-            controls = [model_drop_down, model_choose_button],
-            alignment=ft.MainAxisAlignment.END,),
-        alignment=ft.Alignment.BOTTOM_RIGHT)
-
+            controls=[model_drop_down, model_choose_button],
+            alignment=ft.MainAxisAlignment.END, ),
+            alignment=ft.Alignment.BOTTOM_RIGHT)
 
         segmentation_card = ft.Card(
             content=ft.Container(
                 content=ft.Stack(
-                    [   segmentation_container,
-                        model_chooser
-                    ]
+                    [segmentation_container,
+                     model_chooser
+                     ]
                 ),
                 padding=10
             ),
         )
 
-
-        return segmentation_card,start_button,open_button,self.progress_bar,self.progress_bar_text,cancel_segmentation
+        return segmentation_card, start_button, open_button, self.progress_bar, self.progress_bar_text, cancel_segmentation

@@ -29,7 +29,8 @@ class GUI:
     """
     Class GUI to handle the complete GUI and their attributes, also contains the CellSePi class and updates their attributes
     """
-    def __init__(self,page: ft.Page):
+
+    def __init__(self, page: ft.Page):
         self.csp: CellSePi = CellSePi()
         self.error_loading_plugin = self.load_plugins(self.csp.plugins_dir)
         self.page = page
@@ -41,20 +42,21 @@ class GUI:
         self.expert_running_event = threading.Event()
         self.readout_event = threading.Event()
         self.page.window.prevent_close = True
-        self.page.window.on_event = lambda e: self.page.run_task(self.handle_closing_event,e)
+        self.page.window.on_event = lambda e: self.page.run_task(self.handle_closing_event, e)
         self.page.window.width = 1440
         self.page.window.height = 800
         self.page.title = "CellSePi"
-        self.canvas = ImageEditingView(on_mask_change=lambda img_id,mask_added_or_removed: self.mask_update(img_id,mask_added_or_removed))
-        self.canvas.mask_color=self.csp.config.get_mask_color()
-        self.canvas.outline_color=self.csp.config.get_outline_color()
-        self.canvas.mask_suffix=self.csp.config.get_mask_suffix()
+        self.canvas = ImageEditingView(
+            on_mask_change=lambda img_id, mask_added_or_removed: self.mask_update(img_id, mask_added_or_removed))
+        self.canvas.mask_color = self.csp.config.get_mask_color()
+        self.canvas.outline_color = self.csp.config.get_outline_color()
+        self.canvas.mask_suffix = self.csp.config.get_mask_suffix()
         self.op = Options(self)
         self.ex_mode = ExpertEnvironment(self)
         gui_config = GUIConfig(self)
         self.gui_config = gui_config.create_profile_container()
         self.segmentation = GUISegmentation(self)
-        seg_card,start_button,open_button,progress_bar,progress_bar_text,cancel_segmentation = self.segmentation.create_segmentation_card()
+        seg_card, start_button, open_button, progress_bar, progress_bar_text, cancel_segmentation = self.segmentation.create_segmentation_card()
         self.cancel_segmentation = cancel_segmentation
         self.ready_to_start = False
         self.segmentation_card = seg_card
@@ -64,35 +66,43 @@ class GUI:
         self.progress_bar_text = progress_bar_text
         self.progress_ring = ft.ProgressRing(visible=False)
         self.closing_sheet = ft.Stack([
-            ft.Column([ft.Container(ft.ProgressRing(),alignment=ft.Alignment.CENTER)],
-                alignment=ft.MainAxisAlignment.CENTER,
-            ),
+            ft.Column([ft.Container(ft.ProgressRing(), alignment=ft.Alignment.CENTER)],
+                      alignment=ft.MainAxisAlignment.CENTER,
+                      ),
         ])
 
         self.brightness_slider = ft.Slider(
-            min=0, max=2.0, value=1.0, disabled= True,
+            min=0, max=2.0, value=1.0, disabled=True,
             on_change_end=lambda e: e.page.run_task(self.update_adjusted_image)
         )
         self.contrast_slider = ft.Slider(
-            min=0, max=2.0, value=1.0, disabled= True,
+            min=0, max=2.0, value=1.0, disabled=True,
             on_change_end=lambda e: e.page.run_task(self.update_adjusted_image)
         )
 
         self.auto_image_tuning = GUIAutoImageTuning(self)
-        self.auto_brightness_contrast = ft.IconButton(icon=ft.Icons.AUTO_FIX_HIGH,icon_color=ft.Colors.GREY_700,style=ft.ButtonStyle(
-                    shape=ft.RoundedRectangleBorder(radius=12),
-                ),on_click=lambda e: e.page.run_task(self.auto_image_tuning.pressed),tooltip="Auto brightness and contrast")
-        self.brightness_icon = ft.Icon(icon=ft.Icons.SUNNY,tooltip="Brightness")
-        self.contrast_icon = ft.Icon(icon=ft.Icons.CONTRAST,tooltip="Contrast")
-        self.diameter_text = ft.Text("0.00", size=14, weight=ft.FontWeight.BOLD,tooltip="Copy to clipboard")
+        self.auto_brightness_contrast = ft.IconButton(icon=ft.Icons.AUTO_FIX_HIGH, icon_color=ft.Colors.GREY_700,
+                                                      style=ft.ButtonStyle(
+                                                          shape=ft.RoundedRectangleBorder(radius=12),
+                                                      ), on_click=lambda e: e.page.run_task(
+                self.auto_image_tuning.pressed), tooltip="Auto brightness and contrast")
+        self.brightness_icon = ft.Icon(icon=ft.Icons.SUNNY, tooltip="Brightness")
+        self.contrast_icon = ft.Icon(icon=ft.Icons.CONTRAST, tooltip="Contrast")
+        self.diameter_text = ft.Text("0.00", size=14, weight=ft.FontWeight.BOLD, tooltip="Copy to clipboard")
         self.diameter_display = ft.Container(
-            content=ft.Row([ft.Icon(icon=ft.Icons.STRAIGHTEN_ROUNDED, tooltip="Average diameter"), ft.GestureDetector(content=self.diameter_text,on_tap=lambda e: e.page.run_task(copy_to_clipboard,page=self.page,value=str(self.diameter_text.value),name="Average diameter"),on_enter=lambda e:self.on_enter_diameter(),on_exit=lambda e:self.on_exit_diameter()),]),
+            content=ft.Row([ft.Icon(icon=ft.Icons.STRAIGHTEN_ROUNDED, tooltip="Average diameter"),
+                            ft.GestureDetector(content=self.diameter_text,
+                                               on_tap=lambda e: e.page.run_task(copy_to_clipboard, page=self.page,
+                                                                                value=str(self.diameter_text.value),
+                                                                                name="Average diameter"),
+                                               on_enter=lambda e: self.on_enter_diameter(),
+                                               on_exit=lambda e: self.on_exit_diameter()), ]),
             border_radius=12,
             padding=8,
             opacity=0.5,
             visible=True,
         )
-        self.training_environment=Training(self)
+        self.training_environment = Training(self)
         self.ref_seg_environment = ft.Ref[ft.Column]()
         self.ref_training_environment = ft.Ref[ft.Column]()
         self.builder_environment = Builder(self.page)
@@ -102,7 +112,7 @@ class GUI:
         self.ref_builder_environment = ft.Ref[ft.Column]()
         self.ref_gallery_environment = ft.Ref[ft.Column]()
         if self.csp.config.get_auto_button():
-             self.page.run_task(self.auto_image_tuning.pressed)
+            self.page.run_task(self.auto_image_tuning.pressed)
 
     def build(self):
         """
@@ -111,46 +121,93 @@ class GUI:
         self.page.add(
             ft.Column(
                 [
-                    ft.Row([
-                            #LEFT COLUMN that handles all elements on the left side(canvas,switch_mask,segmentation)
-                            ft.Column(
+                    ft.Row(
                         [
+                            # LEFT COLUMN that handles all elements on the left side(canvas,switch_mask,segmentation)
+                            ft.Column(
+                                [
                                     self.canvas,
-                                    ft.Row([self.gui_config, ft.Column([ft.Card(content=ft.Container(content=ft.Column(
-                                        [ft.Row([self.brightness_icon, ft.Container(self.brightness_slider, padding=-15)]),
-                                         ft.Row([self.contrast_icon, ft.Container(self.contrast_slider, padding=-15)])]), padding=10)),
-                                                                        ft.Row([ft.Card(content=self.auto_brightness_contrast),
-                                                                                ft.Card(content=self.diameter_display)])])
-                                            ]),
+                                    ft.Row(
+                                        [
+                                            self.gui_config,
+                                            ft.Column(
+                                                [
+                                                    ft.Card(content=ft.Container(content=ft.Column(
+                                                        [
+                                                            ft.Row(
+                                                                [
+                                                                    self.brightness_icon,
+                                                                    ft.Container(self.brightness_slider, padding=-15)
+                                                                ]
+                                                            ),
+                                                            ft.Row(
+                                                                [
+                                                                    self.contrast_icon,
+                                                                    ft.Container(self.contrast_slider, padding=-15)
+                                                                ]
+                                                            )
+                                                        ]
+                                                    ), padding=10)),
+                                                    ft.Row(
+                                                        [
+                                                            ft.Card(content=self.auto_brightness_contrast),
+                                                            ft.Card(content=self.diameter_display)
+                                                        ]
+                                                    )
+                                                ])
+                                        ]),
+
                                     self.segmentation_card
                                 ],
-                                expand=True,
+                                expand=6,
                                 alignment=ft.MainAxisAlignment.START,
-                                visible=True,ref=self.ref_seg_environment
+                                visible=True,
+                                ref=self.ref_seg_environment
                             ),
                             ft.Column(
-                        [
+                                [
                                     self.training_environment.add_parameter_container(),
                                     self.training_environment.create_training_card()
                                 ],
-                                expand=True,
+                                expand=6,
                                 alignment=ft.MainAxisAlignment.START,
-                                visible=False,ref=self.ref_training_environment
+                                visible=False,
+                                ref=self.ref_training_environment
                             ),
-                            ft.Column([self.builder_environment.builder_page_stack],expand=True,visible=False,ref=self.ref_builder_environment),
-                            #RIGHT COLUMN that handles gallery and directory_card
+                            ft.Column(
+                                [
+                                    self.builder_environment.builder_page_stack
+                                ],
+                                expand=True,
+                                visible=False,
+                                ref=self.ref_builder_environment
+                            ),
+                            # RIGHT COLUMN that handles gallery and directory_card
                             ft.Column(
                                 [
                                     self.directory,
                                     ft.Card(
-                                        content=ft.Stack([ft.Container(self.directory.image_gallery,padding=20), ft.Container(self.progress_ring, alignment=ft.Alignment.CENTER, ignore_interactions=True)]),
+                                        content=ft.Stack(
+                                            [
+                                                ft.Container(self.directory.image_gallery, padding=20),
+                                                ft.Container(self.progress_ring,
+                                                             alignment=ft.Alignment.CENTER,
+                                                             ignore_interactions=True)
+                                            ]
+                                        ),
                                         expand=True
                                     ),
                                 ],
-                                expand=True,ref=self.ref_gallery_environment
+                                expand=4,
+                                ref=self.ref_gallery_environment
                             ),
-                            ft.Column([self.op, self.training_environment,self.ex_mode
-                                       ]),
+                            ft.Column(
+                                [
+                                    self.op,
+                                    self.training_environment,
+                                    self.ex_mode
+                                ]
+                            ),
                         ],
                         alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                         expand=True,
@@ -159,9 +216,9 @@ class GUI:
                 expand=True
             ),
         )
-        #set the colors for the review module from the config file
-        MODULE_REGISTRY["REVIEW"].update_class(mask_color=self.csp.config.get_mask_color(),outline_color=self.csp.config.get_outline_color())
-
+        # set the colors for the review module from the config file
+        MODULE_REGISTRY["REVIEW"].update_class(mask_color=self.csp.config.get_mask_color(),
+                                               outline_color=self.csp.config.get_outline_color())
         if self.error_loading_plugin:
             self.page.show_dialog(
                 ft.SnackBar(
@@ -181,7 +238,7 @@ class GUI:
         self.diameter_text.value = self.average_diameter.get_avg_diameter()
         self.diameter_text.update()
 
-    async def handle_closing_event(self, e,saved_checked:bool=False):
+    async def handle_closing_event(self, e, saved_checked: bool = False):
         """
         Handle the closing event of Flet GUI.
         """
@@ -191,19 +248,20 @@ class GUI:
                     cupertino_alert_dialog.open = False
                     a.control.page.update()
 
-                def ok_dialog(a,gui):
+                def ok_dialog(a, gui):
                     cupertino_alert_dialog.open = False
                     a.control.page.update()
-                    self.page.run_task(self.handle_closing_event,e,True)
+                    self.page.run_task(self.handle_closing_event, e, True)
 
                 cupertino_alert_dialog = ft.CupertinoAlertDialog(
                     title=ft.Text("Expert Mode:\nUnsaved Changes"),
-                    content=ft.Text("Closing CellSePi will discard any unsaved changes to the currently opened pipeline."),
+                    content=ft.Text(
+                        "Closing CellSePi will discard any unsaved changes to the currently opened pipeline."),
                     actions=[
                         ft.CupertinoDialogAction(
                             "Cancel", default=True, on_click=cancel_dialog
                         ),
-                        ft.CupertinoDialogAction("Ok", destructive=True, on_click=lambda a: ok_dialog(a,self)),
+                        ft.CupertinoDialogAction("Ok", destructive=True, on_click=lambda a: ok_dialog(a, self)),
                     ],
                 )
                 self.page.overlay.append(cupertino_alert_dialog)
@@ -211,7 +269,7 @@ class GUI:
                 self.page.update()
                 return
             self.closing_event = True
-            overlay = PageOverlay(self.page,content=self.closing_sheet,modal=True)
+            overlay = PageOverlay(self.page, content=self.closing_sheet, modal=True)
             overlay.open()
             if self.csp.segmentation_running:
                 self.cancel_segmentation()
@@ -241,16 +299,17 @@ class GUI:
         os._exit(0)
 
     async def update_adjusted_image(self):
-        self.canvas.brightness =  round(self.brightness_slider.value, 2)
+        self.canvas.brightness = round(self.brightness_slider.value, 2)
         self.canvas.contrast = round(self.contrast_slider.value, 2)
-        await self.canvas.update_main_image_with_brightness_contrast(self.csp.image_paths[self.csp.image_id][self.csp.channel_id])
+        await self.canvas.update_main_image_with_brightness_contrast(
+            self.csp.image_paths[self.csp.image_id][self.csp.channel_id])
 
     def load_plugins(self, directory):
         plugin_dir = pathlib.Path(directory)
         error_log_path = plugin_dir / "plugin_errors.txt"
         errors_found = False
 
-        #collect gui names of the modules
+        # collect gui names of the modules
         used_gui_names = {
             cls.gui_config().name
             for cls in MODULE_REGISTRY.values()
@@ -282,7 +341,7 @@ class GUI:
                     except AttributeError:
                         continue
 
-                    if gui_name in used_gui_names: #check if the new modules gui names are duplicates of already registered ones
+                    if gui_name in used_gui_names:  # check if the new modules gui names are duplicates of already registered ones
                         errors_found = True
                         with open(error_log_path, "a", encoding="utf-8") as f:
                             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")

@@ -5,6 +5,9 @@ import shutil
 import time
 from threading import Lock
 
+from backend.constants import FileType
+
+
 class DeletionForbidden(Exception):
     """
     Custom exception raised when a profile deletion is not allowed.
@@ -15,11 +18,12 @@ class DeletionForbidden(Exception):
     """
     pass
 
+
 def load_config(file_directory):
     """
     Return the current config.json.
 
-    It tries 5 times to read the file,
+    It tries 5 times to read the file
     before resetting the file to the default config.
 
     Args:
@@ -56,6 +60,7 @@ def reset_config(file_directory):
         print(f"Error while saving config: {e}")
     return config
 
+
 def create_default_config():
     """
     Create the default config.
@@ -71,26 +76,27 @@ def create_default_config():
                 "mask_suffix": "_seg",
                 "channel_prefix": "c",
                 "diameter": 125.0
-                },
+            },
             "Tif": {
                 "bf_channel": "1",
                 "mask_suffix": "_seg",
                 "channel_prefix": "c",
                 "diameter": 250.0
-                }
+            }
         },
         "Selected Profile": {
             "name": "Lif"
         },
-        "Colors":{
+        "Colors": {
             "mask": "(255, 0, 0)",
             "outline": "(0, 255, 0)",
         },
         "States": {
             "auto_button": False,
-            "lif_slider": True,
+            "file_type_slider": "LIF",
         }
     }
+
 
 class ConfigFile:
     """
@@ -106,7 +112,8 @@ class ConfigFile:
         config (dict): The loaded configuration data.
         config_lock (Lock): a lock to make writing the config file save.
     """
-    def __init__(self,app_dir,filename="config.json"):
+
+    def __init__(self, app_dir, filename="config.json"):
         self.file_directory = os.path.join(app_dir, filename)
         self.config = load_config(self.file_directory)
         self.config_lock = Lock()
@@ -126,8 +133,7 @@ class ConfigFile:
             except Exception as e:
                 print(f"Error while saving config: {e}")
 
-
-    def add_profile(self, name:str, bf_channel: int, mask_suffix:str, channel_prefix:str, diameter: float):
+    def add_profile(self, name: str, bf_channel: int, mask_suffix: str, channel_prefix: str, diameter: float):
         """
         Adds a new profile to the config.
 
@@ -151,7 +157,7 @@ class ConfigFile:
         """
         if not all([name, mask_suffix, channel_prefix, bf_channel]):
             raise ValueError("Name, mask_suffix, bf_channel, and channel_prefix must not be empty.")
-        if diameter <= 0 :
+        if diameter <= 0:
             raise ValueError("diameter must be greater than 0.")
         if not name in self.config['Profiles']:
             self.config["Profiles"][name] = {
@@ -203,7 +209,7 @@ class ConfigFile:
                 self.config["Profiles"][name]["diameter"] = diameter
             self.save_config()
 
-    def rename_profile(self,old_name: str,new_name: str):
+    def rename_profile(self, old_name: str, new_name: str):
         """
         Renames the old name to the new name.
 
@@ -218,7 +224,7 @@ class ConfigFile:
             False: If the new profile name is already taken or the old name does not exist.
             True: If the new profile is successfully renamed.
         """
-        if not all([old_name,new_name]):
+        if not all([old_name, new_name]):
             raise ValueError("old_name, new_name must not be empty.")
         elif old_name == new_name:
             return True
@@ -263,8 +269,7 @@ class ConfigFile:
         else:
             raise DeletionForbidden
 
-
-    def select_profile(self,name: str):
+    def select_profile(self, name: str):
         """
         Selects a profile by name.
 
@@ -285,7 +290,7 @@ class ConfigFile:
         Gets the name of the selected profile.
 
         Returns:
-            profile name (str): The name of the selected profile or if the no profile is selected the first profile.
+            profile name (str): The name of the selected profile or if no profile is selected, the first profile.
         """
         if self.config["Selected Profile"]["name"] is not None:
             return self.config["Selected Profile"]["name"]
@@ -344,8 +349,8 @@ class ConfigFile:
         """
         return name in self.config["Profiles"]
 
-    #------------------------------------------
-    #getter for the selected profiles Attributes
+    # ------------------------------------------
+    # getter for the selected profiles Attributes
 
     def get_selected_profile(self):
         """
@@ -405,6 +410,7 @@ class ConfigFile:
             mask_color (tuple): The selected mask color in RGB format.
         """
         return ast.literal_eval(self.config["Colors"]["mask"])
+
     def get_outline_color(self):
         """
         Gets the selected outline color.
@@ -413,6 +419,7 @@ class ConfigFile:
             outline_color (tuple): The selected mask color in RGB format.
         """
         return ast.literal_eval(self.config["Colors"]["outline"])
+
     def set_mask_color(self, color):
         """
         Sets the selected mask color in the config file.
@@ -428,6 +435,7 @@ class ConfigFile:
             self.save_config()
         else:
             raise ValueError("Color must be an RGB tuple, e.g., (255, 0, 0)")
+
     def set_outline_color(self, color):
         """
         Sets the selected outline color in the config file.
@@ -442,6 +450,7 @@ class ConfigFile:
             self.save_config()
         else:
             raise ValueError("Color must be an RGB tuple, e.g., (0, 255, 0)")
+
     def get_auto_button(self):
         """
         Gets the last state of the auto bright-field and contrast button.
@@ -449,27 +458,33 @@ class ConfigFile:
             bool: The last state of the auto bright-field and contrast button.
         """
         return self.config["States"]["auto_button"]
-    def get_lif_slider(self):
-        """
-        Gets the last state of the lif-slider button.
-        Returns:
-            bool: The last state of the lif-slider button (True means lif is active).
-        """
-        return self.config["States"]["lif_slider"]
-    def set_auto_button(self, val:bool):
+
+    def set_auto_button(self, val: bool):
         """
         Sets the state of the auto bright-field and contrast button.
         """
         self.config["States"]["auto_button"] = val
         self.save_config()
-    def set_lif_slider(self, val:bool):
+
+    def get_file_type_slider(self):
         """
-        Sets the state of the lif-slider button (True means lif is active).
+        Gets the last state of the lif-slider button.
+        Returns:
+            bool: The last state of the file-typer-slider button.
         """
-        self.config["States"]["lif_slider"] = val
+        file_type_name = self.config["States"]["file_type_slider"]
+        file_type = getattr(FileType, file_type_name, None)
+        return file_type
+
+    def set_file_type_slider(self, val: bool):
+        """
+        Sets the state of the file-type-slider button.
+        """
+        self.config["States"]["file_type_slider"] = val.name
         self.save_config()
-    #-----------------------------------------------------
-    #only for test_config
+
+    # -----------------------------------------------------
+    # only for test_config
     def clear_config(self):
         """
         Only for Training

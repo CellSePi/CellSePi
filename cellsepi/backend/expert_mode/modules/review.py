@@ -10,14 +10,15 @@ class Review(Module, ABC):
     mask_opacity = 128
     outline_color = (0, 255, 0)
     _instances = []
-    _gui_config = ModuleGuiConfig("Review",Categories.MANUAL,"This module allows you to manually review and edit masks. Also you can create new masks when no mask are given.")
+    _gui_config = ModuleGuiConfig("Review", Categories.MANUAL,
+                                  "This module allows you to manually review and edit masks. Also you can create new masks when no mask are given.")
 
     def __init__(self, module_id: str = None) -> None:
-        #regular modul
+        # regular modul
         super().__init__(module_id)
         self.inputs = {
             "image_paths": InputPort("image_paths", dict),
-            "mask_paths": InputPort("mask_paths", dict,True),
+            "mask_paths": InputPort("mask_paths", dict, True),
         }
         self.outputs = {
             "mask_paths": OutputPort("mask_paths", dict),
@@ -25,7 +26,7 @@ class Review(Module, ABC):
         self.user_segmentation_channel: str = "2"
         self.user_2_5d = False
         self.user_mask_suffix = "_seg"
-        #for the own settings stack
+        # for the own settings stack
         self._icon_x = {}
         self._icon_check = {}
         self.image_id: str | None = None
@@ -53,7 +54,7 @@ class Review(Module, ABC):
                 text_align=ft.TextAlign.CENTER,
                 border_width=2,
                 focused_border_color=ft.Colors.WHITE,
-                text_style=ft.TextStyle(color=ft.Colors.BLACK,weight=ft.FontWeight.BOLD),
+                text_style=ft.TextStyle(color=ft.Colors.BLACK, weight=ft.FontWeight.BOLD),
                 cursor_color=ft.Colors.BLACK,
                 expand=False,
             )
@@ -70,25 +71,48 @@ class Review(Module, ABC):
                 focused_border_color=ft.Colors.WHITE,
                 text_style=ft.TextStyle(color=ft.Colors.BLACK, weight=ft.FontWeight.BOLD),
                 cursor_color=ft.Colors.BLACK,
-                visible= False,
+                visible=False,
                 expand=False,
             )
             self._control_menu = ft.Container(ft.Container(ft.Row(
                 [self._text_field_segmentation_channel,
-                    self._text_field_mask_suffix,
-                ], spacing=2, alignment=ft.MainAxisAlignment.CENTER,
-            ), bgcolor=ft.Colors.BLUE_ACCENT, expand=True, border_radius=ft.border_radius.vertical(top=0, bottom=12),height=38,
+                 self._text_field_mask_suffix,
+                 ], spacing=2, alignment=ft.MainAxisAlignment.CENTER,
+            ), bgcolor=ft.Colors.BLUE_ACCENT, expand=True, border_radius=ft.border_radius.vertical(top=0, bottom=12),
+                height=38,
             )
             )
-            self._canvas = ImageEditingView(on_mask_change=lambda img_id, mask_added_or_removed: self.mask_update(img_id, mask_added_or_removed))
-            self._canvas.auto_adjust=True
+            self._canvas = ImageEditingView(
+                on_mask_change=lambda img_id, mask_added_or_removed: self.mask_update(img_id, mask_added_or_removed))
+            self._canvas.auto_adjust = True
             self._canvas.mask_color = self.mask_color
             self._canvas.outline_color = self.outline_color
             self._canvas.mask_opacity = self.mask_opacity
-            self._settings: ft.Stack = ft.Stack([ft.Column([ft.Row([
-                self._canvas,
-                ft.Card(content=ft.Column([ft.Container(self._image_gallery, expand=True, padding=ft.Padding.only(top=20,left=20,right=20,bottom=10)),self._control_menu],spacing=0,expand=True,width=640)),
-            ],height=700,expand=True,margin=20)],alignment=ft.MainAxisAlignment.CENTER,horizontal_alignment=ft.CrossAxisAlignment.CENTER)])
+            self._settings: ft.Stack = ft.Stack(
+                [
+                    ft.Column(
+                        [
+                            ft.Row(
+                                [
+                                    self._canvas,
+                                    ft.Card(
+                                        content=ft.Column(
+                                            [
+                                                ft.Container(
+                                                    self._image_gallery,
+                                                    expand=True,
+                                                    padding=ft.Padding.only(
+                                                        top=20,
+                                                        left=20,
+                                                        right=20,
+                                                        bottom=10)
+                                                ),
+                                                self._control_menu
+                                            ], spacing=0, expand=True, width=640)),
+                                ], height=700, expand=True, margin=20)
+                        ], alignment=ft.MainAxisAlignment.CENTER,
+                        horizontal_alignment=ft.CrossAxisAlignment.CENTER)
+                ])
         return self._settings
 
     def finished(self):
@@ -184,14 +208,15 @@ class Review(Module, ABC):
         self.event_manager.notify(ProgressEvent(percent=100, process=f"Loading Images: Finished"))
         return True
 
-    def update_mask_check(self, image_id,update=True):
+    def update_mask_check(self, image_id, update=True):
         """
         Updates the symbol next to series number of image to a check or x, depending on if the corresponding image is available.
         Args:
             image_id: the id of the image to check mask availability
             update: True to update the gui
         """
-        if self.inputs["mask_paths"].data is not None and image_id in self.inputs["mask_paths"].data and self.user_segmentation_channel in self.inputs["mask_paths"].data[image_id]:
+        if self.inputs["mask_paths"].data is not None and image_id in self.inputs[
+            "mask_paths"].data and self.user_segmentation_channel in self.inputs["mask_paths"].data[image_id]:
             self._icon_check[image_id].visible = True
             self._icon_x[image_id].visible = False
         else:
@@ -213,7 +238,7 @@ class Review(Module, ABC):
         if mask_added_or_removed:
             self.update_mask_check(image_id)
 
-    def on_change_ms(self,e):
+    def on_change_ms(self, e):
         if str(e.control.value) == "":
             self.settings.page.open(
                 ft.SnackBar(
@@ -227,7 +252,7 @@ class Review(Module, ABC):
         self._canvas.mask_suffix = str(e.control.value)
         self.event_manager.notify(OnPipelineChangeEvent("user_attr_change"))
 
-    def on_change_sc(self,e):
+    def on_change_sc(self, e):
         if str(e.control.value) == "":
             self.settings.page.show_dialog(
                 ft.SnackBar(
@@ -244,7 +269,7 @@ class Review(Module, ABC):
         self.event_manager.notify(OnPipelineChangeEvent("user_attr_change"))
 
     @classmethod
-    def update_class(cls,mask_color=None,outline_color=None,opacity=None):
+    def update_class(cls, mask_color=None, outline_color=None, opacity=None):
         cls.mask_color = mask_color if mask_color is not None else cls.mask_color
         cls.outline_color = outline_color if outline_color is not None else cls.outline_color
         cls.mask_opacity = opacity if opacity is not None else cls.mask_opacity
