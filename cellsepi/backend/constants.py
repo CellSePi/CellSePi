@@ -30,10 +30,10 @@ class FileType(Enum):
     TIFF_DIR = SimpleNamespace(name= "TIFF Dir", extensions= ["tiff", "tif"], source=SourceType.DIRECTORY)
 
 class ExportFileType(Enum):
-    EXCEL = SimpleNamespace(name= "EXCEL", extensions= ".xlsx", seperator= None)
-    TSV = SimpleNamespace(name= "TSV", extensions= ".tsv", seperator= "\t")
-    CSV = SimpleNamespace(name= "CSV", extensions= ".csv", seperator= ",")
-    PDF = SimpleNamespace(name= "PDF", extensions= ".pdf", seperator= None)
+    EXCEL = SimpleNamespace(name= "EXCEL", extension= ".xlsx", seperator= None)
+    TSV = SimpleNamespace(name= "TSV", extension= ".tsv", seperator= "\t")
+    CSV = SimpleNamespace(name= "CSV", extension= ".csv", seperator= ",")
+    PDF = SimpleNamespace(name= "PDF", extension= ".pdf", seperator= None)
 
 class Suffixes(Enum):
     SEGMENTATION_MASK = SimpleNamespace(name= "SEGMENTATION_MASK", suffixes= ["_seq"],  extensions=  ["npy"])

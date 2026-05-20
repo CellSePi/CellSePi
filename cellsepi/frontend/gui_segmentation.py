@@ -358,6 +358,7 @@ class GUISegmentation:
             # ToDo EK: Retrieve here the export format of the data from the FluorescenceReadoutControl slider
             export_ft = list(ExportFileType)[FluorescenceReadoutControl().slider.selected_index]
 
+
             file_picker = ft.FilePicker()
             chosen_path = await file_picker.save_file(
                 dialog_title="Save fluorescence data",
