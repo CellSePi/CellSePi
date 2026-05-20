@@ -245,7 +245,7 @@ class DirectoryCard(ft.Card):
 
         image_source_identifier = consistent_hash(str(path.absolute()))
 
-        working_directory = (DirectoryManager()
+        working_directory = (DirectoryManager(self.gui.csp.app_dir)
                              .get_cache_dir_path(f"tmp_{file_type.name}_{image_source_identifier}/", makedir=False))
 
         overwrite = True

@@ -1,8 +1,5 @@
-import base64
 import os
-import base64
 import hashlib
-from collections import Counter
 
 import base64
 import pathlib
@@ -12,14 +9,11 @@ import stat
 from collections import defaultdict
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
-from io import BytesIO
 from typing import Any
 
-import bioio_lif
 import cv2
 import numpy as np
 import pandas as pd
-from bioio import BioImage
 from reportlab.lib import colors
 from reportlab.lib import pagesizes
 from reportlab.lib.styles import getSampleStyleSheet

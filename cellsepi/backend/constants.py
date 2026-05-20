@@ -51,9 +51,8 @@ class DirectoryManager:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    def __init__(self):
-        base_path = Path.home() / ".cellsepi"
-        self._base_path = Path(base_path)
+    def __init__(self,app_dir):
+        self._base_path = Path(app_dir)
         self._cache_path: Optional[Path] = None
 
     @property
