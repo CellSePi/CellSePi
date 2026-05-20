@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from backend.expert_mode.modules.big_fish import detect_spots
+from backend.expert_mode.modules.big_fish.big_fish import detect_spots
 import numpy as np
 import tifffile
 from scipy.ndimage import binary_dilation

@@ -2,11 +2,13 @@
 
 # ---------------------------------------------------------------------------
 # This file contains code adapted from the "big-fish" Python package
-# (https://github.com/fish-quant/big-fish).
+# Original source: https://github.com/fish-quant/big-fish
 #
-# Original Author: Arthur Imbert <arthur.imbert.pro@gmail.com>
-# Copyright (c) 2020, Arthur Imbert
-# License: BSD 3-Clause (https://github.com/fish-quant/big-fish/blob/master/LICENSE)
+# Author: Arthur Imbert <arthur.imbert.pro@gmail.com>
+# Copyright © 2020, Arthur Imbert
+# License: BSD 3-Clause.
+# See the file 'BIGFISH_LICENSE' in this directory or:
+# https://github.com/fish-quant/big-fish/blob/master/LICENSE
 #
 # Modifications made by: Florian Hock / CellSePi
 # - Replaced scikit-image dependency with scipy.ndimage in spot deduplication.

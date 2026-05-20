@@ -1,6 +1,16 @@
-"""
-Copyright © 2023 Howard Hughes Medical Institute, Authored by Carsen Stringer and Marius Pachitariu.
-"""
+# -*- coding: utf-8 -*-
+
+# ---------------------------------------------------------------------------
+# This file contains code from the "cellpose" Python package.
+# Original source: https://github.com/mouseland/cellpose
+#
+# Author: Carsen Stringer and Marius Pachitariu.
+# Copyright © 2023 Howard Hughes Medical Institute.
+# License: BSD 3-Clause.
+# See the file 'CELLPOSE_LICENSE' in this directory or:
+# https://github.com/MouseLand/cellpose/blob/main/LICENSE
+# ---------------------------------------------------------------------------
+
 
 import time, os
 from scipy.ndimage import maximum_filter1d, find_objects, center_of_mass
