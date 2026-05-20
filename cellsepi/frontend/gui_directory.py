@@ -248,6 +248,24 @@ class DirectoryCard(ft.Card):
         working_directory = (DirectoryManager(self.gui.csp.app_dir)
                              .get_cache_dir_path(f"tmp_{file_type.name}_{image_source_identifier}/", makedir=False))
 
+        #case empty folder
+        has_images = any(
+            any(str(file).lower().endswith(ext) for ext in self.file_type.value.extensions)
+            for file in path.iterdir()
+            if file.is_file()
+        )
+
+        if not has_images:
+            self.gui.page.show_dialog(ft.SnackBar(ft.Text("The directory is empty.")))
+            self.output_dir = True
+            self.gui.page.update()
+            self.gui.csp.image_paths = {}
+            self.gui.csp.linux_images = {}
+            self.gui.csp.mask_paths = {}
+            self.gui.ready_to_start = False
+            self.gui.progress_ring.visible = False
+            return None
+
         overwrite = True
         if working_directory.exists():
             dialog = ChoiceDialog(
@@ -286,7 +304,7 @@ class DirectoryCard(ft.Card):
                         else:
                             self.is_supported_lif = False
                 case SourceType.DIRECTORY:  # Directory Case
-                    if path.name == "output":  # ToDo: Can this be removed?
+                    if path.name == "output":
                         if event_manager is not None:
                             raise PipelineRunningException("Directory Error", "Directory ’output’ is not supported!")
                         else:
