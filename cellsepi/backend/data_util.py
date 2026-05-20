@@ -19,7 +19,6 @@ import bioio_lif
 import cv2
 import numpy as np
 import pandas as pd
-from PIL import Image
 from bioio import BioImage
 from reportlab.lib import colors
 from reportlab.lib import pagesizes
@@ -670,33 +669,6 @@ def remove_gradient(img):
     corrected_img = img + correction
     return corrected_img
 
-
-def transform_image_path(image_path, output_path):
-    """
-    This method converts images with bit depth of 16 bit to 8 bit
-
-    Attributes:
-        image_path (pathlib.Path): Path to the image
-        output_path (pathlib.Path): Path where to save the converted image
-
-    Returns:
-        True if the image was converted successfully
-        False if the image was not converted because it had an incompatible format
-    """
-    with Image.open(image_path) as img:
-        # convert to 8 bit if necessary
-        if img.mode == "I;16":
-            array16 = np.array(img, dtype=np.uint16)
-            array8 = (array16 / 256).astype(np.uint8)
-            img8 = Image.fromarray(array8)
-            img8.save(output_path, format="TIFF")
-            return True
-        elif img.mode in ["L", "RGB", "P", "RGBA"]:
-            return True
-        else:
-            return False
-
-
 def process_channel(channel_id, channel_path):
     image = tifffile.imread(channel_path)
     if image.ndim == 3:
@@ -742,34 +714,6 @@ def convert_tiffs_to_png_parallel(image_paths):
         return png_images
     else:
         return None
-
-
-def convert_tiffs_to_png(image_paths):
-    """
-    Converts a dict of tiff images to png images.
-
-    Args:
-        image_paths (dict): the dict of image paths of tiff images
-    """
-    if image_paths is not None:
-        png_images = {}
-        for image_id in image_paths:
-            cur_image_paths = image_paths[image_id]
-            if image_id not in png_images:
-                png_images[image_id] = {}
-            for channel_id in cur_image_paths:
-                image = image = Image.open(cur_image_paths[channel_id])
-
-                buffer = BytesIO()
-                image.save(buffer, format="PNG")
-                buffer.seek(0)
-
-                png_images[image_id][channel_id] = base64.b64encode(buffer.getvalue()).decode('utf-8')
-
-        return png_images
-    else:
-        return None
-
 
 def consistent_hash(data):
     data_bytes = data.encode('utf-8')

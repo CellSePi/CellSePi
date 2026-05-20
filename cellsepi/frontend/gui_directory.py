@@ -10,7 +10,7 @@ import numpy as np
 from frontend.gui_fluorescence import FluorescenceReadoutControl
 from backend.constants import FileType, SourceType, DirectoryManager, CSP_CHANNEL_PREFIX
 from backend.data_util import consistent_hash, extract_from_directory
-from cellsepi.backend.data_util import extract_from_file, load_directory, transform_image_path, \
+from cellsepi.backend.data_util import extract_from_file, load_directory, \
     convert_tiffs_to_png_parallel
 from cellsepi.backend.expert_mode.event_manager import EventManager
 from cellsepi.backend.expert_mode.listener import ProgressEvent
@@ -366,18 +366,6 @@ class DirectoryCard(ft.Card):
             self.gui.csp.working_directory = working_directory
             self.set_paths(is_supported_tif)
             return None
-
-    def convert_tiffs_to_8_bit(self, path):
-        """
-        handles when the conversion should happen
-        Args:
-            path (str): the selected directory_path
-        """
-        converted = True
-        if path.suffix.lower() == ".tif" or path.suffix.lower() == ".tiff":
-            if path.is_file():
-                converted = transform_image_path(path, path)
-        return converted
 
     def set_paths(self, is_supported_tif):
         """
