@@ -7,7 +7,6 @@ import platform
 import shutil
 import stat
 from collections import defaultdict
-from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
@@ -150,71 +149,6 @@ def copy_files_between_directories(source_dir, target_dir, file_types=None, even
     if event_manager is not None:
         event_manager.notify(
             event=ProgressEvent(100, process="Finished copy Files!"))
-
-
-def load_lif3d_bioimage(lif3d_path):
-    lif3d_path = pathlib.Path(lif3d_path)
-    # See Readme at https://github.com/bioio-devs/bioio
-    bio_img = BioImage(lif3d_path)
-
-    shapes = []
-
-    # Collect shapes
-    for scene in bio_img.scenes:
-        bio_img.set_scene(scene)
-        current_shape = (bio_img.dims.X, bio_img.dims.Y, bio_img.dims.Z)
-        shapes.append(current_shape)
-
-    if not shapes:
-        return [], np.array([])
-
-    # get the primary shape in the image array
-    most_common_shape = Counter(shapes).most_common(1)[0][0]
-
-    images = []
-    series_ids = []
-
-    # only load the images that are comform with the most common shape
-    for scene, shape in zip(bio_img.scenes, shapes):
-        if shape == most_common_shape:
-            bio_img.set_scene(scene)
-            cur_data = bio_img.get_image_data("TCXYZ")
-            images.append(cur_data)
-            series_ids.append(scene)
-        else:
-            continue
-
-    if not images:
-        return series_ids, np.array([])
-
-    images = np.stack(images)
-    images = np.squeeze(images)
-    return series_ids, images
-
-
-def extract_from_lif3d_file(lif3d_path, target_dir, channel_prefix, event_manager: EventManager = None):
-    series_ids, images = load_lif3d_bioimage(lif3d_path)
-
-    images = np.transpose(images, axes=(0, 2, 3, 4, 1))
-    target_dir = pathlib.Path(target_dir)
-    target_dir.mkdir(parents=True, exist_ok=True)
-
-    total_scenes = len(series_ids)
-    if event_manager is not None:
-        event_manager.notify(
-            event=ProgressEvent(0, process=f"Extracting Series: {0}/{total_scenes}"))
-    for s_idx, series in enumerate(images):
-        series_id = series_ids[s_idx]
-        for c_idx, channel_3d in enumerate(series):
-            file_name = f"{series_id}{channel_prefix}{c_idx + 1}.tif"
-            target_path = target_dir / file_name
-            write_image_with_preprocessing(target_path,channel_3d)
-        if event_manager is not None:
-            event_manager.notify(event=ProgressEvent(int((s_idx + 1) / total_scenes * 100),
-                                                     process=f"Extracted Series: {s_idx + 1}/{total_scenes}"))
-    if event_manager is not None:
-        event_manager.notify(
-            event=ProgressEvent(100, process=f"Finished extracting Series!"))
 
 """
 def extract_from_lif_file(lif_path, target_dir, channel_prefix, event_manager: EventManager = None):
