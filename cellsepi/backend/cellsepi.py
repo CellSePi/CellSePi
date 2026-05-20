@@ -20,7 +20,6 @@ class CellSePi:
         self.readout_running = False
         self.readout_thread = None
         self.readout_path = None
-        self.linux_or_3d = False
         self.gpu = torch.cuda.is_available()
 
         self.image_id = None

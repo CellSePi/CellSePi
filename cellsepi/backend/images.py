@@ -14,7 +14,7 @@ from tifffile import tifffile
 import cv2
 
 from backend.constants import ExportFileType
-from backend.data_util import load_image_to_numpy, export_dataframe_to_pdf
+from backend.data_util import export_dataframe_to_pdf
 from backend.expert_mode.event_manager import EventManager
 from backend.expert_mode.listener import ProgressEvent
 from backend.notifier import Notifier
@@ -286,7 +286,7 @@ class BatchImageSegmentation(Notifier):
 
                 # model evaluates image
                 if model_type == 'Cellpose' or model_type == 'CustomV3':
-                    if image.ndim == 3:  # x,y,z dimensions
+                    if image.ndim == 3:  # z, y, x dimensions
                         res = model.eval(image, diameter=diameter, channels=[0, 0], z_axis=0, do_3D=False,
                                          stitch_threshold=0.5)
                     else:
@@ -294,7 +294,7 @@ class BatchImageSegmentation(Notifier):
                     mask, flow, style = res[:3]
 
                 elif model_type == 'CellposeSAM' or model_type == 'CustomV4':
-                    if image.ndim == 3:  # x,y,z dimensions
+                    if image.ndim == 3:  # z, y, x dimensions
                         res = model.eval(image, diameter=diameter, z_axis=0, do_3D=False, stitch_threshold=0.5)
                     else:
                         res = model.eval(image, diameter=diameter)
@@ -493,7 +493,7 @@ class BatchImageReadout(Notifier):
                 image_path = image_paths[image_id][channel_id]
                 channel_name = self._channel_name(channel_id)
 
-                np_image = load_image_to_numpy(image_path)
+                np_image = np.load(mask_path, allow_pickle=True).item()
                 background_mask = mask == 0
                 background_val = np.mean(np_image[background_mask])
 

@@ -444,22 +444,7 @@ class DirectoryCard(ft.Card):
         self.page.run_task(self.check_masks)
         self.gui.page.update()
 
-        src = self.gui.csp.image_paths
-        # ToDo EK: Modify as it only checks if any of the images has three dimensions
-        # for scene in src:
-        #     for channel in src[scene]:
-        #         tifffile.imread(src[scene][channel])
-
-        # is_3d = any(
-        #     tifffile.imread(channel_path).ndim == 3
-        #     for outer_dict in src.values()
-        #     for channel_path in outer_dict.values()
-        # )
-
-        # if platform.system() == "Linux" or is_3d:
-        self.gui.csp.linux_images = convert_tiffs_to_png_parallel(self.gui.csp.image_paths)
-        self.gui.csp.linux_or_3d = True
-        src = self.gui.csp.linux_images
+        src = convert_tiffs_to_png_parallel(self.gui.csp.image_paths)
 
         self.selected_images_visualise = {}
         # Display groups with side-by-side images for linux_or_3d

@@ -16,6 +16,7 @@ from io import BytesIO
 from typing import Any
 
 import bioio_lif
+import cv2
 import numpy as np
 import pandas as pd
 from PIL import Image
@@ -28,7 +29,6 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from bioio import BioImage
 from bioio_base.dimensions import Dimensions
 from bioio_base.transforms import reshape_data
-from matplotlib import pyplot as plt
 from tifffile import tifffile
 
 from backend.constants import ReturnTypePath, FileType, BIT_DEPTH, Suffixes, CSP_CHANNEL_PREFIX
@@ -215,7 +215,8 @@ def extract_from_lif3d_file(lif3d_path, target_dir, channel_prefix, event_manage
         for c_idx, channel_3d in enumerate(series):
             file_name = f"{series_id}{channel_prefix}{c_idx + 1}.tif"
             target_path = target_dir / file_name
-            tifffile.imwrite(target_path, channel_3d)
+            clean_data = np.squeeze(channel_3d)
+            tifffile.imwrite(target_path, clean_data)
         if event_manager is not None:
             event_manager.notify(event=ProgressEvent(int((s_idx + 1) / total_scenes * 100),
                                                      process=f"Extracted Series: {s_idx + 1}/{total_scenes}"))
@@ -513,7 +514,8 @@ def extract_from_file(
             target_path = target_dir / file_name
 
             # Store 3D data to disk
-            write_numpy_to_ZYX_image(image_data, target_path, source_order="ZYX")
+            clean_data = np.squeeze(image_data)
+            tifffile.imwrite(target_path, clean_data)
 
         if event_manager is not None:
             event_manager.notify(event=ProgressEvent(int((index + 1) / total_scenes * 100),
@@ -612,7 +614,8 @@ def extract_from_directory(
             target_path = target_dir / file_name
 
             # Store 3D data to disk
-            write_numpy_to_ZYX_image(image_data, target_path, source_order="ZYX")
+            clean_data = np.squeeze(image_data)
+            tifffile.imwrite(target_path, clean_data)
 
         for channel_id, mpath in scenes_masks[scene]:
             # Copy all associated mask information
@@ -626,53 +629,6 @@ def extract_from_directory(
     if event_manager is not None:
         event_manager.notify(
             event=ProgressEvent(100, process=f"Finished extracting Series!"))
-
-
-def transpose_data(data, source_order="ZYX", target_order="XYZ"):
-    """
-    Transposes a source_order array to a new order.
-
-    Args:
-        data (np.ndarray): The input array in source_order order.
-        source_order (str): The source string order, e.g., "ZYX" or "XZY".
-        target_order (str): The desired string order, e.g., "XYZ" or "XZY".
-    """
-    # Mapping the source positions of ZYX
-
-    # assert len(source_order) == len(target_order), "Mismatch in order lengths"
-    source_order = source_order.upper()
-    if data.ndim == 2:
-        source_order = source_order.replace("Z", "")
-        target_order = target_order.replace("Z", "")
-    source_map = {key: iX for iX, key in enumerate(source_order)}
-
-    # Generate the axes tuple for np.transpose
-    try:
-        axes = [source_map[dim.upper()] for dim in target_order]
-    except KeyError as e:
-        raise ValueError(f"Invalid dimension {e}. Use only X, Y, and Z.")
-
-    return np.transpose(data, axes)
-
-
-def load_ZYX_image_to_numpy(path, target_order="XYZ"):
-    im = tifffile.imread(path)
-    array = transpose_data(im, source_order="ZYX", target_order=target_order)
-    return array
-
-
-def write_numpy_to_ZYX_image(array, path, source_order="XYZ"):
-    im = transpose_data(array, source_order=source_order, target_order="ZYX")
-    tifffile.imwrite(path, im)
-
-
-def load_image_to_numpy(path):
-    return load_ZYX_image_to_numpy(path, target_order="XYZ")
-
-
-def write_numpy_to_image(array, path):
-    write_numpy_to_ZYX_image(array, path, source_order="XYZ")
-
 
 def remove_gradient(img):
     """
@@ -742,15 +698,12 @@ def transform_image_path(image_path, output_path):
 
 
 def process_channel(channel_id, channel_path):
-    image = load_ZYX_image_to_numpy(channel_path, target_order="XYZ")
+    image = tifffile.imread(channel_path)
     if image.ndim == 3:
-        image = np.max(image, axis=2)
-    img = Image.fromarray(image)
-    buffer = BytesIO()
-    img.save(buffer, format="PNG")
-    buffer.seek(0)
+        image = np.max(image, axis=0)
+    _, buffer = cv2.imencode('.png', image, [cv2.IMWRITE_PNG_COMPRESSION, 1])
 
-    return channel_id, base64.b64encode(buffer.getvalue()).decode('utf-8')
+    return channel_id, base64.b64encode(buffer).decode('utf-8')
 
 
 def convert_series_parallel(image_id, cur_image_paths):
@@ -822,8 +775,6 @@ def consistent_hash(data):
     data_bytes = data.encode('utf-8')
     c_hash = hashlib.sha256(data_bytes).hexdigest()
     return c_hash
-
-
 
 def export_dataframe_to_pdf(df: pd.DataFrame, output_path: str):
     # Setup document geometry (Standard Letter size)
