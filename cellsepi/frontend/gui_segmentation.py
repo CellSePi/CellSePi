@@ -369,6 +369,9 @@ class GUISegmentation:
                 file_name=f"fluorescence_readout{export_ft.value.extension}"       # the "." is already part of the extension
             )
             path = pathlib.Path(chosen_path)
+            # add extension if deleted during rename
+            if path.suffix == "":
+                path = path.with_suffix(export_ft.value.extension)
 
             self.gui.page.run_thread(self.fluorescence.readout_fluorescence,export_ft, path)
             FluorescenceReadoutControl().disabled = True
