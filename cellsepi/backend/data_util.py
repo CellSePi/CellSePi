@@ -208,7 +208,7 @@ def extract_from_lif3d_file(lif3d_path, target_dir, channel_prefix, event_manage
         for c_idx, channel_3d in enumerate(series):
             file_name = f"{series_id}{channel_prefix}{c_idx + 1}.tif"
             target_path = target_dir / file_name
-            writeImageWithPreprocessing(target_path,channel_3d)
+            write_image_with_preprocessing(target_path,channel_3d)
         if event_manager is not None:
             event_manager.notify(event=ProgressEvent(int((s_idx + 1) / total_scenes * 100),
                                                      process=f"Extracted Series: {s_idx + 1}/{total_scenes}"))
@@ -512,7 +512,7 @@ def extract_from_file(
             target_path = target_dir / file_name
 
             # Store 3D data to disk
-            writeImageWithPreprocessing(target_path, image_data)
+            write_image_with_preprocessing(target_path, image_data)
 
         if event_manager is not None:
             event_manager.notify(event=ProgressEvent(int((index + 1) / total_scenes * 100),
@@ -611,7 +611,7 @@ def extract_from_directory(
             target_path = target_dir / file_name
 
             # Store 3D data to disk
-            writeImageWithPreprocessing(target_path,image_data)
+            write_image_with_preprocessing(target_path,image_data)
 
         for channel_id, mpath in scenes_masks[scene]:
             # Copy all associated mask information
