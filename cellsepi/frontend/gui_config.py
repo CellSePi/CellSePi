@@ -330,7 +330,7 @@ class GUIConfig:
             if not self.gui.csp.readout_running and not self.gui.csp.segmentation_running:
                 self.gui.page.run_task(self.gui.directory.check_masks)
         except ValueError:
-            self.page.show_dialog(ft.SnackBar(ft.Text("Bright field channel must be not empty!",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
+            self.page.show_dialog(ft.SnackBar(ft.Text("Segmentation channel must be not empty!",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
             self.txt_bf_ref.current.color = ft.Colors.RED
             self.page.update()
 
@@ -415,7 +415,7 @@ class GUIConfig:
         #--------------------------------------
         #creates the TextFields for the diffrent attributes of a profile
         tf_bf = ft.TextField(
-            label="Bright-Field Channel:",
+            label="Segmentation Channel:",
             border_color=ft.Colors.BLUE_ACCENT,
             value=self.config_class.get_bf_channel(),
             ref=self.txt_bf_ref,

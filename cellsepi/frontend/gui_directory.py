@@ -75,7 +75,7 @@ class DirectoryCard(ft.Card):
             self.count_results_txt = ft.Text(value="Results: 0")
             self.directory_path = ft.Text(value='Directory Path', weight=ft.FontWeight.BOLD)
             self.formatted_path = ft.Text(value=format_directory_path(self.directory_path.value),
-                                          weight=ft.FontWeight.BOLD)
+                                          weight=ft.FontWeight.BOLD,tooltip="Copy to clipboard")
             self.file_type = self.gui.csp.config.get_file_type_slider()
 
             index = np.where([elem is self.file_type for elem in FileType])[0].item()
