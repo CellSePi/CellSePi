@@ -856,7 +856,7 @@ class ModuleGUI(ft.GestureDetector):
                 slider_bool = ft.CupertinoSlidingSegmentedButton(
                     selected_index=index,
                     thumb_color=ft.Colors.BLUE_400,
-                    on_change=lambda e, attr_name=attribute_name: self.update_bool(e, attr_name),
+                    on_change=lambda e, attr_name=attribute_name: self.update_enum(e, attr_name,enum_class),
                     padding=ft.padding.symmetric(0, 0),
                     controls=[
                         ft.Text(enum_val.name) for enum_val in enum_class
@@ -992,6 +992,8 @@ class ModuleGUI(ft.GestureDetector):
             value_type = type(value).__name__
             if isinstance(value, FilePath) or isinstance(value, DirectoryPath):
                 value = value.path
+            elif isinstance(value, enum.Enum):
+                value = value.name
             user_attributes.append({"name": attr_name, "value": value, "attr_type": value_type})
         return {
             "module_id": self.module_id,
@@ -1007,7 +1009,11 @@ class ModuleGUI(ft.GestureDetector):
         for attr in module_dict.get("user_attributes", []):
             user_attributes = self.module.get_user_attributes
             if attr["name"] in user_attributes:
+                current_value = getattr(self.module, attr["name"])
                 if attr["attr_type"] == FilePath.__name__ or attr["attr_type"] == DirectoryPath.__name__:
-                    getattr(self.module, attr["name"]).path = attr["value"]
+                    current_value.path = attr["value"]
+                elif isinstance(current_value, enum.Enum):
+                    enum_class = type(current_value)
+                    setattr(self.module, attr["name"], enum_class[attr["value"]])
                 else:
                     setattr(self.module, attr["name"], attr["value"])
