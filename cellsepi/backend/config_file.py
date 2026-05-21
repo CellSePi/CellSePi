@@ -94,6 +94,7 @@ def create_default_config():
         "States": {
             "auto_button": False,
             "file_type_slider": "LIF",
+            "ignore_warning": False,
         }
     }
 
@@ -476,11 +477,18 @@ class ConfigFile:
         file_type = getattr(FileType, file_type_name, None)
         return file_type
 
-    def set_file_type_slider(self, val: bool):
+    def set_file_type_slider(self, val):
         """
         Sets the state of the file-type-slider button.
         """
         self.config["States"]["file_type_slider"] = val.name
+        self.save_config()
+
+    def get_ignore_warning(self):
+        return self.config["States"]["ignore_warning"]
+
+    def set_ignore_warning(self):
+        self.config["States"]["ignore_warning"] = True
         self.save_config()
 
     # -----------------------------------------------------

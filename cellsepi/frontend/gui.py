@@ -1,5 +1,7 @@
 import asyncio
 import os
+import platform
+import shutil
 import threading
 import traceback
 from datetime import datetime
@@ -24,7 +26,14 @@ from frontend.gui_training_environment import Training
 from frontend.gui_page_overlay import PageOverlay
 from frontend.expert_mode.expert_constants import MODULE_REGISTRY
 
+def check_for_file_picker_support():
+    if not platform.system() == "Linux":
+        return True
+    for tool in ["zenity", "qarma", "kdialog"]:
+        if shutil.which(tool) is not None:
+            return True
 
+    return False
 class GUI:
     """
     Class GUI to handle the complete GUI and their attributes, also contains the CellSePi class and updates their attributes
@@ -113,6 +122,29 @@ class GUI:
         self.ref_gallery_environment = ft.Ref[ft.Column]()
         if self.csp.config.get_auto_button():
             self.page.run_task(self.auto_image_tuning.pressed)
+
+        def close_banner(e):
+            e.control.page.pop_dialog()
+        async def launch_help_link(e):
+            await page.launch_url("https://github.com/CellSePi/CellSePi/blob/main/README.md")
+        def ignore_warning(e):
+            e.control.page.pop_dialog()
+            self.csp.config.set_ignore_warning()
+        self.zenity_warning = ft.Banner(
+            bgcolor=ft.Colors.RED,
+            leading=ft.Icon(ft.Icons.WARNING_AMBER_ROUNDED, color=ft.Colors.WHITE_60, size=40),
+            content=ft.Text(
+                "System tool 'zenity' (or similar) was not found.\n"
+                "Native file selection might be unreliable or not work at all.\n"
+                "Please consider installing 'zenity' via your package manager.",
+                color=ft.Colors.WHITE
+            ),
+            actions=[
+                ft.TextButton("Help",style=ft.ButtonStyle(color=ft.Colors.WHITE),on_click=launch_help_link),
+                ft.TextButton("Dismiss",style=ft.ButtonStyle(color=ft.Colors.WHITE), on_click=close_banner),
+                ft.TextButton("Ignore warning", style=ft.ButtonStyle(color=ft.Colors.WHITE_60), on_click=ignore_warning, tooltip="Do not show this warning again in the future"),
+            ],
+        )
 
     def build(self):
         """
@@ -230,6 +262,9 @@ class GUI:
                 )
             )
             self.page.update()
+
+        if not check_for_file_picker_support() and not self.csp.config.get_ignore_warning():
+            self.page.show_dialog(self.zenity_warning)
 
     def mask_update(self, image_id, mask_added_or_removed):
         if mask_added_or_removed:
