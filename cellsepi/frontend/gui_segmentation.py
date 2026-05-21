@@ -111,14 +111,14 @@ class GUISegmentation:
                 self.gui.csp.model_path = files[0].path
                 self.gui.page.update()
 
-        def new_pick_model_result(e: ft.Event[ft.Button]):
-            if model_drop_down.value == "Custom Cellpose Model":
+        def new_pick_model_result(e):
+            if model_drop_down.value == "CustomV3":
                 model_choose_button.visible = True
                 model_text.value = "Choose model"
                 model_text.color = None
                 self.gui.csp.model_path = None
                 self.gui.csp.model_type = "CustomV3"
-            elif model_drop_down.value == "Custom CellposeSAM Model":
+            elif model_drop_down.value == "CustomV4":
                 model_choose_button.visible = True
                 model_text.value = "Choose model"
                 model_text.color = None
@@ -462,15 +462,16 @@ class GUISegmentation:
         project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         model_directory = os.path.join(project_root, "models")
 
-        model_drop_down = ft.DropdownM2(
+        model_drop_down = ft.Dropdown(
             width=250,
             label="Choose model",
             border_color=ft.Colors.BLUE_ACCENT,
-            options=[ft.dropdownm2.Option(key="Cellpose", text="Cellpose"),
-                     ft.dropdownm2.Option(key="CellposeSAM", text="CellposeSAM"),
-                     ft.dropdownm2.Option(key="Custom CellposeSAM Model", text="CustomV4"),
-                     ft.dropdownm2.Option(key="Custom Cellpose Model", text="CustomV3")],
-            on_change=lambda e: new_pick_model_result(e))
+            options=[ft.DropdownOption(key="Cellpose", text="Cellpose"),
+                     ft.DropdownOption(key="CellposeSAM", text="CellposeSAM"),
+                     ft.DropdownOption(key="CustomV3", text="𝐂𝐮𝐬𝐭𝐨𝐦 Cellpose"),
+                     ft.DropdownOption(key="CustomV4", text="𝐂𝐮𝐬𝐭𝐨𝐦 CellposeSAM"),
+            ],
+            on_select=lambda e: new_pick_model_result(e))
 
         model_choose_button = ft.IconButton(
             icon=ft.Icons.UPLOAD_FILE,

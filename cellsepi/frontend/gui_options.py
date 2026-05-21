@@ -118,6 +118,11 @@ class Options(ft.Container):
                 on_click=self.theme_changed,
             ),
             ft.PopupMenuItem(
+                content=ft.Container(
+                    ft.Row([self.plugin_folder_icon_button, ft.Text("Plugins")], alignment=ft.MainAxisAlignment.START)),
+                on_click=self.open_plugin_folder
+            ),
+            ft.PopupMenuItem(
                 content=ft.Row([self.color_selection.color_icon_mask, ft.Text("Mask Color")],alignment=ft.MainAxisAlignment.START),
                 on_click=self.color_selection.open_color_picker_mask,
             ),
@@ -146,7 +151,6 @@ class Options(ft.Container):
                 ),
             ),
             ft.PopupMenuItem(content=ft.Container(ft.Stack([self.slider,self.slider_blocker]),alignment=ft.Alignment.CENTER),),
-            ft.PopupMenuItem(content=ft.Container(ft.Row([self.plugin_folder_icon_button,ft.Text("Plugins")],alignment=ft.MainAxisAlignment.START)),on_click=self.open_plugin_folder)
         ]
 
     async def gpu_slider_change(self,e):
