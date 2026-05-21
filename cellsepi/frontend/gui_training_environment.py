@@ -280,7 +280,7 @@ class Training(ft.Container):
         # checks if the right model type was selected
         if self.re_train_model.value and self.re_train_model_name is None:
             self.page.show_dialog(ft.SnackBar(
-                ft.Text(f"The model you inserted is not a retrained model!")))
+                ft.Text(f"The model you inserted is not a retrained model!",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
             self.gui.directory.enable_path_choosing()
             self.start_button.disabled = False
             self.re_train_model_chooser.disabled = False
@@ -302,7 +302,7 @@ class Training(ft.Container):
 
         except Exception as e:
             self.page.show_dialog(ft.SnackBar(
-                ft.Text(f"Something went wrong while gather training data: {str(e)}")))
+                ft.Text(f"Something went wrong while gather training data: {str(e)}",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
             self.gui.directory.enable_path_choosing()
             self.start_button.disabled = False
             self.progress_ring.visible = False
@@ -315,7 +315,7 @@ class Training(ft.Container):
             return
         if len(images) == 0 or len(labels) == 0:
             self.page.show_dialog(ft.SnackBar(
-                ft.Text(f"You need images and suitable masks to train a model!")))
+                ft.Text(f"You need images and suitable masks to train a model!",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
             self.gui.directory.enable_path_choosing()
             self.start_button.disabled = False
             self.progress_ring.visible = False
@@ -350,7 +350,7 @@ class Training(ft.Container):
 
         except Exception as e:
             self.page.show_dialog(ft.SnackBar(
-                ft.Text(f"Something went wrong while training: {str(e)}")))
+                ft.Text(f"Something went wrong while training: {str(e)}",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
             self.progress_bar_text.value = ""
             self.page.update()
         self.gui.directory.enable_path_choosing()
