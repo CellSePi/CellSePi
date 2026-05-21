@@ -468,8 +468,8 @@ class GUISegmentation:
             border_color=ft.Colors.BLUE_ACCENT,
             options=[ft.DropdownOption(key="Cellpose", text="Cellpose"),
                      ft.DropdownOption(key="CellposeSAM", text="CellposeSAM"),
-                     ft.DropdownOption(key="CustomV3", text="𝐂𝐮𝐬𝐭𝐨𝐦 Cellpose"),
-                     ft.DropdownOption(key="CustomV4", text="𝐂𝐮𝐬𝐭𝐨𝐦 CellposeSAM"),
+                     ft.DropdownOption(key="CustomV3",text="\u200BCellpose",content=ft.Row([ft.Text("Custom",weight=ft.FontWeight.BOLD),ft.Text("Cellpose")])),
+                     ft.DropdownOption(key="CustomV4",text="\u200BCellposeSAM",content=ft.Row([ft.Text("Custom",weight=ft.FontWeight.BOLD),ft.Text("CellposeSAM")])),
             ],
             on_select=lambda e: new_pick_model_result(e))
 
