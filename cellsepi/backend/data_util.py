@@ -25,6 +25,7 @@ from tifffile import tifffile
 
 from backend.constants import ReturnTypePath, FileType, BIT_DEPTH, Suffixes, CSP_CHANNEL_PREFIX
 from backend.expert_mode.event_manager import *
+from backend.notifier import Notifier
 
 
 def listdir(directory):
@@ -111,6 +112,60 @@ def load_directory(directory, channel_prefix=None, mask_suffix=None,
     return None
 
 
+class FileTransfer(Notifier):
+    def __init__(self, file_types=None, event_manager: EventManager = None):
+        super().__init__()
+        self.file_types = file_types
+        self.event_manager = event_manager
+
+    def __call__(self, source_dir, target_dir, *args, **kwargs):
+        self._call_start_listeners(True)
+
+        file_filter = lambda file_path: file_path.is_file() and (
+            True if self.file_types is None else file_path.suffix in self.file_types)
+
+        files = listdir(source_dir)
+        files_to_copy = [file for file in files if file_filter(file)]
+
+        total_files = len(files_to_copy)
+        copied_files = 0
+
+        if self.event_manager is not None:
+            self.event_manager.notify(event=ProgressEvent(0, process=f"Copy Files: {copied_files}/{total_files}"))
+
+        n_files = len(files_to_copy)
+        for iN, src_path in enumerate(files_to_copy):
+            target_path = target_dir / src_path.name
+
+            try:
+                if target_path.exists():
+                    if platform.system() == "Windows":
+                        os.chmod(target_path, stat.S_IWRITE)
+                    else:
+                        target_path.chmod(0o777)
+                    target_path.unlink()
+
+                shutil.copy(str(src_path), str(target_path))
+
+            except Exception as e:
+                print(f"Something went wrong while processing {src_path.name}: {str(e)}")
+            finally:
+                copied_files += 1
+                if self.event_manager is not None:
+                    self.event_manager.notify(event=ProgressEvent(int(copied_files / total_files * 100),
+                                                                  process=f"Copy Files: {copied_files}/{total_files}"))
+
+            if self.event_manager is None:
+                kwargs = {"progress": str(int((iN + 1) / n_files * 100)) + "%",
+                          "current_image": {"image_id": src_path.name}}
+                self._call_update_listeners(**kwargs)
+            else:
+                self.event_manager.notify(ProgressEvent(percent=int((iN + 1) / n_files * 100),
+                                                        process=f"Exporting Images: {iN + 1}/{n_files} (Latest Image: {src_path.name})"))
+
+        self._call_completion_listeners()
+
+
 def copy_files_between_directories(source_dir, target_dir, file_types=None, event_manager: EventManager = None):
     file_filter = lambda file_path: file_path.is_file() and (
         True if file_types is None else file_path.suffix in file_types)
@@ -124,7 +179,9 @@ def copy_files_between_directories(source_dir, target_dir, file_types=None, even
     if event_manager is not None:
         event_manager.notify(
             event=ProgressEvent(0, process=f"Copy Files: {copied_files}/{total_files}"))
-    for src_path in files_to_copy:
+
+    n_files = len(files_to_copy)
+    for iN, src_path in enumerate(files_to_copy):
         target_path = target_dir / src_path.name
 
         try:
@@ -145,9 +202,14 @@ def copy_files_between_directories(source_dir, target_dir, file_types=None, even
                 event_manager.notify(event=ProgressEvent(int(copied_files / total_files * 100),
                                                          process=f"Copy Files: {copied_files}/{total_files}"))
 
-    if event_manager is not None:
-        event_manager.notify(
-            event=ProgressEvent(100, process="Finished copy Files!"))
+        if event_manager is None:
+            # kwargs = {"progress": str(int((iN + 1) / n_images * 100)) + "%",
+            #          "current_image": {"image_id": image_id}}
+            # self._call_update_listeners(**kwargs)
+            pass
+        else:
+            event_manager.notify(ProgressEvent(percent=int((iN + 1) / n_files * 100),
+                                               process=f"Readout Images: {iN + 1}/{n_files} (Latest Image: {image_id})"))
 
 
 """

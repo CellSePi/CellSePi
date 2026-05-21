@@ -156,7 +156,6 @@ class GUI:
                                                     )
                                                 ])
                                         ]),
-
                                     self.segmentation_card
                                 ],
                                 expand=6,
@@ -187,14 +186,16 @@ class GUI:
                                 [
                                     self.directory,
                                     ft.Card(
-                                        content=ft.Stack(
-                                            [
-                                                ft.Container(self.directory.image_gallery, padding=20),
-                                                ft.Container(self.progress_ring,
-                                                             alignment=ft.Alignment.CENTER,
-                                                             ignore_interactions=True)
-                                            ]
-                                        ),
+                                        content=ft.Column(controls=[
+                                            ft.Stack(
+                                                [
+                                                    ft.Container(self.directory.image_gallery, padding=20),
+                                                    ft.Container(self.progress_ring,
+                                                                 alignment=ft.Alignment.CENTER,
+                                                                 ignore_interactions=True)
+                                                ]
+                                            ),
+                                        ]),
                                         expand=True
                                     ),
                                 ],
