@@ -27,7 +27,7 @@ class Project3dTo2d(Module, ABC):
         self.outputs = {
             "image_paths": OutputPort("image_paths", dict),
         }
-        self.user_projection_type: Enum = ProjectionType.Z_MAX
+        self.user_projection_type: ProjectionType = ProjectionType.Z_MAX
 
 
     def run(self):
@@ -40,7 +40,7 @@ class Project3dTo2d(Module, ABC):
             for channel in images[series]:
                 image_path = images[series][channel]
                 image = tifffile.imread(image_path)  # dimensions are: Z,Y,X
-                if self.user_max == ProjectionType.Z_MAX:
+                if self.user_projection_type == ProjectionType.Z_MAX:
                     image = np.max(image, axis=0)
                 else:
                     image = np.mean(image, axis=0).astype(image.dtype)
