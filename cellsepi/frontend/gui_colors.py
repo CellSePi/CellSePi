@@ -44,8 +44,8 @@ class ColorSelection:
 
         self.current_color = None
         self.picker_container = ft.Container()
-        self.color_icon_mask = ft.IconButton(icon=ft.Icons.BRIGHTNESS_1_ROUNDED,icon_color=color_mask,disabled=True,mouse_cursor=ft.MouseCursor.CLICK)
-        self.color_icon_outline = ft.IconButton(icon=ft.Icons.BRIGHTNESS_1_ROUNDED, icon_color=color_outline,disabled=True,mouse_cursor=ft.MouseCursor.CLICK)
+        self.color_icon_mask = ft.Icon(icon=ft.Icons.BRIGHTNESS_1_ROUNDED,color=color_mask,disabled=True)
+        self.color_icon_outline = ft.Icon(icon=ft.Icons.BRIGHTNESS_1_ROUNDED, color=color_outline,disabled=True)
         self.color_type = None
         self.dialog = PageOverlay(self.gui.page,ft.Stack([ft.Row([
             ft.Column([ft.Card(content=ft.Stack([ft.Container(ft.Column(

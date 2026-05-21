@@ -1,3 +1,7 @@
+import os
+import subprocess
+import sys
+
 import flet as ft
 import torch
 
@@ -12,10 +16,9 @@ class Options(ft.Container):
         super().__init__()
         self.gui = gui
         self.dark_light_text = ft.Text("Light Theme")
-        self.dark_light_icon = ft.IconButton(
+        self.dark_light_icon = ft.Icon(
             icon=ft.Icons.BRIGHTNESS_2_OUTLINED,
-            icon_color=None,
-            on_click=self.theme_changed,
+            color=None,
         )
         self.color_selection = ColorSelection(gui)
         self.color_opacity= ColorOpacity(gui)
@@ -57,6 +60,9 @@ class Options(ft.Container):
             self.slider_blocker.visible = False
             for control in self.slider.controls:
                 control.color = None
+        self.plugin_folder_icon_button = ft.Icon(
+            icon=ft.Icons.FOLDER_OPEN,
+        )
         self.menu_button = ft.PopupMenuButton(
             items=self.create_appbar_items(),
             content=ft.Icon(ft.Icons.MENU),
@@ -74,11 +80,11 @@ class Options(ft.Container):
         """
         if self.gui.page.theme_mode == ft.ThemeMode.LIGHT or (self.gui.page.theme_mode == ft.ThemeMode.SYSTEM and self.gui.page.platform_brightness == ft.Brightness.LIGHT):
             self.gui.page.theme_mode = ft.ThemeMode.DARK
-            self.dark_light_text.value = "Dark Theme"
+            self.dark_light_text.value = "Light Theme"
             self.dark_light_icon.icon = ft.Icons.BRIGHTNESS_HIGH
         else:
             self.gui.page.theme_mode = ft.ThemeMode.LIGHT
-            self.dark_light_text.value = "Light Theme"
+            self.dark_light_text.value = "Dark Theme"
             self.dark_light_icon.icon = ft.Icons.BRIGHTNESS_2_OUTLINED
         self.gui.page.update()
 
@@ -88,17 +94,17 @@ class Options(ft.Container):
         """
         if self.gui.page.theme_mode == ft.ThemeMode.SYSTEM:
             if self.gui.page.platform_brightness == ft.Brightness.LIGHT:
-                self.dark_light_text.value = "Light Theme"
+                self.dark_light_text.value = "Dark Theme"
                 self.dark_light_icon.icon = ft.Icons.BRIGHTNESS_2_OUTLINED
             else:
-                self.dark_light_text.value = "Dark Theme"
+                self.dark_light_text.value = "Light Theme"
                 self.dark_light_icon.icon = ft.Icons.BRIGHTNESS_HIGH
         else:
             if self.gui.page.theme_mode == ft.ThemeMode.LIGHT:
-                self.dark_light_text.value = "Light Theme"
+                self.dark_light_text.value = "Dark Theme"
                 self.dark_light_icon.icon = ft.Icons.BRIGHTNESS_2_OUTLINED
             else:
-                self.dark_light_text.value = "Dark Theme"
+                self.dark_light_text.value = "Light Theme"
                 self.dark_light_icon.icon = ft.Icons.BRIGHTNESS_HIGH
         self.gui.page.update()
 
@@ -108,15 +114,15 @@ class Options(ft.Container):
         """
         return [
             ft.PopupMenuItem(
-                content=ft.Row([self.dark_light_icon, self.dark_light_text]),
+                content=ft.Row([self.dark_light_icon, self.dark_light_text],alignment=ft.MainAxisAlignment.START),
                 on_click=self.theme_changed,
             ),
             ft.PopupMenuItem(
-                content=ft.Row([self.color_selection.color_icon_mask, ft.Text("Mask Color")]),
+                content=ft.Row([self.color_selection.color_icon_mask, ft.Text("Mask Color")],alignment=ft.MainAxisAlignment.START),
                 on_click=self.color_selection.open_color_picker_mask,
             ),
             ft.PopupMenuItem(
-                content=ft.Row([self.color_selection.color_icon_outline, ft.Text("Outline Color")]),
+                content=ft.Row([self.color_selection.color_icon_outline, ft.Text("Outline Color")],alignment=ft.MainAxisAlignment.START),
                 on_click=self.color_selection.open_color_picker_outline,
             ),
             ft.PopupMenuItem(
@@ -139,8 +145,8 @@ class Options(ft.Container):
                     padding=ft.Padding.all(0),
                 ),
             ),
-            ft.PopupMenuItem(content=ft.Container(ft.Stack([self.slider,self.slider_blocker]),alignment=ft.Alignment.CENTER)
-            )
+            ft.PopupMenuItem(content=ft.Container(ft.Stack([self.slider,self.slider_blocker]),alignment=ft.Alignment.CENTER),),
+            ft.PopupMenuItem(content=ft.Container(ft.Row([self.plugin_folder_icon_button,ft.Text("Plugins")],alignment=ft.MainAxisAlignment.START)),on_click=self.open_plugin_folder)
         ]
 
     async def gpu_slider_change(self,e):
@@ -148,4 +154,12 @@ class Options(ft.Container):
             self.gui.csp.gpu = True
         else:
             self.gui.csp.gpu = False
+
+    async def open_plugin_folder(self, e):
+        folder_path = self.gui.csp.plugins_dir
+
+        if os.name == "nt":  # Check if Windows
+            os.startfile(folder_path)
+        elif os.name == "posix":  # Check if Mac or Linux
+            subprocess.run(["open", folder_path] if sys.platform == "darwin" else ["xdg-open", folder_path])
 
