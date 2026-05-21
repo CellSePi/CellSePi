@@ -59,7 +59,6 @@ def organize_files(files, channel_prefix, mask_suffix=""):
     return id_to_file
 
 
-
 def load_directory(directory, channel_prefix=None, mask_suffix=None,
                    return_type: ReturnTypePath = ReturnTypePath.BOTH_PATHS, event_manager: EventManager = None):
     assert directory is not None
@@ -150,6 +149,7 @@ def copy_files_between_directories(source_dir, target_dir, file_types=None, even
         event_manager.notify(
             event=ProgressEvent(100, process="Finished copy Files!"))
 
+
 """
 def extract_from_lif_file(lif_path, target_dir, channel_prefix, event_manager: EventManager = None):
     
@@ -225,9 +225,10 @@ def extract_from_lif_file(lif_path, target_dir, channel_prefix, event_manager: E
                 event=ProgressEvent(100, process=f"Finished extracting Series!"))
 """
 
-def write_image_with_preprocessing(target_path,image_data):
-    #TODO:PREPROCESSING (resize,dark corners,etc...)
-    clean_data = np.squeeze(image_data)
+
+def write_image_with_preprocessing(target_path, image_data):
+    # TODO:PREPROCESSING (resize,dark corners,etc...)
+    clean_data = image_data  # np.squeeze(image_data)
     tifffile.imwrite(target_path, clean_data)
 
 
@@ -545,7 +546,7 @@ def extract_from_directory(
             target_path = target_dir / file_name
 
             # Store 3D data to disk
-            write_image_with_preprocessing(target_path,image_data)
+            write_image_with_preprocessing(target_path, image_data)
 
         for channel_id, mpath in scenes_masks[scene]:
             # Copy all associated mask information
@@ -559,6 +560,7 @@ def extract_from_directory(
     if event_manager is not None:
         event_manager.notify(
             event=ProgressEvent(100, process=f"Finished extracting Series!"))
+
 
 def remove_gradient(img):
     """
@@ -599,6 +601,7 @@ def remove_gradient(img):
 
     corrected_img = img + correction
     return corrected_img
+
 
 def process_channel(channel_id, channel_path):
     image = tifffile.imread(channel_path)
@@ -654,14 +657,17 @@ def convert_tiffs_to_png_parallel(image_paths):
     else:
         return None
 
+
 def consistent_hash(data):
     data_bytes = data.encode('utf-8')
     c_hash = hashlib.sha256(data_bytes).hexdigest()
     return c_hash
 
+
 def export_dataframe_to_pdf(df: pd.DataFrame, output_path: str):
     # Setup document geometry (Standard Letter size)
-    doc = SimpleDocTemplate(output_path, pagesize=pagesizes.A4, rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
+    doc = SimpleDocTemplate(output_path, pagesize=pagesizes.A4, rightMargin=30, leftMargin=30, topMargin=30,
+                            bottomMargin=30)
     story = []
 
     # Add a title header
@@ -671,7 +677,7 @@ def export_dataframe_to_pdf(df: pd.DataFrame, output_path: str):
     story.append(Spacer(1, 15))  # 15 point vertical spacing
 
     # Prepare data matrix: Include headers + all row values
-    #if no mask was detected pdf with
+    # if no mask was detected pdf with
     if df.empty or len(df.columns) == 0:
         data_matrix = [["No mask was generated"]]
     else:
@@ -700,6 +706,7 @@ def export_dataframe_to_pdf(df: pd.DataFrame, output_path: str):
 
     story.append(pdf_table)
     doc.build(story)
+
 
 def load_image_to_numpy(path):
     im = tifffile.imread(path)

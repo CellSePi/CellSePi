@@ -1,8 +1,7 @@
 import torch
 from backend.config_file import ConfigFile
-from pathlib import Path
+from backend.constants import APP_DIR
 
-APP_NAME = ".cellsepi"
 
 class CellSePi:
     def __init__(self):
@@ -34,8 +33,7 @@ class CellSePi:
         self.working_directory = None
 
     def createDirectory(self):
-        app_dir = Path(Path.home() / APP_NAME)
-
+        app_dir = APP_DIR
         app_dir.mkdir(parents=True, exist_ok=True)
         models_dir = app_dir / "models"
         plugins_dir = app_dir / "plugins"

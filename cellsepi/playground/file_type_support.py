@@ -1,7 +1,7 @@
 import os.path
 
-from backend.main_window.constants import FileType
-from backend.main_window.data_util import CellSePiImage
+from backend.constants import FileType
+from backend.data_util import CellSePiImage
 
 if __name__ == '__main__':
     nd2_path = "/Users/erik/Downloads/CellSePi Segmentation Data/ND2_Test_Images/GFP001.nd2"

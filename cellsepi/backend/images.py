@@ -11,7 +11,6 @@ from PIL import Image
 from cellpose import models, io
 from scipy.ndimage import binary_erosion
 from tifffile import tifffile
-import cv2
 
 from backend.constants import ExportFileType
 from backend.data_util import load_image_to_numpy,export_dataframe_to_pdf
