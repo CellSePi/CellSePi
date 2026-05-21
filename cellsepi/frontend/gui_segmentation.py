@@ -170,7 +170,7 @@ class GUISegmentation:
                 self.gui.page.run_thread(self.segmentation.run)
             except:
                 self.gui.page.show_dialog(
-                    ft.SnackBar(ft.Text("You have selected an incompatible file for the segmentation model.")))
+                    ft.SnackBar(ft.Text("You have selected an incompatible file for the segmentation model.",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
                 self.gui.training_environment.enable_switch_environment()
                 start_button.visible = True
                 start_button.disabled = True
@@ -491,7 +491,8 @@ class GUISegmentation:
                      model_chooser
                      ]
                 ),
-                padding=10
+                padding=10,
+                clip_behavior=ft.ClipBehavior.HARD_EDGE
             ),
         )
 
