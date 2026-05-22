@@ -13,6 +13,7 @@ APP_NAME = ".cellsepi"
 APP_DIR = Path(Path.home() / APP_NAME)
 
 
+
 class ReturnTypePath(Enum):
     IMAGE_PATHS = auto()
     MASK_PATHS = auto()
@@ -33,11 +34,13 @@ class FileType(Enum):
     TIFF_DIR = SimpleNamespace(name="TIFF Dir", extensions=["tiff", "tif"], source=SourceType.DIRECTORY)
 
 
+
 class ExportFileType(Enum):
     EXCEL = SimpleNamespace(name="EXCEL", extension=".xlsx", seperator=None)
     TSV = SimpleNamespace(name="TSV", extension=".tsv", seperator="\t")
     CSV = SimpleNamespace(name="CSV", extension=".csv", seperator=",")
     PDF = SimpleNamespace(name="PDF", extension=".pdf", seperator=None)
+
 
 
 class Suffixes(Enum):
@@ -125,3 +128,9 @@ class DirectoryManager:
                         shutil.rmtree(item)
                     else:
                         item.unlink()
+
+    @staticmethod
+    def downloads_directory() -> Path:
+        home = Path.home()
+        downloads_dir = home / "Downloads"
+        return downloads_dir

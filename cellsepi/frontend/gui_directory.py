@@ -7,6 +7,7 @@ import shutil
 import flet as ft
 import numpy as np
 
+from frontend.dialogs import ChoiceDialog
 from frontend.gui_fluorescence import FluorescenceReadoutControl
 from backend.constants import FileType, SourceType, DirectoryManager, CSP_CHANNEL_PREFIX
 from backend.data_util import consistent_hash, extract_from_directory
@@ -16,7 +17,6 @@ from backend.expert_mode.event_manager import EventManager
 from backend.expert_mode.listener import ProgressEvent
 from backend.expert_mode.pipeline_manager import PipelineRunningException
 from frontend.gui_canvas import update_main_image
-
 
 
 def format_directory_path(dir_path: str, max_length=30):
@@ -49,7 +49,8 @@ async def copy_to_clipboard(page, value: str, name: str):
         name (str): Name of the thing that got copied.
     """
     await ft.Clipboard().set(value)
-    page.show_dialog(ft.SnackBar(ft.Text(f"{name} copied to clipboard!",color=ft.Colors.WHITE),bgcolor=ft.Colors.GREEN))
+    page.show_dialog(
+        ft.SnackBar(ft.Text(f"{name} copied to clipboard!", color=ft.Colors.WHITE), bgcolor=ft.Colors.GREEN))
     page.update()
 
 
@@ -75,7 +76,7 @@ class DirectoryCard(ft.Card):
             self.count_results_txt = ft.Text(value="Results: 0")
             self.directory_path = ft.Text(value='Directory Path', weight=ft.FontWeight.BOLD)
             self.formatted_path = ft.Text(value=format_directory_path(self.directory_path.value),
-                                          weight=ft.FontWeight.BOLD,tooltip="Copy to clipboard")
+                                          weight=ft.FontWeight.BOLD, tooltip="Copy to clipboard")
             self.file_type = self.gui.csp.config.get_file_type_slider()
 
             index = np.where([elem is self.file_type for elem in FileType])[0].item()
@@ -103,7 +104,7 @@ class DirectoryCard(ft.Card):
                 on_click=None,
                 visible=False,
             )
-            self.lif_row = ft.Column(
+            self.file_type_selection_row = ft.Column(
                 [
                     ft.Stack(
                         [
@@ -130,13 +131,14 @@ class DirectoryCard(ft.Card):
         def on_exit_text(text_filed):
             text_filed.color = None
             text_filed.update()
+
         return ft.ListTile(leading=ft.Icon(icon=ft.Icons.FOLDER_OPEN),
                            title=ft.GestureDetector(content=self.formatted_path,
-                                               on_tap=lambda e: e.page.run_task(copy_to_clipboard, page=self.page,
-                                                                                value=self.gui.directory.directory_path.value,
-                                                                                name="Directory path"),
-                                               on_enter=lambda e: on_enter_text(self.formatted_path),
-                                               on_exit= lambda e: on_exit_text(self.formatted_path)),
+                                                    on_tap=lambda e: e.page.run_task(copy_to_clipboard, page=self.page,
+                                                                                     value=self.gui.directory.directory_path.value,
+                                                                                     name="Directory path"),
+                                                    on_enter=lambda e: on_enter_text(self.formatted_path),
+                                                    on_exit=lambda e: on_exit_text(self.formatted_path)),
                            subtitle=self.count_results_txt,
                            width=310
                            )
@@ -259,7 +261,7 @@ class DirectoryCard(ft.Card):
         working_directory = (DirectoryManager(self.gui.csp.app_dir)
                              .get_cache_dir_path(f"tmp_{file_type.name}_{image_source_identifier}/", makedir=False))
 
-        #case empty folder
+        # case empty folder
         if file_type.value.source == SourceType.DIRECTORY:
             has_images = any(
                 any(str(file).lower().endswith(ext) for ext in self.file_type.value.extensions)
@@ -268,7 +270,8 @@ class DirectoryCard(ft.Card):
             )
 
             if not has_images:
-                self.gui.page.show_dialog(ft.SnackBar(ft.Text("The directory is empty.",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
+                self.gui.page.show_dialog(
+                    ft.SnackBar(ft.Text("The directory is empty.", color=ft.Colors.WHITE), bgcolor=ft.Colors.RED))
                 self.output_dir = True
                 self.gui.page.update()
                 self.gui.csp.image_paths = {}
@@ -623,7 +626,7 @@ class DirectoryCard(ft.Card):
             content=ft.Column(
                             [
                                 ft.Row([self.path_list_tile,ft.Row([self.directory_row,self.files_row,],expand=True,alignment=ft.MainAxisAlignment.END)]),
-                                self.lif_row
+                                self.file_type_selection_row
                             ]
                         ),
             padding=10,
@@ -635,7 +638,7 @@ class DirectoryCard(ft.Card):
         Disables everything related with path choosing.
         """
         self.path_list_tile.disabled = True
-        self.lif_row.disabled = True
+        self.file_type_selection_row.disabled = True
         self.toggle_slider_state(self.file_type_slider, disabled=True)
 
         self.gui.page.update()
@@ -645,7 +648,7 @@ class DirectoryCard(ft.Card):
         Activates everything related with path choosing.
         """
         self.path_list_tile.disabled = False
-        self.lif_row.disabled = False
+        self.file_type_selection_row.disabled = False
         self.toggle_slider_state(self.file_type_slider, disabled=False)
         self.gui.page.update()
 
@@ -687,7 +690,7 @@ class DirectoryCard(ft.Card):
             )
             fluorescence_readout_control = FluorescenceReadoutControl()
 
-            if all_mask_present and self.gui.csp.image_paths is not None and len(self.gui.csp.image_paths) != 0 :
+            if all_mask_present and self.gui.csp.image_paths is not None and len(self.gui.csp.image_paths) != 0:
                 fluorescence_readout_control.visible = True
                 fluorescence_readout_control.update()
             else:
@@ -695,53 +698,4 @@ class DirectoryCard(ft.Card):
                 fluorescence_readout_control.update()
 
 
-class ChoiceDialog:
-    def __init__(self, page: ft.Page, title: str, text: str, option_1: str, option_2: str, ):
-        self.page = page
-        self.result = None
-        # asyncio.Event manages the pause/resume state of the execution flow
-        self.event = asyncio.Event()
 
-        # Build the reusable AlertDialog control template
-        self.dialog = ft.AlertDialog(
-            modal=True,
-            title=ft.Text(title),
-            content=ft.Text(text),
-            actions=[
-                # ft.TextButton("Cancel", on_click=self._on_cancel),
-                ft.FilledButton(option_1, color=ft.Colors.WHITE, bgcolor=ft.Colors.PRIMARY, on_click=self._on_opt_1),
-                ft.ElevatedButton(option_2, on_click=self._on_opt_2),
-            ],
-            actions_alignment=ft.MainAxisAlignment.END,
-        )
-
-    # Event handlers update choice state and clear the thread block
-    async def _on_opt_1(self, e):
-        self.result = 0
-        await self._close()
-
-    async def _on_opt_2(self, e):
-        self.result = 1
-        await self._close()
-
-    async def _on_cancel(self, e):
-        self.result = "cancel"
-        await self._close()
-
-    async def _close(self):
-        self.dialog.open = False
-        self.page.update()
-        self.event.set()  # Unblocks the await statement in show()
-
-    # The primary method to call from your main app flow
-    async def show(self) -> str:
-        self.result = None
-        self.event.clear()
-
-        self.page.overlay.append(self.dialog)
-        self.dialog.open = True
-        self.page.update()
-
-        # execution halts here until self.event.set() runs
-        await self.event.wait()
-        return self.result
