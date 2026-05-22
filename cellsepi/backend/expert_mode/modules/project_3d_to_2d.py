@@ -3,10 +3,11 @@ from enum import auto
 
 import numpy as np
 from tifffile import tifffile
-from PIL import Image
 
 from backend.expert_mode.listener import ProgressEvent
 from backend.expert_mode.module import *
+from expert_mode.pipeline_manager import PipelineRunningException
+
 
 class ProjectionType(Enum):
     Z_MAX = auto()
@@ -40,17 +41,24 @@ class Project3dTo2d(Module, ABC):
             for channel in images[series]:
                 image_path = images[series][channel]
                 image = tifffile.imread(image_path)  # dimensions are: Z,Y,X
+                if image.ndim != 3:
+                    raise PipelineRunningException("Value Error","Wrong image format, expected a 3D image.")
                 if self.user_projection_type == ProjectionType.Z_MAX:
-                    image = np.max(image, axis=0)
+                    projected = np.max(image, axis=0)
+                    suffix = "_max"
                 else:
-                    image = np.mean(image, axis=0).astype(image.dtype)
+                    projected = np.mean(image, axis=0).round().astype(image.dtype)
+                    suffix = "_mean"
+
                 base_dir = os.path.dirname(image_path)
-                proj_dir = os.path.join(base_dir, "projections")
-                os.makedirs(proj_dir, exist_ok=True)
-                name = os.path.basename(image_path)
-                new_path = os.path.join(proj_dir, name)
-                img = Image.fromarray(image)
-                img.save(new_path, format="TIFF")
+                name_without_type = os.path.splitext(os.path.basename(image_path))[0]
+
+                new_filename = f"{name_without_type}{suffix}.tif"
+                new_path = os.path.join(base_dir, new_filename)
+
+                tifffile.imwrite(new_path, projected)
+
+
                 outputs_images[series][channel] = new_path
 
             self.event_manager.notify(ProgressEvent(percent=int((iN + 1) / n_series * 100),

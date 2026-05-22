@@ -1,6 +1,7 @@
 from enum import Enum, auto
-from pathlib import Path
 from types import SimpleNamespace
+from pathlib import Path
+from typing import Optional, Callable
 
 BIT_DEPTH = 16
 
@@ -36,6 +37,21 @@ class FileType(Enum):
     OME_TIFF = SimpleNamespace(name="OME-TIFF", extensions=["ome.tiff", "ome.tif"], source=SourceType.FILE)
     TIFF_DIR = SimpleNamespace(name="TIFF Dir", extensions=["tiff", "tif"], source=SourceType.DIRECTORY)
 
+class OverWrite(Enum):
+    ALWAYS = auto()
+    NEVER = auto()
+
+def create_enum_subset(new_name: str, base_enum: type[Enum], condition_func: Callable, fields_to_copy: list[str]) -> type[Enum]:
+    members = {}
+    for enum_key, member in base_enum.__members__.items():
+        if condition_func(member):
+            namespace_kwargs = {"ref": member}
+            for field in fields_to_copy:
+                if hasattr(member.value, field):
+                    namespace_kwargs[field] = getattr(member.value, field)
+            members[enum_key] = SimpleNamespace(**namespace_kwargs)
+
+    return Enum(new_name, members)
 
 class ExportFileType(Enum):
     EXCEL = SimpleNamespace(name="EXCEL", extension=".xlsx", seperator=None)

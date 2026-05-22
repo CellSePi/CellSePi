@@ -20,18 +20,24 @@ class ImageExportModule(Module, ABC):
 
     def run(self):
         image_paths = self.inputs["image_paths"].data
+        mask_paths = self.inputs["mask_paths"].data
 
-        first_series = next(iter(image_paths.values()))
-        first_path = next(iter(first_series.values()))
-        source_dir = pathlib.Path(first_path).parent
         target_dir = pathlib.Path(self.user_export_file_path.path)
 
         file_transfer = FileTransfer(
             event_manager=self.event_manager
         )
 
+        all_image_paths = [pathlib.Path(path) for channels in image_paths.values() for path in channels.values()]
+        all_mask_paths = [pathlib.Path(path) for channels in mask_paths.values() for path in channels.values()]
+
         if image_paths is not None:
             file_transfer(
-                source_dir=source_dir,
+                source_paths=all_image_paths,
+                target_dir=target_dir,
+            )
+        if mask_paths is not None:
+            file_transfer(
+                source_paths=all_mask_paths,
                 target_dir=target_dir,
             )

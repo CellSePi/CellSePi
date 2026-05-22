@@ -62,7 +62,7 @@ def organize_files(files, channel_prefix, mask_suffix=""):
     return id_to_file
 
 
-def load_directory(directory, channel_prefix=None, mask_suffix=None,
+def load_directory(directory, channel_prefix=CSP_CHANNEL_PREFIX, mask_suffix=None,
                    return_type: ReturnTypePath = ReturnTypePath.BOTH_PATHS, event_manager: EventManager = None):
     assert directory is not None
 
@@ -120,19 +120,21 @@ class FileTransfer(Notifier):
         self.file_types = file_types
         self.event_manager = event_manager
 
-    def __call__(self, source_dir=None, target_dir=None, *args, **kwargs):
+    def __call__(self, source_dir=None, target_dir=None,source_paths=None, *args, **kwargs):
         self._call_start_listeners(True)
 
-        if source_dir is None:
+        if source_dir is None and source_paths is None:
             raise ValueError("Either source_dir or source_paths must be provided.")
         if target_dir is None:
             raise ValueError("Target directory must be provided.")
 
-        file_filter = lambda file_path: file_path.is_file() and (
-            True if self.file_types is None else file_path.suffix in self.file_types)
+        files_to_copy = source_paths
+        if source_paths is None:
+            file_filter = lambda file_path: file_path.is_file() and (
+                True if self.file_types is None else file_path.suffix in self.file_types or file_path.suffix == ".npy")
 
-        files = listdir(source_dir)
-        files_to_copy = [file for file in files if file_filter(file)]
+            files = listdir(source_dir)
+            files_to_copy = [file for file in files if file_filter(file)]
 
         target_dir.mkdir(parents=True, exist_ok=True)
 
