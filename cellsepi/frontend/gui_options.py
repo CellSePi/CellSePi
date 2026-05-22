@@ -6,6 +6,7 @@ import flet as ft
 import torch
 
 from frontend.gui_colors import ColorSelection, ColorOpacity
+from frontend.gui_page_overlay import PageOverlay
 
 
 class Options(ft.Container):
@@ -109,13 +110,27 @@ class Options(ft.Container):
                 self.dark_light_icon.icon = ft.Icons.BRIGHTNESS_HIGH
         self.gui.page.update()
 
+    async def on_settings_clicked(self, e):
+        overlay = self.gui.gui_settings.build()
+        overlay.open()
+
     def create_appbar_items(self):
         """
         Creates the appbar items that will be displayed in the GUI when the option button is clicked.
         """
         return [
             ft.PopupMenuItem(
-                content=ft.Row([self.dark_light_icon, self.dark_light_text], alignment=ft.MainAxisAlignment.START),
+                content=ft.Row([
+                    ft.Icon(ft.Icons.SETTINGS),
+                    ft.Text("Settings")
+                ], alignment=ft.MainAxisAlignment.START),
+                on_click=self.on_settings_clicked,
+            ),
+            ft.PopupMenuItem(
+                content=ft.Row([
+                    self.dark_light_icon,
+                    self.dark_light_text
+                ], alignment=ft.MainAxisAlignment.START),
                 on_click=self.theme_changed,
             ),
             ft.PopupMenuItem(
