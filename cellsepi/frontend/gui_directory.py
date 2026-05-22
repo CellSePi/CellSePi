@@ -168,10 +168,6 @@ class DirectoryCard(ft.Card):
             if self.directory_path.value != "Directory Path" \
             else pathlib.Path.home() / "Downloads"
         if self.source_type == SourceType.FILE:
-            # allowed_extensions = [ext
-            #                       for file_type in FileType
-            #                       for ext in file_type.value.extensions
-            #                       if file_type.value.source == SourceType.FILE]
             allowed_extensions = self.file_type.value.extensions
             files = await ft.FilePicker().pick_files(
                 initial_directory=str(previous_directory),
@@ -344,7 +340,7 @@ class DirectoryCard(ft.Card):
                         )
                     else:
                         if event_manager is not None:
-                            raise PipelineRunningException("Type Error", f"Expected .{file_type.value.extensions}")
+                            raise PipelineRunningException("Type Error", f"Expected filetype: {file_type.extension_string}")
                         else:
                             self.is_file_type_supported = False
                 case SourceType.DIRECTORY:  # Directory Case

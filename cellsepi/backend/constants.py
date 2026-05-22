@@ -28,7 +28,6 @@ class ModelType(Enum):
     C_CYTO = auto()
     C_SAM = auto()
 
-
 class FileType(Enum):
     LIF = SimpleNamespace(name="Lif", extensions=["lif"], source=SourceType.FILE)
     ND2 = SimpleNamespace(name="ND2", extensions=["nd2"], source=SourceType.FILE)
@@ -36,6 +35,16 @@ class FileType(Enum):
     CZI = SimpleNamespace(name="CZI", extensions=["czi"], source=SourceType.FILE)
     OME_TIFF = SimpleNamespace(name="OME-TIFF", extensions=["ome.tiff", "ome.tif"], source=SourceType.FILE)
     TIFF_DIR = SimpleNamespace(name="TIFF Dir", extensions=["tiff", "tif"], source=SourceType.DIRECTORY)
+
+    @property
+    def extension_string(self):
+        formatted_extension = [f".{ext}" for ext in self.value.extensions]
+        if len(formatted_extension) == 0:
+            return ""
+        if len(formatted_extension) == 1:
+            return formatted_extension[0]
+
+        return ", ".join(formatted_extension[:-1]) + " or " + formatted_extension[-1]
 
 class OverWrite(Enum):
     ALWAYS = auto()
