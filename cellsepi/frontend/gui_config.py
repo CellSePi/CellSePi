@@ -50,19 +50,37 @@ class GUIConfig:
         Returns:
             overlay (CupertinoBottomSheet): The configured overlay for profile selection and editing.
         """
-        return PageOverlay(self.page,
-                           content=ft.Stack([ft.Row([ft.Column(
-                               [ft.Card(ft.Container(ft.ListView(
-                                   controls=self.create_list_items(),
-                                   height=self.calc_height(),
-                                   width=350,
-                                   spacing=10,
-                                   padding=10,
-                               ), padding=15), height=self.calc_height() + 60)],
-                               alignment=ft.MainAxisAlignment.CENTER,
-                           )], alignment=ft.MainAxisAlignment.CENTER), ]),
-                           on_dismiss=lambda e: self.update_overlay(),
-                           )
+        return PageOverlay(
+            self.page,
+            content=ft.Stack(
+                [
+                    ft.Row(
+                        [
+                            ft.Column(
+                                [
+                                    ft.Card(
+                                        ft.Container(
+                                            ft.ListView(
+                                                controls=self.create_list_items(),
+                                                height=self.calc_height(),
+                                                width=350,
+                                                spacing=10,
+                                                padding=10,
+                                            ),
+                                            padding=15
+                                        ),
+                                        height=self.calc_height() + 60
+                                    )
+                                ],
+                                alignment=ft.MainAxisAlignment.CENTER,
+                            )
+                        ],
+                        alignment=ft.MainAxisAlignment.CENTER
+                    ),
+                ]
+            ),
+            on_dismiss=lambda e: self.update_overlay(),
+        )
 
     def calc_height(self):
         """
@@ -213,23 +231,29 @@ class GUIConfig:
         changes and ensures the profile list is displayed correctly.
         """
         new_picker_items = self.create_list_items()
-        new_content = ft.Stack([ft.Row([ft.Column(
-            controls=[ft.Card(
-                ft.Container(
-                    ft.ListView(
-                        controls=new_picker_items,
-                        height=self.calc_height(),
-                        width=350,
-                        spacing=10,
-                        padding=10,
-                    )
-                    , padding=15
-                )
-                , height=self.calc_height() + 60
-            )
-            ],
-            alignment=ft.MainAxisAlignment.CENTER,
-        )], alignment=ft.MainAxisAlignment.CENTER), ])
+        new_content = ft.Stack(
+            [
+                ft.Row(
+                    [
+                        ft.Column(
+                            controls=[
+                                ft.Card(
+                                    ft.Container(
+                                        ft.ListView(
+                                            controls=new_picker_items,
+                                            height=self.calc_height(),
+                                            width=350,
+                                            spacing=10,
+                                            padding=10,
+                                        )
+                                        , padding=15
+                                    )
+                                    , height=self.calc_height() + 60
+                                )
+                            ],
+                            alignment=ft.MainAxisAlignment.CENTER,
+                        )
+                    ], alignment=ft.MainAxisAlignment.CENTER), ])
         self.profile_chooser_overlay.content = new_content
 
     def add_profile_pressed(self, e):

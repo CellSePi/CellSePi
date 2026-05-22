@@ -11,7 +11,7 @@ import importlib.util
 import inspect
 import pathlib
 
-from backend.constants import DirectoryManager
+from backend.data_util import DirectoryManager
 from backend.expert_mode.module import Module
 from image_editing_view import ImageEditingView
 from backend.avg_diameter import AverageDiameter
@@ -23,6 +23,7 @@ from frontend.gui_config import GUIConfig
 from frontend.gui_directory import DirectoryCard, copy_to_clipboard
 from backend.cellsepi import CellSePi
 from frontend.gui_image_tuning import GUIAutoImageTuning
+from frontend.gui_settings import GUISettings
 from frontend.gui_training_environment import Training
 from frontend.gui_page_overlay import PageOverlay
 from frontend.expert_mode.expert_constants import MODULE_REGISTRY
@@ -67,6 +68,7 @@ class GUI:
         self.op = Options(self)
         self.ex_mode = ExpertEnvironment(self)
         gui_config = GUIConfig(self)
+        self.gui_settings = GUISettings(page, self)
         self.gui_config = gui_config.create_profile_container()
         self.segmentation = GUISegmentation(self)
         seg_card, start_button, open_button, progress_bar, progress_bar_text, cancel_segmentation = self.segmentation.create_segmentation_card()
@@ -79,9 +81,11 @@ class GUI:
         self.progress_bar_text = progress_bar_text
         self.progress_ring = ft.ProgressRing(visible=False)
         self.closing_sheet = ft.Stack([
-            ft.Column([ft.Container(ft.ProgressRing(), alignment=ft.Alignment.CENTER)],
-                      alignment=ft.MainAxisAlignment.CENTER,
-                      ),
+            ft.Column([
+                ft.Container(ft.ProgressRing(), alignment=ft.Alignment.CENTER)
+            ],
+                alignment=ft.MainAxisAlignment.CENTER,
+            ),
         ])
 
         self.brightness_slider = ft.Slider(

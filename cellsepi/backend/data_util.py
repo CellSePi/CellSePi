@@ -6,9 +6,10 @@ import pathlib
 import platform
 import shutil
 import stat
+from pathlib import Path
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
-from typing import Any
+from typing import Any, Optional
 
 import cv2
 import numpy as np
@@ -23,9 +24,10 @@ from bioio_base.dimensions import Dimensions
 from bioio_base.transforms import reshape_data
 from tifffile import tifffile
 
-from backend.constants import ReturnTypePath, FileType, BIT_DEPTH, Suffixes, CSP_CHANNEL_PREFIX
+from backend.constants import ReturnTypePath, FileType, BIT_DEPTH, Suffixes, CSP_CHANNEL_PREFIX, APP_DIR
 from backend.expert_mode.event_manager import *
 from backend.notifier import Notifier
+from backend.settings import SettingsManager
 
 
 def listdir(directory):
@@ -133,7 +135,6 @@ class FileTransfer(Notifier):
         files_to_copy = [file for file in files if file_filter(file)]
 
         target_dir.mkdir(parents=True, exist_ok=True)
-
 
         total_files = len(files_to_copy)
         copied_files = 0
@@ -706,3 +707,91 @@ def load_image_to_numpy(path):
     im = tifffile.imread(path)
     array = np.array(im)
     return array
+
+
+class DirectoryManager:
+    """
+    Manages project directories and intermediate file storage.
+    """
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __init__(self, app_dir=None):
+        if app_dir is None:
+            app_dir = APP_DIR
+        self._base_path = Path(app_dir)
+        self._cache_path: Optional[Path] = None
+
+    @property
+    def base_directory(self) -> Path:
+        return self._base_path
+
+    @property
+    def cache_directory(self) -> Path:
+        """
+        Returns the path for intermediate files, creating it if it doesn't exist.
+        """
+        if self._cache_path is None:
+            self._cache_path = self._base_path / "cache"
+            self._cache_path.mkdir(parents=True, exist_ok=True)
+
+        return self._cache_path
+
+    def get_cache_file_path(self, filename: str) -> Path:
+        """
+        Returns a full path for a file within the intermediate directory.
+        """
+        # Accessing the property ensures the directory is created
+        dir_path = Path(self.cache_directory.path)
+        return dir_path / filename
+
+    def get_cache_dir_path(self, dirname: str, makedir=True) -> Path:
+        dirpath = self.cache_directory / dirname
+
+        if makedir:
+            os.makedirs(dirpath, exist_ok=True)
+        return dirpath
+
+    def streamline_cache(self):
+        """
+        Removes only the old entries in the cache directory.
+        Keeps the three most recent directories.
+        """
+        if self.cache_directory and self.cache_directory.exists():
+            modification_times = []
+            for item in self._cache_path.glob("*"):
+                if item.is_dir():
+                    modification_times.append([item, item.stat().st_mtime])
+
+            print(modification_times)
+            modification_times = sorted(modification_times, key=lambda elem: elem[1], reverse=True)
+            for elem in modification_times[SettingsManager().settings.cache.cutoff:]:
+                item = elem[0]
+                if item.is_dir():
+                    shutil.rmtree(item)
+                else:
+                    item.unlink()
+
+            pass
+
+    def clear_cache(self):
+        """
+        Removes all files in the cache directory.
+        """
+        if self.cache_directory and self.cache_directory.exists():
+            for item in self._cache_path.glob("*"):
+
+                if item.is_dir():
+                    shutil.rmtree(item)
+                else:
+                    item.unlink()
+
+    @staticmethod
+    def downloads_directory() -> Path:
+        home = Path.home()
+        downloads_dir = home / "Downloads"
+        return downloads_dir

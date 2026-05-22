@@ -10,8 +10,8 @@ from flet.controls import alignment
 
 from frontend.dialogs import ChoiceDialog
 from frontend.gui_fluorescence import FluorescenceReadoutControl
-from backend.constants import FileType, SourceType, DirectoryManager, CSP_CHANNEL_PREFIX
-from backend.data_util import consistent_hash, extract_from_directory
+from backend.constants import FileType, SourceType, CSP_CHANNEL_PREFIX
+from backend.data_util import consistent_hash, extract_from_directory, DirectoryManager
 from backend.data_util import extract_from_file, load_directory, \
     convert_tiffs_to_png_parallel
 from backend.expert_mode.event_manager import EventManager

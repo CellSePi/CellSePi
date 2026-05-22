@@ -8,12 +8,13 @@ import sys
 
 import flet as ft
 
-from backend.constants import ExportFileType, DirectoryManager, downloads_directory, ModelType
-from backend.data_util import copy_files_between_directories, FileTransfer
+from backend.constants import ExportFileType
+from backend.data_util import DirectoryManager, downloads_directory, ModelType
+from backend.data_util import FileTransfer
 from backend.fluorescence import Fluorescence
+from backend.segmentation import Segmentation
 from frontend.dialogs import ChoiceDialog
 from frontend.gui_fluorescence import FluorescenceReadoutControl
-from backend.segmentation import Segmentation
 
 
 class GUISegmentation:
