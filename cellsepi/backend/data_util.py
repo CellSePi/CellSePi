@@ -120,7 +120,7 @@ class FileTransfer(Notifier):
         self.file_types = file_types
         self.event_manager = event_manager
 
-    def __call__(self, source_dir=None, target_dir=None,source_paths=None, *args, **kwargs):
+    def __call__(self, source_dir=None, target_dir=None,new_prefix=None,source_paths=None, *args, **kwargs):
         self._call_start_listeners(True)
 
         if source_dir is None and source_paths is None:
@@ -146,7 +146,11 @@ class FileTransfer(Notifier):
 
         n_files = len(files_to_copy)
         for iN, src_path in enumerate(files_to_copy):
-            target_path = target_dir / src_path.name
+            new_filename = src_path.name
+            if new_prefix is not None and CSP_CHANNEL_PREFIX in new_filename:
+                new_filename = new_filename.replace(CSP_CHANNEL_PREFIX, new_prefix, 1)
+
+            target_path = target_dir / new_filename
 
             try:
                 if target_path.exists():
@@ -159,7 +163,7 @@ class FileTransfer(Notifier):
                 shutil.copy(str(src_path), str(target_path))
 
             except Exception as e:
-                print(f"Something went wrong while processing {src_path.name}: {str(e)}")
+                print(f"Something went wrong while processing {new_filename}: {str(e)}")
             finally:
                 copied_files += 1
                 if self.event_manager is not None:
@@ -168,11 +172,11 @@ class FileTransfer(Notifier):
 
             if self.event_manager is None:
                 kwargs = {"progress": str(int((iN + 1) / n_files * 100)) + "%",
-                          "current_image": {"image_id": src_path.name}}
+                          "current_image": {"image_id": new_filename}}
                 self._call_update_listeners(**kwargs)
             else:
                 self.event_manager.notify(ProgressEvent(percent=int((iN + 1) / n_files * 100),
-                                                        process=f"Exporting Images: {iN + 1}/{n_files} (Latest Image: {src_path.name})"))
+                                                        process=f"Exporting Images: {iN + 1}/{n_files} (Latest Image: {new_filename})"))
 
         self._call_completion_listeners()
 

@@ -450,7 +450,7 @@ class GUISegmentation:
             first_path = next(iter(first_series.values()))
             source_dir = pathlib.Path(first_path).parent
             target_dir = path
-            self.gui.page.run_thread(file_transfer, source_dir, target_dir)
+            self.gui.page.run_thread(file_transfer, source_dir, target_dir,self.gui.csp.config.get_channel_prefix())
             FluorescenceReadoutControl().disabled = True
             start_button.disabled = True
             self.gui.open_button.visible = False
