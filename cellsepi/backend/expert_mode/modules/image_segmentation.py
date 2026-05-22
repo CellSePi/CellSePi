@@ -1,6 +1,8 @@
 from backend.expert_mode.pipeline_manager import PipelineRunningException
 from backend.segmentation import BatchImageSegmentation
 from backend.expert_mode.module import *
+from constants import ModelType
+
 
 class ImageSegmentationModule(Module, ABC):
     _gui_config = ModuleGuiConfig("ImageSegmentation",Categories.SEGMENTATION,"This module handles the segmentation of cells for each series on the given segmentation_channel with the provided model in model_path.")
@@ -13,16 +15,36 @@ class ImageSegmentationModule(Module, ABC):
         self.outputs = {
             "mask_paths": OutputPort("mask_paths", dict),
         }
+        self.user_model_type: ModelType = ModelType.CUSTOM
         self.user_model_path: FilePath = FilePath()
         self.user_segmentation_channel: str = "2"
         self.user_diameter: float = 125.0
         self.user_mask_suffix: str = "_seg"
 
+    @property
+    def settings(self) -> ft.Stack | None:
+        if self._settings is not None and self.on_change_user_model_type() is None:
+            self.on_change_user_model_type = self.update_model_path_activation
+            self.ref_user_model_path.animate_opacity=600
+            if self.user_model_type is ModelType.CUSTOM:
+                self.ref_user_model_path.current.opacity = 1
+            else:
+                self.ref_user_model_path.current.opacity = 0
+        return self._settings
+
+    def update_model_path_activation(self):
+        if self.user_model_type is ModelType.CUSTOM:
+            self.ref_user_model_path.current.opacity = 1
+            self._settings.update()
+        else:
+            self.ref_user_model_path.current.opacity = 0
+            self._settings.update()
+
     def run(self):
         if self.inputs["mask_paths"].data is None:
             self.inputs["mask_paths"].data = {}
         try:
-            BatchImageSegmentation(segmentation_channel=self.user_segmentation_channel,diameter=self.user_diameter,suffix=self.user_mask_suffix).run(self.event_manager,self.inputs["image_paths"].data,self.inputs["mask_paths"].data,self.user_model_path.path)
+            BatchImageSegmentation(segmentation_channel=self.user_segmentation_channel,diameter=self.user_diameter,suffix=self.user_mask_suffix).run(self.event_manager,self.inputs["image_paths"].data,self.inputs["mask_paths"].data,self.user_model_path.path,model_type=self.user_model_type)
         except:
             raise PipelineRunningException("Segmentation Error", "Incompatible file for the segmentation model.")
 

@@ -799,8 +799,8 @@ class ModuleGUI(ft.GestureDetector):
                 attr = getattr(self.module, attribute_name)
                 file_picker = ft.FilePicker()
                 self.pipeline_gui._page.services.append(file_picker)
-                items.append(
-                    ft.Stack(
+                ref = ft.Ref[ft.Stack]()
+                file_stack = ft.Stack(
                         [
                             text_field,
                             ft.Container(
@@ -816,8 +816,12 @@ class ModuleGUI(ft.GestureDetector):
                                         attr_name,
                                         content),
                                 ), alignment=ft.Alignment.TOP_RIGHT, right=10, top=5)
-                        ]
-                    ))
+                        ],ref = ref
+                    )
+                setattr(self.module, "ref_" + attribute_name, ref)
+                items.append(
+                        file_stack
+                    )
             elif typ == DirectoryPath:
                 text_field = ft.TextField(
                     label=attribute_name.removeprefix("user_"),
@@ -829,8 +833,8 @@ class ModuleGUI(ft.GestureDetector):
                     expand=True
                 )
                 file_picker = ft.FilePicker()
-                items.append(
-                    ft.Stack(
+                ref = ft.Ref[ft.Stack]()
+                dir_stack = ft.Stack(
                         [
                             text_field,
                             ft.Container(
@@ -845,8 +849,11 @@ class ModuleGUI(ft.GestureDetector):
                                 ),
                                 alignment=ft.Alignment.TOP_RIGHT, right=10, top=5
                             )
-                        ]
+                        ],ref = ref
                     )
+                setattr(self.module, "ref_" + attribute_name, ref)
+                items.append(
+                    dir_stack
                 )
             elif type(typ) == enum.EnumType:  # An enumeration
                 enum_class = typ

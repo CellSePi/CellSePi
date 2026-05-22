@@ -1,3 +1,5 @@
+import pathlib
+
 import flet as ft
 import torch
 from cellpose import models, train, io
@@ -75,7 +77,8 @@ class Training(ft.Container):
                 e (ft.FilePicker): pseudo Event, indicating the event structure
             """
             files = await ft.FilePicker().pick_files(allow_multiple=False,
-                                                     initial_directory=self.model_directory)
+                                                     initial_directory=str(pathlib.Path(self.model_directory))
+                                                     )
 
 
             if files is None or len(files) == 0:
@@ -298,6 +301,14 @@ class Training(ft.Container):
         #try:
         mask_filter = f"{self.gui.csp.current_mask_suffix}.npy"
 
+        if self.re_train_model.value:
+            state_dict = torch.load(self.gui.csp.re_train_model_path, map_location=torch.device("cuda" if self.gui.csp.gpu else "cpu"), weights_only=True)
+            w2_data = state_dict.get('W2', None)
+            if w2_data is None:
+                model_type = "Cellpose Cyto"
+            else:
+                model_type = "CellposeSAM"
+
         # loads the mask files out of the directory to start training
         if model_type == "Cellpose Cyto" or model_type == "Cellpose Nuclei":
             output = ioV3.load_train_test_data(train_dir=str(self.gui.csp.working_directory),
@@ -316,19 +327,6 @@ class Training(ft.Container):
         print("test_labels: ", test_labels)
         print("image_names_test: ", image_names_test)
 
-        """except Exception as e:
-            self.page.show_dialog(ft.SnackBar(
-                ft.Text(f"Something went wrong while gathering training data: {str(e)}")))
-            self.gui.directory.enable_path_choosing()
-            self.start_button.disabled = False
-            self.progress_ring.visible = False
-            self.re_train_model_chooser.disabled = False
-            self.progress_bar_text.value = ""
-            self.enable_switch_environment()
-            self.page.update()
-            self.gui.csp.training_running = False
-            self.gui.training_event.set()
-            return"""
         if len(images) == 0 or len(labels) == 0:
             self.page.show_dialog(ft.SnackBar(
                 ft.Text(f"You need images and suitable masks to train a model!")))
@@ -347,21 +345,14 @@ class Training(ft.Container):
             sgd_value = False
             model_name = self.model_name
 
-            if self.re_train_model.value:
-                state_dict = torch.load(self.gui.csp.re_train_model_path, map_location=self.gui.csp.gpu, weights_only=True)
-                w2_data = state_dict.get('W2', None)
-                if w2_data is None:
-                    model_type = "CellposeSam"
-                else:
-                    model_type = "Cellpose Cyto"
-
             if model_type == "CellposeSAM":
-                model = models.CellposeModel(gpu=self.gui.csp.gpu)
                 if self.re_train_model.value:
                     sgd_value = True
                     model_name = self.re_train_model_name
                     model = models.CellposeModel(pretrained_model=self.gui.csp.re_train_model_path,gpu=self.gui.csp.gpu)
                     # start the training epochs
+                else:
+                    model = models.CellposeModel(gpu=self.gui.csp.gpu)
 
                 train.train_seg(model.net,
                                 train_data=images, train_labels=labels,
@@ -395,7 +386,7 @@ class Training(ft.Container):
 
         except Exception as e:
             self.page.show_dialog(ft.SnackBar(
-                ft.Text(f"Something went wrong while training: {str(e)}")))
+                ft.Text(f"Something went wrong while training: {str(e)}",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
             self.progress_bar_text.value = ""
             self.page.update()
         self.gui.directory.enable_path_choosing()

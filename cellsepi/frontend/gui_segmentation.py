@@ -8,7 +8,7 @@ import sys
 
 import flet as ft
 
-from backend.constants import ExportFileType, DirectoryManager, downloads_directory
+from backend.constants import ExportFileType, DirectoryManager, downloads_directory, ModelType
 from backend.data_util import copy_files_between_directories, FileTransfer
 from backend.fluorescence import Fluorescence
 from frontend.dialogs import ChoiceDialog
@@ -121,7 +121,7 @@ class GUISegmentation:
                 model_text.value = "Choose model"
                 model_text.color = None
                 self.gui.csp.model_path = None
-                self.gui.csp.model_type = "Custom"
+                self.gui.csp.model_type = ModelType.CUSTOM
             elif model_drop_down.value == "CellposeSAM":
                 if self.gui.ready_to_start:
                     self.progress_bar_text.value = "Ready to Start"
@@ -130,7 +130,7 @@ class GUISegmentation:
                 model_text.color = None
                 self.gui.csp.model_path = "pre_def"
                 model_choose_button.visible = False
-                self.gui.csp.model_type = "CellposeSAM"
+                self.gui.csp.model_type = ModelType.CELLPOSE_SAM
             elif model_drop_down.value == "CellposeNuclei":
                 if self.gui.ready_to_start:
                     self.progress_bar_text.value = "Ready to Start"
@@ -139,7 +139,7 @@ class GUISegmentation:
                 model_text.color = None
                 model_choose_button.visible = False
                 self.gui.csp.model_path = "pre_def"
-                self.gui.csp.model_type = "CellposeNuclei"
+                self.gui.csp.model_type = ModelType.CELLPOSE_NUCLEI
             elif model_drop_down.value == "CellposeCyto":
                 if self.gui.ready_to_start:
                     self.progress_bar_text.value = "Ready to Start"
@@ -148,7 +148,7 @@ class GUISegmentation:
                 model_text.color = None
                 model_choose_button.visible = False
                 self.gui.csp.model_path = "pre_def"
-                self.gui.csp.model_type = "CellposeCyto"
+                self.gui.csp.model_type = ModelType.CELLPOSE_CYTO
             self.gui.page.update()
 
         def start_segmentation(e):  # called when the start button is clicked
@@ -552,12 +552,12 @@ class GUISegmentation:
                 ft.DropdownOption(key="CellposeCyto", text="Cellpose Cyto"),
                 ft.DropdownOption(key="CellposeNuclei", text="Cellpose Nuclei"),
                 ft.DropdownOption(
-                    key="CellposeSAM",
-                    text="CellposeSAM"
+                    key="Cellpose SAM",
+                    text="Cellpose SAM"
                 ),
                 ft.DropdownOption(
                     key="Custom",
-                    text="\u200BCellpose",
+                    text="Cellpose",
                     content=ft.Row([
                         ft.Text("Custom", weight=ft.FontWeight.BOLD),
                         ft.Text("Cellpose")

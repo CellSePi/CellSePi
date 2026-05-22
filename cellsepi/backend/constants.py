@@ -25,6 +25,13 @@ class SourceType(Enum):
     DIRECTORY = auto()
 
 
+class ModelType(Enum):
+    CUSTOM = auto()
+    C_NUCLEI = auto()
+    C_CYTO = auto()
+    C_SAM = auto()
+
+
 class FileType(Enum):
     LIF = SimpleNamespace(name="Lif", extensions=["lif"], source=SourceType.FILE)
     ND2 = SimpleNamespace(name="ND2", extensions=["nd2"], source=SourceType.FILE)
