@@ -104,7 +104,7 @@ class DirectoryCard(ft.Card):
                 on_click=None,
                 visible=False,
             )
-            self.lif_row = ft.Column(
+            self.file_type_selection_row = ft.Column(
                 [
                     ft.Stack(
                         [
@@ -614,7 +614,7 @@ class DirectoryCard(ft.Card):
                         content=ft.Column(
                             [
                                 ft.Row([self.path_list_tile]),
-                                self.lif_row
+                                self.file_type_selection_row
                             ]
                         )
                     ),
@@ -639,7 +639,7 @@ class DirectoryCard(ft.Card):
         Disables everything related with path choosing.
         """
         self.path_list_tile.disabled = True
-        self.lif_row.disabled = True
+        self.file_type_selection_row.disabled = True
         self.toggle_slider_state(self.file_type_slider, disabled=True)
 
         self.gui.page.update()
@@ -649,7 +649,7 @@ class DirectoryCard(ft.Card):
         Activates everything related with path choosing.
         """
         self.path_list_tile.disabled = False
-        self.lif_row.disabled = False
+        self.file_type_selection_row.disabled = False
         self.toggle_slider_state(self.file_type_slider, disabled=False)
         self.gui.page.update()
 
