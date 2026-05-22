@@ -3,7 +3,7 @@ import torch
 from cellpose import models, train, io
 import os
 
-from CellposeV3 import ioV3, modelsV3, trainV3
+from backend.CellposeV3 import ioV3, modelsV3, trainV3
 from frontend.gui_directory import format_directory_path, copy_to_clipboard
 
 class Training(ft.Container):

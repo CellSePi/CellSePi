@@ -48,6 +48,11 @@ class Suffixes(Enum):
     SPOT_MASK = SimpleNamespace(name="SPOT_MASK", suffixes=["_sdm"], extensions=["npy"])
 
 
+def downloads_directory() -> Path:
+    home = Path.home()
+    downloads_dir = home / "Downloads"
+    return downloads_dir
+
 class DirectoryManager:
     """
     Manages project directories and intermediate file storage.
@@ -128,9 +133,3 @@ class DirectoryManager:
                         shutil.rmtree(item)
                     else:
                         item.unlink()
-
-    @staticmethod
-    def downloads_directory() -> Path:
-        home = Path.home()
-        downloads_dir = home / "Downloads"
-        return downloads_dir
