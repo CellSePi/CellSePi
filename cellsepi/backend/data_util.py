@@ -118,14 +118,24 @@ class FileTransfer(Notifier):
         self.file_types = file_types
         self.event_manager = event_manager
 
-    def __call__(self, source_dir, target_dir, *args, **kwargs):
+    def __call__(self, source_dir=None, target_dir=None, source_paths=None, *args, **kwargs):
         self._call_start_listeners(True)
 
-        file_filter = lambda file_path: file_path.is_file() and (
-            True if self.file_types is None else file_path.suffix in self.file_types)
+        if source_dir is None and source_paths is None:
+            raise ValueError("Either source_dir or source_paths must be provided.")
+        if target_dir is None:
+            raise ValueError("Target directory must be provided.")
 
-        files = listdir(source_dir)
-        files_to_copy = [file for file in files if file_filter(file)]
+        files_to_copy = source_paths
+        if source_paths is None:
+            file_filter = lambda file_path: file_path.is_file() and (
+                True if self.file_types is None else file_path.suffix in self.file_types)
+
+            files = listdir(source_dir)
+            files_to_copy = [file for file in files if file_filter(file)]
+
+        os.makedirs(target_dir, exist_ok=True)
+
 
         total_files = len(files_to_copy)
         copied_files = 0
