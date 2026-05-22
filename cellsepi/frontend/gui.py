@@ -11,6 +11,7 @@ import importlib.util
 import inspect
 import pathlib
 
+from backend.constants import DirectoryManager
 from backend.expert_mode.module import Module
 from image_editing_view import ImageEditingView
 from backend.avg_diameter import AverageDiameter
@@ -318,6 +319,9 @@ class GUI:
             self.page.window.prevent_close = False
             self.page.window.on_event = None
             self.page.update()
+
+            DirectoryManager().streamline_cache()
+
             self.page.run_task(self.handle_window_closing)
 
     def on_enter_diameter(self):
