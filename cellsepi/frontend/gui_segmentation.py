@@ -137,15 +137,24 @@ class GUISegmentation:
                 self.gui.csp.model_path = "pre_def"
                 model_choose_button.visible = False
                 self.gui.csp.model_type = "CellposeSAM"
-            elif model_drop_down.value == "Cellpose":
+            elif model_drop_down.value == "CellposeNuclei":
                 if self.gui.ready_to_start:
                     self.progress_bar_text.value = "Ready to Start"
                     start_button.disabled = False
-                model_text.value = "Cellpose"
+                model_text.value = "Cellpose Nuclei"
                 model_text.color = None
                 model_choose_button.visible = False
                 self.gui.csp.model_path = "pre_def"
-                self.gui.csp.model_type = "Cellpose"
+                self.gui.csp.model_type = "CellposeNuclei"
+            elif model_drop_down.value == "CellposeCyto":
+                if self.gui.ready_to_start:
+                    self.progress_bar_text.value = "Ready to Start"
+                    start_button.disabled = False
+                model_text.value = "Cellpose Cyto"
+                model_text.color = None
+                model_choose_button.visible = False
+                self.gui.csp.model_path = "pre_def"
+                self.gui.csp.model_type = "CellposeCyto"
             self.gui.page.update()
 
         def start_segmentation(e):  # called when the start button is clicked
@@ -553,10 +562,8 @@ class GUISegmentation:
             label="Choose model",
             border_color=ft.Colors.BLUE_ACCENT,
             options=[
-                ft.DropdownOption(
-                    key="Cellpose",
-                    text="Cellpose"
-                ),
+                ft.DropdownOption(key="CellposeCyto", text="Cellpose Cyto"),
+                ft.DropdownOption(key="CellposeNuclei", text="Cellpose Nuclei"),
                 ft.DropdownOption(
                     key="CellposeSAM",
                     text="CellposeSAM"

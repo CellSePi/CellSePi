@@ -222,9 +222,13 @@ class BatchImageSegmentation(Notifier):
             model_type = 'CustomV3'
             model = modelsV3.CellposeModel(pretrained_model=segmentation_model, gpu=self.gui.csp.gpu)
             ioV3.logger_setup()
-        elif self.gui.csp.model_type == "Cellpose":
+        elif self.gui.csp.model_type == "CellposeCyto":
             model_type = 'Cellpose'
             model = modelsV3.CellposeModel(model_type="cyto3", gpu=self.gui.csp.gpu)
+            ioV3.logger_setup()
+        elif self.gui.csp.model_type == "CellposeNuclei":
+            model_type = 'Cellpose'
+            model = modelsV3.CellposeModel(model_type="nuclei", gpu=self.gui.csp.gpu)
             ioV3.logger_setup()
         elif self.gui.csp.model_type == "CellposeSAM":
             model_type = 'CellposeSAM'
