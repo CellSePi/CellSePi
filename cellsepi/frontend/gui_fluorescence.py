@@ -81,5 +81,5 @@ class FluorescenceReadoutControl(ft.Container):
 
 def error_banner(gui, message):
     gui.page.show_dialog(ft.SnackBar(
-        ft.Text(message,color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
+        ft.Text(message, color=ft.Colors.WHITE), bgcolor=ft.Colors.RED))
     gui.page.update()

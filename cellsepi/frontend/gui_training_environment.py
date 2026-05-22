@@ -5,6 +5,7 @@ import os
 
 from frontend.gui_directory import format_directory_path, copy_to_clipboard
 
+
 class Training(ft.Container):
 
     def __init__(self, gui):
@@ -35,7 +36,7 @@ class Training(ft.Container):
             icon=ft.Icons.PLAY_CIRCLE,
             tooltip="Start the training epochs",
             disabled=True,
-            on_click=lambda e : e.page.run_thread(self.start_training,e),
+            on_click=lambda e: e.page.run_thread(self.start_training, e),
         )
 
         self.model = "nuclei"
@@ -58,10 +59,11 @@ class Training(ft.Container):
             value="nuclei",
             options=[
                 ft.dropdown.Option("cpsam"),
-            ],border_color=ft.Colors.BLUE_400,
-            on_select=lambda e: self.changed_input("modeltype", e),expand=True,
+            ], border_color=ft.Colors.BLUE_400,
+            on_select=lambda e: self.changed_input("modeltype", e), expand=True,
         )
-        self.re_train_model = ft.Checkbox(value=False, label="Retrain Model",on_change=lambda e: self.change_re_train_model())
+        self.re_train_model = ft.Checkbox(value=False, label="Retrain Model",
+                                          on_change=lambda e: self.change_re_train_model())
 
         # the following methods are called when clicking on the corresponding button
         async def pick_model_result(e: ft.Event[ft.Button]):
@@ -74,9 +76,8 @@ class Training(ft.Container):
             files = await ft.FilePicker().pick_files(allow_multiple=False,
                                                      initial_directory=self.model_directory)
 
-
             if files is None or len(files) == 0:
-                #case: no model selected
+                # case: no model selected
                 pass
             elif files[0].path is not None:
                 self.gui.csp.re_train_model_path = files[0].path
@@ -85,43 +86,47 @@ class Training(ft.Container):
                 self.field_model_name.color = ft.Colors.BLUE_400
                 self.gui.page.update()
 
-
         self.re_train_model_chooser = ft.IconButton(
-                icon=ft.Icons.UPLOAD_FILE,
-                tooltip="Choose model to retrain",
-                on_click=lambda e: e.page.run_task(pick_model_result,e),
-                disabled=True
-            )
-        self.field_model_name = ft.TextField(label="Model Name", value=self.model_name, border_color=self.color,on_change=lambda e: self.changed_input("model_name", e))
-        self.model_stack = ft.Stack([self.field_model_name, self.re_train_model_chooser],alignment=ft.Alignment.TOP_RIGHT)
+            icon=ft.Icons.UPLOAD_FILE,
+            tooltip="Choose model to retrain",
+            on_click=lambda e: e.page.run_task(pick_model_result, e),
+            disabled=True
+        )
+        self.field_model_name = ft.TextField(label="Model Name", value=self.model_name, border_color=self.color,
+                                             on_change=lambda e: self.changed_input("model_name", e))
+        self.model_stack = ft.Stack([self.field_model_name, self.re_train_model_chooser],
+                                    alignment=ft.Alignment.TOP_RIGHT)
         self.field_model = ft.Row([self.model_dropdown, self.model_stack])
         # New field for custom model input, visible only if "custom" is selected
         self.field_custom_model = ft.TextField(label="Custom Model", value="", border_color=self.color, visible=False,
                                                on_change=lambda e: self.changed_input("custom_model", e))
 
         self.field_batch = ft.TextField(label="Batch Size", value=self.batch_size, border_color=self.color,
-                                        on_change=lambda e: self.changed_input("batch_size", e),expand=True)
+                                        on_change=lambda e: self.changed_input("batch_size", e), expand=True)
         self.field_epoch = ft.TextField(label="Epochs", value=self.epochs, border_color=self.color,
-                                        on_change=lambda e: self.changed_input("epochs", e),expand=True)
+                                        on_change=lambda e: self.changed_input("epochs", e), expand=True)
         self.field_lr = ft.TextField(label="Learning Rate", value=self.learning_rate, border_color=self.color,
-                                     on_change=lambda e: self.changed_input("learning_rate", e),expand=True)
+                                     on_change=lambda e: self.changed_input("learning_rate", e), expand=True)
         self.field_diameter = ft.TextField(label="Diameter", value=self.diameter, border_color=self.color,
-                                           on_change=lambda e: self.changed_input("diameter", e),expand=True)
+                                           on_change=lambda e: self.changed_input("diameter", e), expand=True)
         self.field_weights = ft.TextField(label="Weight Decay", value=self.weight, border_color=self.color,
-                                          on_change=lambda e: self.changed_input("weight", e),expand=True)
-        self.field_directory = ft.TextField(label="Directory", value=format_directory_path(str(self.model_directory),max_length=60), border_color=self.color,
-                                            read_only=True,disabled=True,expand=True)
+                                          on_change=lambda e: self.changed_input("weight", e), expand=True)
+        self.field_directory = ft.TextField(label="Directory",
+                                            value=format_directory_path(str(self.model_directory), max_length=60),
+                                            border_color=self.color,
+                                            read_only=True, disabled=True, expand=True)
 
-        self.directory_stack = ft.Stack([self.field_directory,ft.Container(
-                            content=ft.Container(
-                                content=ft.IconButton(
-                                    icon=ft.Icons.COPY,
-                                    tooltip="Copy to clipboard",
-                                    on_click=lambda e: e.page.run_task(copy_to_clipboard,self.gui.page,str(self.model_directory),"Model directory")
-                                ),
-                                alignment=ft.Alignment.TOP_RIGHT,
-                            )
-                        )])
+        self.directory_stack = ft.Stack([self.field_directory, ft.Container(
+            content=ft.Container(
+                content=ft.IconButton(
+                    icon=ft.Icons.COPY,
+                    tooltip="Copy to clipboard",
+                    on_click=lambda e: e.page.run_task(copy_to_clipboard, self.gui.page, str(self.model_directory),
+                                                       "Model directory")
+                ),
+                alignment=ft.Alignment.TOP_RIGHT,
+            )
+        )])
         self.progress_ring = ft.ProgressRing(visible=False)
         self.train_loss = None
         self.test_loss = None
@@ -164,7 +169,8 @@ class Training(ft.Container):
     def add_parameter_container(self):
         return ft.Container(
             ft.Column(
-                [self.field_model,self.re_train_model, self.field_custom_model, self.field_batch, self.field_epoch, self.field_weights,
+                [self.field_model, self.re_train_model, self.field_custom_model, self.field_batch, self.field_epoch,
+                 self.field_weights,
                  self.field_lr, self.field_diameter, self.directory_stack
                  ]
             ),
@@ -241,7 +247,7 @@ class Training(ft.Container):
         )
         pick_model_row = ft.Row(
             [
-                ft.Container(content=ft.Row([self.progress_ring, self.progress_bar_text]),padding=5),
+                ft.Container(content=ft.Row([self.progress_ring, self.progress_bar_text]), padding=5),
                 ft.Container(
                     content=ft.Row([self.start_button]))
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN
@@ -270,7 +276,7 @@ class Training(ft.Container):
         This method starts the training process with the selected parameters and model.
         """
         self.start_button.disabled = True
-        self.re_train_model_chooser.disabled =True
+        self.re_train_model_chooser.disabled = True
         self.gui.directory.disable_path_choosing()
         self.progress_ring.visible = True
         self.progress_bar_text.value = ""
@@ -280,7 +286,8 @@ class Training(ft.Container):
         # checks if the right model type was selected
         if self.re_train_model.value and self.re_train_model_name is None:
             self.page.show_dialog(ft.SnackBar(
-                ft.Text(f"The model you inserted is not a retrained model!",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
+                ft.Text(f"The model you inserted is not a retrained model!", color=ft.Colors.WHITE),
+                bgcolor=ft.Colors.RED))
             self.gui.directory.enable_path_choosing()
             self.start_button.disabled = False
             self.re_train_model_chooser.disabled = False
@@ -302,7 +309,8 @@ class Training(ft.Container):
 
         except Exception as e:
             self.page.show_dialog(ft.SnackBar(
-                ft.Text(f"Something went wrong while gather training data: {str(e)}",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
+                ft.Text(f"Something went wrong while gather training data: {str(e)}", color=ft.Colors.WHITE),
+                bgcolor=ft.Colors.RED))
             self.gui.directory.enable_path_choosing()
             self.start_button.disabled = False
             self.progress_ring.visible = False
@@ -315,7 +323,8 @@ class Training(ft.Container):
             return
         if len(images) == 0 or len(labels) == 0:
             self.page.show_dialog(ft.SnackBar(
-                ft.Text(f"You need images and suitable masks to train a model!",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
+                ft.Text(f"You need images and suitable masks to train a model!", color=ft.Colors.WHITE),
+                bgcolor=ft.Colors.RED))
             self.gui.directory.enable_path_choosing()
             self.start_button.disabled = False
             self.progress_ring.visible = False
@@ -334,7 +343,7 @@ class Training(ft.Container):
             if self.re_train_model.value:
                 sgd_value = True
                 model_name = self.re_train_model_name
-                model = models.CellposeModel(pretrained_model=self.gui.csp.re_train_model_path,gpu=self.gui.csp.gpu)
+                model = models.CellposeModel(pretrained_model=self.gui.csp.re_train_model_path, gpu=self.gui.csp.gpu)
 
             # start the training epochs
             train.train_seg(model.net,
@@ -350,13 +359,14 @@ class Training(ft.Container):
 
         except Exception as e:
             self.page.show_dialog(ft.SnackBar(
-                ft.Text(f"Something went wrong while training: {str(e)}",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
+                ft.Text(f"Something went wrong while training: {str(e)}", color=ft.Colors.WHITE),
+                bgcolor=ft.Colors.RED))
             self.progress_bar_text.value = ""
             self.page.update()
         self.gui.directory.enable_path_choosing()
         self.start_button.disabled = False
         self.progress_ring.visible = False
-        self.re_train_model_chooser.disabled =False
+        self.re_train_model_chooser.disabled = False
         self.enable_switch_environment()
         self.page.update()
         print("finished training")

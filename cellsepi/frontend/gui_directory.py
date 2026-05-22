@@ -323,7 +323,9 @@ class DirectoryCard(ft.Card):
                         if event_manager is not None:
                             raise PipelineRunningException("Directory Error", "Directory ’output’ is not supported!")
                         else:
-                            self.gui.page.show_dialog(ft.SnackBar(ft.Text("The directory path output is not allowed!",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
+                            self.gui.page.show_dialog(
+                                ft.SnackBar(ft.Text("The directory path output is not allowed!", color=ft.Colors.WHITE),
+                                            bgcolor=ft.Colors.RED))
                             self.output_dir = True
                             self.gui.page.update()
                             self.gui.csp.image_paths = {}
@@ -416,7 +418,8 @@ class DirectoryCard(ft.Card):
         if not self.is_supported_lif:
             self.gui.ready_to_start = False
             self.gui.page.show_dialog(ft.SnackBar(
-                ft.Text("The selected file is not supported! Only .lif are supported.",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
+                ft.Text("The selected file is not supported! Only .lif are supported.", color=ft.Colors.WHITE),
+                bgcolor=ft.Colors.RED))
             image_paths = {}
             mask_paths = {}
             self.gui.progress_ring.visible = False
@@ -427,7 +430,8 @@ class DirectoryCard(ft.Card):
             if len(image_paths) == 0:
                 self.gui.ready_to_start = False
                 self.gui.page.show_dialog(
-                    ft.SnackBar(ft.Text("The directory contains no valid files with the current channel prefix!",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
+                    ft.SnackBar(ft.Text("The directory contains no valid files with the current channel prefix!",
+                                        color=ft.Colors.WHITE), bgcolor=ft.Colors.RED))
                 self.gui.page.update()
                 self.count_results_txt.color = ft.Colors.RED
                 self.gui.progress_ring.visible = False
@@ -436,7 +440,8 @@ class DirectoryCard(ft.Card):
             elif not is_supported_tif:
                 self.gui.ready_to_start = False
                 self.gui.page.show_dialog(ft.SnackBar(
-                    ft.Text("The directory contains an unsupported file type. Only 8 or 16 bit .tiff files allowed.",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
+                    ft.Text("The directory contains an unsupported file type. Only 8 or 16 bit .tiff files allowed.",
+                            color=ft.Colors.WHITE), bgcolor=ft.Colors.RED))
                 self.count_results_txt.color = ft.Colors.RED
                 self.gui.progress_ring.visible = False
                 self.gui.page.update()
@@ -624,11 +629,12 @@ class DirectoryCard(ft.Card):
     def create_directory_container(self):
         return ft.Container(
             content=ft.Column(
-                            [
-                                ft.Row([self.path_list_tile,ft.Row([self.directory_row,self.files_row,],expand=True,alignment=ft.MainAxisAlignment.END)]),
-                                self.file_type_selection_row
-                            ]
-                        ),
+                [
+                    ft.Row([self.path_list_tile, ft.Row([self.directory_row, self.files_row, ], expand=True,
+                                                        alignment=ft.MainAxisAlignment.END)]),
+                    self.file_type_selection_row
+                ]
+            ),
             padding=10,
             clip_behavior=ft.ClipBehavior.HARD_EDGE
         )
@@ -696,6 +702,3 @@ class DirectoryCard(ft.Card):
             else:
                 fluorescence_readout_control.visible = False
                 fluorescence_readout_control.update()
-
-
-
