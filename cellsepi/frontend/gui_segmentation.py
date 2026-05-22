@@ -115,14 +115,14 @@ class GUISegmentation:
                 self.gui.csp.model_path = files[0].path
                 self.gui.page.update()
 
-        def new_pick_model_result(e: ft.Event[ft.Button]):
-            if model_drop_down.value == "Custom Cellpose Model":
+        def new_pick_model_result(e):
+            if model_drop_down.value == "CustomV3":
                 model_choose_button.visible = True
                 model_text.value = "Choose model"
                 model_text.color = None
                 self.gui.csp.model_path = None
                 self.gui.csp.model_type = "CustomV3"
-            elif model_drop_down.value == "Custom CellposeSAM Model":
+            elif model_drop_down.value == "CustomV4":
                 model_choose_button.visible = True
                 model_text.value = "Choose model"
                 model_text.color = None
@@ -174,7 +174,8 @@ class GUISegmentation:
                 self.gui.page.run_thread(self.segmentation.run)
             except:
                 self.gui.page.show_dialog(
-                    ft.SnackBar(ft.Text("You have selected an incompatible file for the segmentation model.")))
+                    ft.SnackBar(ft.Text("You have selected an incompatible file for the segmentation model.",
+                                        color=ft.Colors.WHITE), bgcolor=ft.Colors.RED))
                 self.gui.training_environment.enable_switch_environment()
                 start_button.visible = True
                 start_button.disabled = True
@@ -547,17 +548,37 @@ class GUISegmentation:
         project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         model_directory = os.path.join(project_root, "models")
 
-        model_drop_down = ft.DropdownM2(
+        model_drop_down = ft.Dropdown(
             width=250,
             label="Choose model",
             border_color=ft.Colors.BLUE_ACCENT,
             options=[
-                ft.dropdownm2.Option(key="Cellpose", text="Cellpose"),
-                ft.dropdownm2.Option(key="CellposeSAM", text="CellposeSAM"),
-                ft.dropdownm2.Option(key="Custom CellposeSAM Model", text="CustomV4"),
-                ft.dropdownm2.Option(key="Custom Cellpose Model", text="CustomV3")
+                ft.DropdownOption(
+                    key="Cellpose",
+                    text="Cellpose"
+                ),
+                ft.DropdownOption(
+                    key="CellposeSAM",
+                    text="CellposeSAM"
+                ),
+                ft.DropdownOption(
+                    key="CustomV3",
+                    text="\u200BCellpose",
+                    content=ft.Row([
+                        ft.Text("Custom", weight=ft.FontWeight.BOLD),
+                        ft.Text("Cellpose")
+                    ])
+                ),
+                ft.DropdownOption(
+                    key="CustomV4",
+                    text="\u200BCellposeSAM",
+                    content=ft.Row([
+                        ft.Text("Custom", weight=ft.FontWeight.BOLD),
+                        ft.Text("CellposeSAM")
+                    ])
+                ),
             ],
-            on_change=lambda e: new_pick_model_result(e))
+            on_select=lambda e: new_pick_model_result(e))
 
         model_choose_button = ft.IconButton(
             icon=ft.Icons.UPLOAD_FILE,
@@ -577,11 +598,14 @@ class GUISegmentation:
         )
         segmentation_card = ft.Card(
             content=ft.Container(
-                content=ft.Stack([
-                    segmentation_container,
-                    model_chooser
-                ]),
-                padding=10
+                content=ft.Stack(
+                    [
+                        segmentation_container,
+                        model_chooser
+                    ]
+                ),
+                padding=10,
+                clip_behavior=ft.ClipBehavior.HARD_EDGE
             ),
         )
 

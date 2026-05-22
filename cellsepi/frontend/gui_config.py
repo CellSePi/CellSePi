@@ -116,7 +116,7 @@ class GUIConfig:
             renamed = self.config_class.rename_profile(self.config_class.index_to_name(idx), e.control.value)
             if not renamed:
                 self.page.show_dialog(ft.SnackBar(
-                    ft.Text("The name is already taken!")))
+                    ft.Text("The name is already taken!",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
                 self.page.update()
             else:
                 self.name_items[idx]["textfield"].visible = False
@@ -127,7 +127,7 @@ class GUIConfig:
                 self.page.update()
         except ValueError:
             self.page.show_dialog(ft.SnackBar(
-                ft.Text("The name must be not empty!")))
+                ft.Text("The name must be not empty!",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
             self.page.update()
 
     def create_name_items_profiles(self):
@@ -330,7 +330,7 @@ class GUIConfig:
             if not self.gui.csp.readout_running and not self.gui.csp.segmentation_running:
                 self.gui.page.run_task(self.gui.directory.check_masks)
         except ValueError:
-            self.page.open(ft.SnackBar(ft.Text("Bright field channel must be not empty!")))
+            self.page.show_dialog(ft.SnackBar(ft.Text("Segmentation channel must be not empty!",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
             self.txt_bf_ref.current.color = ft.Colors.RED
             self.page.update()
 
@@ -351,7 +351,7 @@ class GUIConfig:
             self.txt_ms_ref.current.color = None
             self.page.update()
         else:
-            self.page.open(ft.SnackBar(ft.Text("Mask suffix must be not empty!")))
+            self.page.show_dialog(ft.SnackBar(ft.Text("Mask suffix must be not empty!",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
             self.txt_ms_ref.current.color = ft.Colors.RED
             self.page.update()
 
@@ -371,7 +371,7 @@ class GUIConfig:
             self.txt_cp_ref.current.color = None
             self.page.update()
         else:
-            self.page.open(ft.SnackBar(ft.Text("Channel prefix must be not empty!")))
+            self.page.show_dialog(ft.SnackBar(ft.Text("Channel prefix must be not empty!",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
             self.txt_cp_ref.current.color = ft.Colors.RED
             self.page.update()
 
@@ -391,7 +391,7 @@ class GUIConfig:
             self.txt_d_ref.current.color = None
             self.page.update()
         except ValueError:
-            self.page.open(ft.SnackBar(ft.Text("Diameter only allows decimals numbers, greater than 0!")))
+            self.page.show_dialog(ft.SnackBar(ft.Text("Diameter only allows decimals numbers, greater than 0!",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
             self.txt_d_ref.current.color = ft.Colors.RED
             self.page.update()
 
@@ -415,7 +415,7 @@ class GUIConfig:
         #--------------------------------------
         #creates the TextFields for the diffrent attributes of a profile
         tf_bf = ft.TextField(
-            label="Bright-Field Channel:",
+            label="Segmentation Channel:",
             border_color=ft.Colors.BLUE_ACCENT,
             value=self.config_class.get_bf_channel(),
             ref=self.txt_bf_ref,

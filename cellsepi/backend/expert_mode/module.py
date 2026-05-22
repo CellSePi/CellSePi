@@ -157,15 +157,15 @@ class Module(ABC):
         - Add custom attributes by prefixing them with 'user_'.
           Example: user_example: str = "Example"
         - Always initialize user attributes with a non-empty value.
-        - Supported types: int, float, str, bool, FilePath, DirectoryPath.        
+        - Supported types: int, float, str, bool, FilePath, DirectoryPath, Enum.        
         - User attributes are also saved when the pipeline is saved.
         - When `_settings` is None, GUI elements are automatically generated.
               - For attributes of type int, float, or str, a corresponding reference
                 to the GUI element is also automatically generated, named with the
                 prefix 'ref_'. Example: ref_user_example
-              - For attributes of type bool, an on_change event handler is automatically
-                generated. Its name is built with the prefix 'on_change_' followed by the 
-                attribute name. Example: on_change_user_example
+              - For attributes of type bool or Enum, an on_change event handler 
+                is automatically generated. Its name is built with the prefix 'on_change_' 
+                followed by the attribute name. Example: on_change_user_example
         """
 
 
@@ -231,16 +231,16 @@ class Module(ABC):
 
     def destroy(self):
         """
-        Module gets distroyed so free the id_number for other modules.
+        Module gets destroyed so free the id_number for other modules.
         Raises:
-            ValueError: If the module_id dosen't contain a number.
+            ValueError: If the module_id doesn't contain a number.
         """
         id_number = self.module_id.removeprefix(f"{self.gui_config().name}_")
         if id_number != "":
             number = int(id_number)
             self.free_id_number(number)
         else:
-            raise ValueError("module_id dosen't contain a number!")
+            raise ValueError("module_id doesn't contain a number!")
 
     def get_mandatory_inputs(self) -> List[str]:
         """
@@ -262,7 +262,7 @@ class Module(ABC):
 
     def finished(self):
         """
-        Gets executed when the module is complety finished include possible pausing.
+        Gets executed when the module is complete finished include possible pausing.
         """
         return
 

@@ -19,7 +19,6 @@ from backend.expert_mode.pipeline_manager import PipelineRunningException
 from frontend.gui_canvas import update_main_image
 
 
-
 def format_directory_path(dir_path: str, max_length=30):
     """
     Format the directory so that it can be shown in the card.
@@ -50,7 +49,8 @@ async def copy_to_clipboard(page, value: str, name: str):
         name (str): Name of the thing that got copied.
     """
     await ft.Clipboard().set(value)
-    page.show_dialog(ft.SnackBar(ft.Text(f"{name} copied to clipboard!")))
+    page.show_dialog(
+        ft.SnackBar(ft.Text(f"{name} copied to clipboard!", color=ft.Colors.WHITE), bgcolor=ft.Colors.GREEN))
     page.update()
 
 
@@ -76,7 +76,7 @@ class DirectoryCard(ft.Card):
             self.count_results_txt = ft.Text(value="Results: 0")
             self.directory_path = ft.Text(value='Directory Path', weight=ft.FontWeight.BOLD)
             self.formatted_path = ft.Text(value=format_directory_path(self.directory_path.value),
-                                          weight=ft.FontWeight.BOLD)
+                                          weight=ft.FontWeight.BOLD, tooltip="Copy to clipboard")
             self.file_type = self.gui.csp.config.get_file_type_slider()
 
             index = np.where([elem is self.file_type for elem in FileType])[0].item()
@@ -124,9 +124,23 @@ class DirectoryCard(ft.Card):
             self.icon_x = {}
 
     def create_path_list_tile(self):
+        def on_enter_text(text_filed):
+            text_filed.color = ft.Colors.BLUE_400
+            text_filed.update()
+
+        def on_exit_text(text_filed):
+            text_filed.color = None
+            text_filed.update()
+
         return ft.ListTile(leading=ft.Icon(icon=ft.Icons.FOLDER_OPEN),
-                           title=self.formatted_path,
-                           subtitle=self.count_results_txt
+                           title=ft.GestureDetector(content=self.formatted_path,
+                                                    on_tap=lambda e: e.page.run_task(copy_to_clipboard, page=self.page,
+                                                                                     value=self.gui.directory.directory_path.value,
+                                                                                     name="Directory path"),
+                                                    on_enter=lambda e: on_enter_text(self.formatted_path),
+                                                    on_exit=lambda e: on_exit_text(self.formatted_path)),
+                           subtitle=self.count_results_txt,
+                           width=310
                            )
 
     def update_results_text(self):
@@ -247,7 +261,7 @@ class DirectoryCard(ft.Card):
         working_directory = (DirectoryManager(self.gui.csp.app_dir)
                              .get_cache_dir_path(f"tmp_{file_type.name}_{image_source_identifier}/", makedir=False))
 
-        #case empty folder
+        # case empty folder
         if file_type.value.source == SourceType.DIRECTORY:
             has_images = any(
                 any(str(file).lower().endswith(ext) for ext in self.file_type.value.extensions)
@@ -256,7 +270,8 @@ class DirectoryCard(ft.Card):
             )
 
             if not has_images:
-                self.gui.page.show_dialog(ft.SnackBar(ft.Text("The directory is empty.")))
+                self.gui.page.show_dialog(
+                    ft.SnackBar(ft.Text("The directory is empty.", color=ft.Colors.WHITE), bgcolor=ft.Colors.RED))
                 self.output_dir = True
                 self.gui.page.update()
                 self.gui.csp.image_paths = {}
@@ -308,7 +323,7 @@ class DirectoryCard(ft.Card):
                         if event_manager is not None:
                             raise PipelineRunningException("Directory Error", "Directory ’output’ is not supported!")
                         else:
-                            self.gui.page.show_dialog(ft.SnackBar(ft.Text("The directory path output is not allowed!")))
+                            self.gui.page.show_dialog(ft.SnackBar(ft.Text("The directory path output is not allowed!",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
                             self.output_dir = True
                             self.gui.page.update()
                             self.gui.csp.image_paths = {}
@@ -401,7 +416,7 @@ class DirectoryCard(ft.Card):
         if not self.is_supported_lif:
             self.gui.ready_to_start = False
             self.gui.page.show_dialog(ft.SnackBar(
-                ft.Text("The selected file is not supported! Only .lif are supported.")))
+                ft.Text("The selected file is not supported! Only .lif are supported.",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
             image_paths = {}
             mask_paths = {}
             self.gui.progress_ring.visible = False
@@ -412,7 +427,7 @@ class DirectoryCard(ft.Card):
             if len(image_paths) == 0:
                 self.gui.ready_to_start = False
                 self.gui.page.show_dialog(
-                    ft.SnackBar(ft.Text("The directory contains no valid files with the current channel prefix!")))
+                    ft.SnackBar(ft.Text("The directory contains no valid files with the current channel prefix!",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
                 self.gui.page.update()
                 self.count_results_txt.color = ft.Colors.RED
                 self.gui.progress_ring.visible = False
@@ -421,7 +436,7 @@ class DirectoryCard(ft.Card):
             elif not is_supported_tif:
                 self.gui.ready_to_start = False
                 self.gui.page.show_dialog(ft.SnackBar(
-                    ft.Text("The directory contains an unsupported file type. Only 8 or 16 bit .tiff files allowed.")))
+                    ft.Text("The directory contains an unsupported file type. Only 8 or 16 bit .tiff files allowed.",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
                 self.count_results_txt.color = ft.Colors.RED
                 self.gui.progress_ring.visible = False
                 self.gui.page.update()
@@ -608,30 +623,14 @@ class DirectoryCard(ft.Card):
 
     def create_directory_container(self):
         return ft.Container(
-            content=ft.Stack(
-                [
-                    ft.Container(
-                        content=ft.Column(
+            content=ft.Column(
                             [
-                                ft.Row([self.path_list_tile]),
+                                ft.Row([self.path_list_tile,ft.Row([self.directory_row,self.files_row,],expand=True,alignment=ft.MainAxisAlignment.END)]),
                                 self.file_type_selection_row
                             ]
-                        )
-                    ),
-                    ft.Row([ft.Container(
-                            content=ft.IconButton(
-                                icon=ft.Icons.COPY,
-                                tooltip="Copy to clipboard",
-                                on_click=lambda e: e.page.run_task(copy_to_clipboard, self.gui.page,
-                                                                   self.gui.directory.directory_path.value,
-                                                                   "Directory path")
-                            ),
-
-                        ),self.directory_row,self.files_row,],alignment=ft.MainAxisAlignment.END)
-                ]
-
-            ),
+                        ),
             padding=10,
+            clip_behavior=ft.ClipBehavior.HARD_EDGE
         )
 
     def disable_path_choosing(self):
@@ -691,7 +690,7 @@ class DirectoryCard(ft.Card):
             )
             fluorescence_readout_control = FluorescenceReadoutControl()
 
-            if all_mask_present and self.gui.csp.image_paths is not None and len(self.gui.csp.image_paths) != 0 :
+            if all_mask_present and self.gui.csp.image_paths is not None and len(self.gui.csp.image_paths) != 0:
                 fluorescence_readout_control.visible = True
                 fluorescence_readout_control.update()
             else:

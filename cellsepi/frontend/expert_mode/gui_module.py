@@ -879,8 +879,9 @@ class ModuleGUI(ft.GestureDetector):
         Handles if a file is selected.
         """
         files = await file_picker.pick_files(allow_multiple=False,
-                                             file_type=ft.FilePickerFileType.CUSTOM if suffix is not None else ft.FilePickerFileType.ANY,
-                                             allowed_extensions=suffix if suffix is not None else [], )
+                                                 dialog_title=attr_name.removeprefix("user_"),
+                                                 file_type=ft.FilePickerFileType.CUSTOM if suffix is not None else ft.FilePickerFileType.ANY,
+                                                 allowed_extensions=suffix if suffix is not None else [], )
         if files is not None and len(files) > 0:
             current_file_path = getattr(self.module, attr_name)
             current_file_path.path = files[0].path
@@ -892,7 +893,7 @@ class ModuleGUI(ft.GestureDetector):
         """
         Handles if a directory is selected.
         """
-        dir = await file_picker.get_directory_path()
+        dir = await file_picker.get_directory_path(dialog_title=attr_name.removeprefix("user_"))
         if dir is not None:
             setattr(self.module, attr_name, FilePath(dir))
             text.value = format_directory_path(dir, 50)

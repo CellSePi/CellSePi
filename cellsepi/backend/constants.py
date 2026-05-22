@@ -9,6 +9,9 @@ BIT_DEPTH = 16
 
 CSP_CHANNEL_PREFIX = "_CSP-channel-pref_"
 
+APP_NAME = ".cellsepi"
+APP_DIR = Path(Path.home() / APP_NAME)
+
 
 class ReturnTypePath(Enum):
     IMAGE_PATHS = auto()

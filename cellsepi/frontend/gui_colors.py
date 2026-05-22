@@ -89,13 +89,13 @@ class ColorSelection:
             self.color_picker (ColorPicker)
         """
         if self.color_type == ColorTypes.Mask:
-            self.color_icon_mask.icon_color = self.current_color
+            self.color_icon_mask.color = self.current_color
             self.config.set_mask_color(hex_to_rgb(self.current_color))
             self.gui.canvas.mask_color = hex_to_rgb(self.current_color)
             await self.gui.canvas.update_mask_image()
             MODULE_REGISTRY["REVIEW"].update_class(mask_color=self.config.get_mask_color())
         else:
-            self.color_icon_outline.icon_color = self.current_color
+            self.color_icon_outline.color = self.current_color
             self.config.set_outline_color(hex_to_rgb(self.current_color))
             self.gui.canvas.outline_color = hex_to_rgb(self.current_color)
             await self.gui.canvas.update_mask_image()
