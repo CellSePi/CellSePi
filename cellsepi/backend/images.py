@@ -471,7 +471,8 @@ class BatchImageReadout(Notifier):
             cur_row_entries = [None] * len(cell_ids)
             for iX, cell_id in enumerate(cell_ids):
                 data_entry = {"image_id": image_id,
-                              "cell_id": cell_id}
+                              "id": cell_id,
+                              "seg_channel": segmentation_channel,}
                 for channel_id in channels:
                     channel_name = self._channel_name(channel_id)
                     data_entry[channel_name] = None
