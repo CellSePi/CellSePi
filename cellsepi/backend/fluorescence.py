@@ -16,6 +16,7 @@ class Fluorescence(Notifier):
     """
 
     def __init__(self, csp: CellSePi, gui):
+
         super().__init__()
         self.csp = csp
         self.gui = gui

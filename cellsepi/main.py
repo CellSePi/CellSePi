@@ -1,4 +1,5 @@
 import flet as ft
+
 from frontend.gui import GUI
 
 

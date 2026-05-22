@@ -188,7 +188,6 @@ class GUI:
                                                     )
                                                 ])
                                         ]),
-
                                     self.segmentation_card
                                 ],
                                 expand=6,
