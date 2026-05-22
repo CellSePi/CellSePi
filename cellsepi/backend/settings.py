@@ -106,10 +106,19 @@ class PerformanceConfig(BaseModel):
     visualization: VisualizationConfig = Field(default_factory=VisualizationConfig)
 
 
+class ImageNormalizationConfig(BaseModel):
+    margin: float = 0.2  # The distance to the image border to ignore in percent of image width (0.2 means that 20% of the image width and height is ignored on each side (total 40% per side))
+    upper_quantile: float = 0.99  # The value to consider as maximum for the image inside the margin
+    lower_quantile: float = 0.02  # The value to consider as minimum for the image inside the margin
+
+
 # Define main Settings Schema with built-in defaults
+
+
 class AppSettings(BaseModel):
     cache: DataPersistenceConfig = Field(default_factory=DataPersistenceConfig)
     performance: PerformanceConfig = Field(default_factory=PerformanceConfig)
+    image: ImageNormalizationConfig = Field(default_factory=ImageNormalizationConfig)
 
 
 # Manage the File I/O wrapping the schema

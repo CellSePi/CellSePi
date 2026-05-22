@@ -13,7 +13,7 @@ from scipy.ndimage import binary_erosion
 from tifffile import tifffile
 
 from backend.constants import ExportFileType, ModelType
-from backend.data_util import load_image_to_numpy,export_dataframe_to_pdf
+from backend.data_util import load_image_to_numpy, export_dataframe_to_pdf
 from backend.expert_mode.event_manager import EventManager
 from backend.expert_mode.listener import ProgressEvent
 from backend.notifier import Notifier
@@ -176,7 +176,8 @@ class BatchImageSegmentation(Notifier):
     def resume_action(self):
         self.resume_now = True
 
-    def run(self, event_manager: EventManager = None, image_paths=None, mask_paths=None, model_path=None,model_type=None):
+    def run(self, event_manager: EventManager = None, image_paths=None, mask_paths=None, model_path=None,
+            model_type=None):
         """
         Applies the segmentation model to every image and stores the resulting masks.
         """
@@ -219,7 +220,7 @@ class BatchImageSegmentation(Notifier):
 
         if module_type is None:
             model_type = self.gui.csp.model_type
-            
+
         if model_type == ModelType.CUSTOM:
             state_dict = torch.load(segmentation_model, map_location=device, weights_only=True)
             w2_data = state_dict.get('W2', None)
@@ -255,8 +256,8 @@ class BatchImageSegmentation(Notifier):
 
         start_index = self.num_seg_images
         for iN, image_id in enumerate(list(image_paths)[start_index:], start=start_index):
-            if segmentation_channel in image_paths[image_id] and os.path.isfile(
-                    image_paths[image_id][segmentation_channel]):
+            if (segmentation_channel in image_paths[image_id]
+                    and os.path.isfile(image_paths[image_id][segmentation_channel])):
                 if event_manager is None:
                     if self.cancel_now:
                         self.cancel_now = False
