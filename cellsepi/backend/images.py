@@ -19,6 +19,8 @@ from backend.expert_mode.listener import ProgressEvent
 from backend.notifier import Notifier
 from backend.CellposeV3 import modelsV3, ioV3
 
+from backend.image_utils import normalize_image
+
 
 class BatchImageSegmentation(Notifier):
     """
@@ -276,12 +278,7 @@ class BatchImageSegmentation(Notifier):
 
                 # Normalization
                 image = image.astype(np.float32)
-                min_val = np.min(image)
-                max_val = np.max(image)
-                if (max_val - min_val) > 0:
-                    image = (image - min_val) / (max_val - min_val)
-                else:
-                    image = np.zeros_like(image)
+                image = normalize_image(image)
 
                 # model evaluates image
                 if model_type == ModelType.C_NUCLEI or model_type == ModelType.C_CYTO:

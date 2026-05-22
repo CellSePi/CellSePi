@@ -107,7 +107,8 @@ class PerformanceConfig(BaseModel):
 
 
 class ImageNormalizationConfig(BaseModel):
-    margin: float = 0.2  # The distance to the image border to ignore in percent of image width (0.2 means that 20% of the image width and height is ignored on each side (total 40% per side))
+    normalize_gallery: bool = True
+    margin: float = 0.1  # The distance to the image border to ignore in percent of image width (0.2 means that 20% of the image width and height is ignored on each side (total 40% per side))
     upper_quantile: float = 0.99  # The value to consider as maximum for the image inside the margin
     lower_quantile: float = 0.02  # The value to consider as minimum for the image inside the margin
 

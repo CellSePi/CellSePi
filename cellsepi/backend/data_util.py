@@ -29,6 +29,9 @@ from backend.expert_mode.event_manager import *
 from backend.notifier import Notifier
 from backend.settings import SettingsManager
 
+from backend.image_utils import normalize_image
+from backend.constants import BIT_DEPTH
+
 
 def listdir(directory):
     dir_list = [directory / elem for elem in os.listdir(directory)]
@@ -603,6 +606,12 @@ def process_channel(channel_id, channel_path):
     if image.ndim == 3:
         image = np.max(image, axis=0)
 
+    if SettingsManager().settings.image.normalize_gallery:
+        image = image.astype(np.float32)
+        image = normalize_image(image)
+        image = image * 2 ** BIT_DEPTH
+        image = image.astype(np.uint16)
+
     h, w = image.shape[:2]
 
     max_size = 150
@@ -789,4 +798,3 @@ class DirectoryManager:
                     shutil.rmtree(item)
                 else:
                     item.unlink()
-

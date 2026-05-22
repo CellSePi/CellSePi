@@ -105,8 +105,27 @@ class DirectoryCard(ft.Card):
                 disabled=True,
                 visible=True
             )
-            self.buttons_row = ft.Row([ft.Column([ft.Row([self.directory_row, self.files_row, ]),ft.Row([self.images_and_mask_export_button])],
-                                                        )], expand=True,alignment=ft.MainAxisAlignment.END)
+            self.buttons_row = ft.Row(
+                [
+                    ft.Column(
+                        [
+                            ft.Row(
+                                [
+                                    self.directory_row,
+                                    self.files_row,
+                                ]
+                            ),
+                            ft.Row(
+                                [
+                                    self.images_and_mask_export_button
+                                ]
+                            )
+                        ],
+                    )
+                ],
+                expand=True,
+                alignment=ft.MainAxisAlignment.END
+            )
             self.lif_slider_blocker = ft.Container(
                 height=30,
                 expand=True,
