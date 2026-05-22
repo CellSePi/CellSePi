@@ -2,14 +2,12 @@ import os
 import pathlib
 import platform
 import re
-import shutil
 import subprocess
 import sys
 
 import flet as ft
 
-from backend.constants import ExportFileType
-from backend.data_util import DirectoryManager, downloads_directory, ModelType
+from backend.constants import downloads_directory, ModelType, ExportFileType
 from backend.data_util import FileTransfer
 from backend.fluorescence import Fluorescence
 from backend.segmentation import Segmentation
@@ -90,7 +88,6 @@ class GUISegmentation:
         # progress bar, which is updated throughout the segmentation calculation and fluorescence readout
         self.progress_bar = ft.ProgressBar(value=0, width=180)
         self.progress_bar_text = ft.Text("Waiting for Input")
-
 
         # the following methods are called when clicking on the corresponding button
         async def pick_model_result(e: ft.Event[ft.Button]):
@@ -543,7 +540,6 @@ class GUISegmentation:
                 ]
             )
         )
-
 
         model_drop_down = ft.Dropdown(
             width=250,

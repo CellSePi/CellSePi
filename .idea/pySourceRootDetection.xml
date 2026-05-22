@@ -3,8 +3,9 @@
   <component name="PySourceRootDetectionService">
     <option name="sourcePathsSet">
       <set>
-        <option value="$PROJECT_DIR$/src/cellsepi" />
         <option value="$PROJECT_DIR$/cellsepi" />
+        <option value="$PROJECT_DIR$/src/cellsepi" />
+        <option value="$PROJECT_DIR$/cellsepi/build/flutter/macos/Flutter/ephemeral/.symlinks/plugins/serious_python_darwin/darwin/dist_ios/xcframeworks/Python.xcframework/lib/python3.12/lib2to3" />
       </set>
     </option>
   </component>

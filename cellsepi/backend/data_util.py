@@ -790,8 +790,3 @@ class DirectoryManager:
                 else:
                     item.unlink()
 
-    @staticmethod
-    def downloads_directory() -> Path:
-        home = Path.home()
-        downloads_dir = home / "Downloads"
-        return downloads_dir

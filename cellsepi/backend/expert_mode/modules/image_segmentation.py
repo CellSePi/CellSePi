@@ -1,7 +1,7 @@
 from backend.expert_mode.pipeline_manager import PipelineRunningException
 from backend.segmentation import BatchImageSegmentation
 from backend.expert_mode.module import *
-from constants import ModelType
+from backend.constants import ModelType
 
 
 class ImageSegmentationModule(Module, ABC):
