@@ -36,14 +36,6 @@ class FluorescenceReadoutControl(ft.Container):
             visible=True
         )
 
-        self.images_and_mask_export_button = ft.Button(
-            content="Export Images and Masks",
-            icon=ft.Icons.FILE_DOWNLOAD,
-            tooltip="Export Images and Masks",
-            disabled=False,
-            visible=True
-        )
-
         self.slider = ft.CupertinoSlidingSegmentedButton(
             selected_index=0,
             thumb_color=ft.Colors.BLUE_400,
@@ -59,8 +51,7 @@ class FluorescenceReadoutControl(ft.Container):
             [
                 self.slider,
                 self.button,
-                self.images_and_mask_export_button,
-            ], alignment=ft.MainAxisAlignment.CENTER,
+            ]
         )
         self.visible = False
         self._initialized = True

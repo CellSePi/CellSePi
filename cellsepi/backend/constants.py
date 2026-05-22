@@ -21,6 +21,13 @@ class SourceType(Enum):
     DIRECTORY = auto()
 
 
+class ModelType(Enum):
+    CUSTOM = auto()
+    C_NUCLEI = auto()
+    C_CYTO = auto()
+    C_SAM = auto()
+
+
 class FileType(Enum):
     LIF = SimpleNamespace(name="Lif", extensions=["lif"], source=SourceType.FILE)
     ND2 = SimpleNamespace(name="ND2", extensions=["nd2"], source=SourceType.FILE)
@@ -40,3 +47,9 @@ class ExportFileType(Enum):
 class Suffixes(Enum):
     SEGMENTATION_MASK = SimpleNamespace(name="SEGMENTATION_MASK", suffixes=["_seq"], extensions=["npy"])
     SPOT_MASK = SimpleNamespace(name="SPOT_MASK", suffixes=["_sdm"], extensions=["npy"])
+
+
+def downloads_directory() -> Path:
+    home = Path.home()
+    downloads_dir = home / "Downloads"
+    return downloads_dir

@@ -2,6 +2,7 @@ import math
 from enum import Enum
 import flet as ft
 
+from backend.expert_mode.modules.image_and_mask_export import ImageExportModule
 from backend.expert_mode.modules.image_readout import ImageReadoutModule
 from backend.expert_mode.modules.image_segmentation import ImageSegmentationModule
 from backend.expert_mode.modules.project_3d_to_2d import Project3dTo2d
@@ -36,6 +37,7 @@ DEBUG = False
 
 MODULE_REGISTRY = {
     "IMAGE_READOUT": ImageReadoutModule,
+    "IMAGE_EXPORT": ImageExportModule,
     "IMAGE_SEGMENTATION": ImageSegmentationModule,
     "SPOT_DETECTION": SpotDetectionModule,
     "READ_LIF": ReadLif,

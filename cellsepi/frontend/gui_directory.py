@@ -6,6 +6,7 @@ import shutil
 
 import flet as ft
 import numpy as np
+from flet.controls import alignment
 
 from frontend.dialogs import ChoiceDialog
 from frontend.gui_fluorescence import FluorescenceReadoutControl
@@ -97,6 +98,15 @@ class DirectoryCard(ft.Card):
             # self.create_handlers()
             self.directory_row = self.create_dir_row()
             self.files_row = self.create_files_row()
+            self.images_and_mask_export_button = ft.Button(
+                content="Export",
+                icon=ft.Icons.FILE_DOWNLOAD,
+                tooltip="Export Images and Masks",
+                disabled=True,
+                visible=True
+            )
+            self.buttons_row = ft.Row([ft.Column([ft.Row([self.directory_row, self.files_row, ]),ft.Row([self.images_and_mask_export_button])],
+                                                        )], expand=True,alignment=ft.MainAxisAlignment.END)
             self.lif_slider_blocker = ft.Container(
                 height=30,
                 expand=True,
@@ -452,7 +462,7 @@ class DirectoryCard(ft.Card):
                 self.gui.training_environment.start_button.disabled = False
                 if ((self.gui.csp.model_path is not None and (
                         self.gui.csp.model_type == "CustomV3" or self.gui.csp.model_type == "CustomV4"))
-                        or self.gui.csp.model_type == "Cellpose" or self.gui.csp.model_type == "CellposeSAM"):
+                        or self.gui.csp.model_type == "CellposeCyto" or self.gui.csp.model_type == "CellposeNuclei" or self.gui.csp.model_type == "CellposeSAM"):
                     self.gui.progress_bar_text.value = "Ready to Start"
                     self.gui.start_button.disabled = False
                 self.gui.ready_to_start = True
@@ -536,6 +546,8 @@ class DirectoryCard(ft.Card):
 
         self.gui.progress_ring.visible = False
         self.gui.progress_ring.update()
+        self.images_and_mask_export_button.disabled = False
+        self.images_and_mask_export_button.update()
         self.update_results_text()
 
     def update_mask_check(self, image_id, update=True):
@@ -630,8 +642,7 @@ class DirectoryCard(ft.Card):
         return ft.Container(
             content=ft.Column(
                 [
-                    ft.Row([self.path_list_tile, ft.Row([self.directory_row, self.files_row, ], expand=True,
-                                                        alignment=ft.MainAxisAlignment.END)]),
+                    ft.Row([ft.Column([self.path_list_tile]), self.buttons_row]),
                     self.file_type_selection_row
                 ]
             ),
@@ -644,6 +655,7 @@ class DirectoryCard(ft.Card):
         Disables everything related with path choosing.
         """
         self.path_list_tile.disabled = True
+        self.buttons_row.disabled = True
         self.file_type_selection_row.disabled = True
         self.toggle_slider_state(self.file_type_slider, disabled=True)
 
@@ -654,6 +666,7 @@ class DirectoryCard(ft.Card):
         Activates everything related with path choosing.
         """
         self.path_list_tile.disabled = False
+        self.buttons_row.disabled = False
         self.file_type_selection_row.disabled = False
         self.toggle_slider_state(self.file_type_slider, disabled=False)
         self.gui.page.update()

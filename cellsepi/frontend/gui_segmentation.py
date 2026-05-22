@@ -9,7 +9,7 @@ import sys
 import flet as ft
 
 from backend.constants import ExportFileType
-from backend.data_util import DirectoryManager
+from backend.data_util import DirectoryManager, downloads_directory, ModelType
 from backend.data_util import FileTransfer
 from backend.fluorescence import Fluorescence
 from backend.segmentation import Segmentation
@@ -70,15 +70,6 @@ class GUISegmentation:
             on_click=None,
         )
 
-        # button to start the fluorescence readout
-        # fl_button = fluorescence_button
-        fluorescence_readout_control = FluorescenceReadoutControl()
-        file_transfer = FileTransfer()
-
-        # progress bar, which is updated throughout the segmentation calculation and fluorescence readout
-        self.progress_bar = ft.ProgressBar(value=0, width=180)
-        self.progress_bar_text = ft.Text("Waiting for Input")
-
         def open_readout(e):
             file_path = self.gui.csp.readout_path
             if os.name == "nt":  # Check if Windows
@@ -93,6 +84,14 @@ class GUISegmentation:
             visible=False
         )
 
+        fluorescence_readout_control = FluorescenceReadoutControl(open_button)
+        file_transfer = FileTransfer()
+
+        # progress bar, which is updated throughout the segmentation calculation and fluorescence readout
+        self.progress_bar = ft.ProgressBar(value=0, width=180)
+        self.progress_bar_text = ft.Text("Waiting for Input")
+
+
         # the following methods are called when clicking on the corresponding button
         async def pick_model_result(e: ft.Event[ft.Button]):
             """
@@ -101,8 +100,9 @@ class GUISegmentation:
             Arguments:
                 e (ft.Event): pseudo Event, when button pressed
             """
+            model_directory = pathlib.Path(self.gui.csp.models_dir)
             files = await ft.FilePicker().pick_files(allow_multiple=False,
-                                                     initial_directory=model_directory
+                                                     initial_directory=str(model_directory)
                                                      )
             if files is None or len(files) == 0:
                 # case: no model selected
@@ -117,18 +117,12 @@ class GUISegmentation:
                 self.gui.page.update()
 
         def new_pick_model_result(e):
-            if model_drop_down.value == "CustomV3":
+            if model_drop_down.value == "Custom":
                 model_choose_button.visible = True
                 model_text.value = "Choose model"
                 model_text.color = None
                 self.gui.csp.model_path = None
-                self.gui.csp.model_type = "CustomV3"
-            elif model_drop_down.value == "CustomV4":
-                model_choose_button.visible = True
-                model_text.value = "Choose model"
-                model_text.color = None
-                self.gui.csp.model_path = None
-                self.gui.csp.model_type = "CustomV4"
+                self.gui.csp.model_type = ModelType.CUSTOM
             elif model_drop_down.value == "CellposeSAM":
                 if self.gui.ready_to_start:
                     self.progress_bar_text.value = "Ready to Start"
@@ -137,16 +131,25 @@ class GUISegmentation:
                 model_text.color = None
                 self.gui.csp.model_path = "pre_def"
                 model_choose_button.visible = False
-                self.gui.csp.model_type = "CellposeSAM"
-            elif model_drop_down.value == "Cellpose":
+                self.gui.csp.model_type = ModelType.CELLPOSE_SAM
+            elif model_drop_down.value == "CellposeNuclei":
                 if self.gui.ready_to_start:
                     self.progress_bar_text.value = "Ready to Start"
                     start_button.disabled = False
-                model_text.value = "Cellpose"
+                model_text.value = "Cellpose Nuclei"
                 model_text.color = None
                 model_choose_button.visible = False
                 self.gui.csp.model_path = "pre_def"
-                self.gui.csp.model_type = "Cellpose"
+                self.gui.csp.model_type = ModelType.CELLPOSE_NUCLEI
+            elif model_drop_down.value == "CellposeCyto":
+                if self.gui.ready_to_start:
+                    self.progress_bar_text.value = "Ready to Start"
+                    start_button.disabled = False
+                model_text.value = "Cellpose Cyto"
+                model_text.color = None
+                model_choose_button.visible = False
+                self.gui.csp.model_path = "pre_def"
+                self.gui.csp.model_type = ModelType.CELLPOSE_CYTO
             self.gui.page.update()
 
         def start_segmentation(e):  # called when the start button is clicked
@@ -371,7 +374,7 @@ class GUISegmentation:
             file_picker = ft.FilePicker()
             chosen_path = await file_picker.save_file(
                 dialog_title="Save fluorescence data",
-                initial_directory=str(DirectoryManager.downloads_directory()),
+                initial_directory=str(downloads_directory()),
                 file_name=f"fluorescence_readout{export_ft.value.extension}"  # the "." is already part of the extension
             )
             if chosen_path is None:
@@ -423,36 +426,31 @@ class GUISegmentation:
             """
             Copies the internal tiff and npy files to a directory specified by the user
             """
+            if self.gui.csp.image_paths is None:
+                return
             file_picker = ft.FilePicker()
-
-            # chosen_path = await file_picker.get_directory_path(
-            #     dialog_title="Export images and masks",
-            #     initial_directory=str(DirectoryManager.downloads_directory() / "images_and_masks" ),
-            # )
-            chosen_path = await file_picker.save_file(
+            chosen_path = await file_picker.get_directory_path(
                 dialog_title="Export images and masks",
-                initial_directory=str(DirectoryManager.downloads_directory()),
-                file_name=str("images_and_masks")
+                initial_directory=str(downloads_directory()),
             )
             if chosen_path is None:
                 return
             path = pathlib.Path(chosen_path)
-            # add extension if deleted during rename
-            if path.exists() and path.is_dir():
+            if path.exists() and any(path.iterdir()):
                 dialog = ChoiceDialog(
                     page=self.gui.page,
-                    title="Directory already exists",
-                    text="You can either repeat the export with a new directory (Close) or overwrite the existing directory (Overwrite).",
-                    option_1="Close",
-                    option_2="Overwrite",
+                    title="Directory is not empty",
+                    text="The selected directory already contains files. Existing files with the same name might be overwritten.",
+                    option_1="Cancel",
+                    option_2="Continue",
                 )
                 result = await dialog.show()
-                if result == "Close":
+                if result == 0:
                     return
-            shutil.rmtree(path, ignore_errors=True)
-            os.makedirs(path, exist_ok=False)
 
-            source_dir = pathlib.Path(list(self.gui.csp.image_paths.items())[0][1]["0"]).parent
+            first_series = next(iter(self.gui.csp.image_paths.values()))
+            first_path = next(iter(first_series.values()))
+            source_dir = pathlib.Path(first_path).parent
             target_dir = path
             self.gui.page.run_thread(file_transfer, source_dir, target_dir)
             FluorescenceReadoutControl().disabled = True
@@ -496,7 +494,7 @@ class GUISegmentation:
         self.fluorescence.add_update_listener(listener=update_progress_bar)
         self.fluorescence.add_completion_listener(listener=complete_fl)
 
-        fluorescence_readout_control.images_and_mask_export_button.on_click = export_images_and_masks
+        self.gui.directory.images_and_mask_export_button.on_click = export_images_and_masks
         file_transfer.add_start_listener(listener=start_export_of_images_and_masks)
         file_transfer.add_update_listener(listener=update_progress_bar)
         file_transfer.add_completion_listener(listener=complete_export_of_images_and_masks)
@@ -546,36 +544,24 @@ class GUISegmentation:
             )
         )
 
-        project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        model_directory = os.path.join(project_root, "models")
 
         model_drop_down = ft.Dropdown(
             width=250,
             label="Choose model",
             border_color=ft.Colors.BLUE_ACCENT,
             options=[
+                ft.DropdownOption(key="CellposeCyto", text="Cellpose Cyto"),
+                ft.DropdownOption(key="CellposeNuclei", text="Cellpose Nuclei"),
                 ft.DropdownOption(
-                    key="Cellpose",
-                    text="Cellpose"
+                    key="Cellpose SAM",
+                    text="Cellpose SAM"
                 ),
                 ft.DropdownOption(
-                    key="CellposeSAM",
-                    text="CellposeSAM"
-                ),
-                ft.DropdownOption(
-                    key="CustomV3",
-                    text="\u200BCellpose",
+                    key="Custom",
+                    text="Cellpose",
                     content=ft.Row([
                         ft.Text("Custom", weight=ft.FontWeight.BOLD),
                         ft.Text("Cellpose")
-                    ])
-                ),
-                ft.DropdownOption(
-                    key="CustomV4",
-                    text="\u200BCellposeSAM",
-                    content=ft.Row([
-                        ft.Text("Custom", weight=ft.FontWeight.BOLD),
-                        ft.Text("CellposeSAM")
                     ])
                 ),
             ],
