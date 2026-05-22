@@ -347,6 +347,14 @@ class Training(ft.Container):
             sgd_value = False
             model_name = self.model_name
 
+            if self.re_train_model.value:
+                state_dict = torch.load(self.gui.csp.re_train_model_path, map_location=self.gui.csp.gpu, weights_only=True)
+                w2_data = state_dict.get('W2', None)
+                if w2_data is None:
+                    model_type = "CellposeSam"
+                else:
+                    model_type = "Cellpose Cyto"
+
             if model_type == "CellposeSAM":
                 model = models.CellposeModel(gpu=self.gui.csp.gpu)
                 if self.re_train_model.value:
@@ -355,15 +363,6 @@ class Training(ft.Container):
                     model = models.CellposeModel(pretrained_model=self.gui.csp.re_train_model_path,gpu=self.gui.csp.gpu)
                     # start the training epochs
 
-                processed_images = []
-
-                for img in images:
-                    if img.ndim == 3 and img.shape[0] == 1:
-                        img = img[0]  # convert (1,H,W) -> (H,W)
-
-                    processed_images.append(img)
-
-                images = processed_images
                 train.train_seg(model.net,
                                 train_data=images, train_labels=labels,
                                 normalize=True,
@@ -373,16 +372,17 @@ class Training(ft.Container):
                                 save_path=os.path.dirname(self.model_directory))
 
             elif model_type == "Cellpose Cyto" or model_type == "Cellpose Nuclei":
-                if model_type == "Cellpose Cyto":
-                    model = modelsV3.CellposeModel(model_type= "cyto3",gpu=self.gui.csp.gpu)
-                elif model_type == "Cellpose Nuclei":
-                    model = modelsV3.CellposeModel(model_type= "nuclei",gpu=self.gui.csp.gpu)
-
                 if self.re_train_model.value:
                     sgd_value = True
                     model_name = self.re_train_model_name
                     model = modelsV3.CellposeModel(pretrained_model=self.gui.csp.re_train_model_path,
-                                                 gpu=self.gui.csp.gpu)
+                                                   gpu=self.gui.csp.gpu)
+                else:
+                    if model_type == "Cellpose Cyto":
+                        model = modelsV3.CellposeModel(model_type= "cyto3",gpu=self.gui.csp.gpu)
+                    elif model_type == "Cellpose Nuclei":
+                        model = modelsV3.CellposeModel(model_type= "nuclei",gpu=self.gui.csp.gpu)
+
                 # start the training epochs
                 trainV3.train_seg(model.net,
                                 train_data=images, train_labels=labels,

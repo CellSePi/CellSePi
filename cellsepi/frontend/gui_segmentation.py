@@ -99,8 +99,9 @@ class GUISegmentation:
             Arguments:
                 e (ft.Event): pseudo Event, when button pressed
             """
+            model_directory = pathlib.Path(self.gui.csp.models_dir)
             files = await ft.FilePicker().pick_files(allow_multiple=False,
-                                                     initial_directory=model_directory
+                                                     initial_directory=str(model_directory)
                                                      )
             if files is None or len(files) == 0:
                 # case: no model selected
@@ -115,18 +116,12 @@ class GUISegmentation:
                 self.gui.page.update()
 
         def new_pick_model_result(e):
-            if model_drop_down.value == "CustomV3":
+            if model_drop_down.value == "Custom":
                 model_choose_button.visible = True
                 model_text.value = "Choose model"
                 model_text.color = None
                 self.gui.csp.model_path = None
-                self.gui.csp.model_type = "CustomV3"
-            elif model_drop_down.value == "CustomV4":
-                model_choose_button.visible = True
-                model_text.value = "Choose model"
-                model_text.color = None
-                self.gui.csp.model_path = None
-                self.gui.csp.model_type = "CustomV4"
+                self.gui.csp.model_type = "Custom"
             elif model_drop_down.value == "CellposeSAM":
                 if self.gui.ready_to_start:
                     self.progress_bar_text.value = "Ready to Start"
@@ -548,7 +543,6 @@ class GUISegmentation:
             )
         )
 
-        model_directory = self.gui.csp.models_dir
 
         model_drop_down = ft.Dropdown(
             width=250,
@@ -562,19 +556,11 @@ class GUISegmentation:
                     text="CellposeSAM"
                 ),
                 ft.DropdownOption(
-                    key="CustomV3",
+                    key="Custom",
                     text="\u200BCellpose",
                     content=ft.Row([
                         ft.Text("Custom", weight=ft.FontWeight.BOLD),
                         ft.Text("Cellpose")
-                    ])
-                ),
-                ft.DropdownOption(
-                    key="CustomV4",
-                    text="\u200BCellposeSAM",
-                    content=ft.Row([
-                        ft.Text("Custom", weight=ft.FontWeight.BOLD),
-                        ft.Text("CellposeSAM")
                     ])
                 ),
             ],

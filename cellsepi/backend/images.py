@@ -218,26 +218,28 @@ class BatchImageSegmentation(Notifier):
         device = torch.device("cuda" if self.gui.csp.gpu else "cpu")  # converts string to device object
 
         # if self._is_cellpose_model(segmentation_model):
-        if self.gui.csp.model_type == "CustomV3":
-            model_type = 'CustomV3'
-            model = modelsV3.CellposeModel(pretrained_model=segmentation_model, gpu=self.gui.csp.gpu)
-            ioV3.logger_setup()
-        elif self.gui.csp.model_type == "CellposeCyto":
-            model_type = 'Cellpose'
+        model_type = self.gui.csp.model_type
+        if model_type == "Custom":
+            state_dict = torch.load(segmentation_model, map_location=device, weights_only=True)
+            w2_data = state_dict.get('W2', None)
+            if w2_data is None:
+                model = modelsV3.CellposeModel(pretrained_model=segmentation_model, gpu=self.gui.csp.gpu)
+                ioV3.logger_setup()
+                model_type = model_type + "V3"
+            else:
+                model = models.CellposeModel(pretrained_model=segmentation_model, gpu=self.gui.csp.gpu)
+                io.logger_setup()
+                model_type = model_type + "V4"
+        elif model_type == "CellposeCyto":
             model = modelsV3.CellposeModel(model_type="cyto3", gpu=self.gui.csp.gpu)
             ioV3.logger_setup()
-        elif self.gui.csp.model_type == "CellposeNuclei":
-            model_type = 'Cellpose'
+        elif model_type == "CellposeNuclei":
             model = modelsV3.CellposeModel(model_type="nuclei", gpu=self.gui.csp.gpu)
             ioV3.logger_setup()
-        elif self.gui.csp.model_type == "CellposeSAM":
-            model_type = 'CellposeSAM'
+        elif model_type == "CellposeSAM":
             model = models.CellposeModel(gpu=self.gui.csp.gpu)
             io.logger_setup()
-        elif self.gui.csp.model_type == "CustomV4":
-            model_type = 'CustomV4'
-            model = models.CellposeModel(pretrained_model=segmentation_model, gpu=self.gui.csp.gpu)
-            io.logger_setup()
+
         """else:
             model_type = 'pytorch'
             model = maskrcnn_resnet50_fpn(weights="DEFAULT")
