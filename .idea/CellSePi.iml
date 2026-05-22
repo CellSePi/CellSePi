@@ -5,10 +5,15 @@
       <sourceFolder url="file://$MODULE_DIR$/src/cellsepi" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/cellsepi" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/build/flutter/build/build_python_3.12.6/python/lib/python3.12/site-packages/pip/_vendor" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/cellsepi/build/flutter/build/build_python_3.12.6/python/lib/python3.12" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/cellsepi/build/flutter/build/build_python_3.12.6/python/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/cellsepi/build/flutter/build/build_python_3.12.6/python/lib/python3.12/site-packages/pip/_vendor" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/cellsepi/build/flutter/macos/Flutter/ephemeral/.symlinks/plugins/serious_python_darwin/darwin/dist_ios/xcframeworks/Python.xcframework/lib/python3.12/lib2to3" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.12 (CellSePi)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="cellsepi" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="PyDocumentationSettings">

@@ -1,6 +1,3 @@
-import json
-import pathlib
-
 # from backend.constants import DirectoryManager
 #
 # DEFAULT_SETTINGS = {
@@ -64,27 +61,42 @@ import pathlib
 
 
 import json
-from pathlib import Path
-from typing import Literal
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any
 
 import anyio
 from pydantic import BaseModel, Field
 
-from backend.constants import DirectoryManager
+
+class DownscaleMode(str, Enum):
+    NONE = "none"
+    PIXELS = "pixels"
+    FRACTION = "fraction"
 
 
+# Setup individual settings
 class DataPersistenceConfig(BaseModel):
     cutoff: int = 3
 
+
+@dataclass
+class SettingsOption:
+    name: str
+    opt_type: type
+    default: Any
+    hint: str = ""
+
+
 # Define nested configuration schemas
 class SegmentationConfig(BaseModel):
-    mode: Literal["pixels", "fraction"] | None = "pixels"
+    mode: DownscaleMode = DownscaleMode.PIXELS  # SettingsOption("Downscale Mode", DownscaleMode.PIXELS, hint="Whether to use the original image, a fixed downscaling (pixels) or a relative downscaling (fraction).")
     max_pixels: int = 512
     max_fraction: float = 0.25
 
 
 class VisualizationConfig(BaseModel):
-    mode: Literal["pixels", "fraction"] | None = "pixels"
+    mode: DownscaleMode = DownscaleMode.PIXELS
     max_pixels: int = 1024
     max_fraction: float = 0.25
 
@@ -92,9 +104,6 @@ class VisualizationConfig(BaseModel):
 class PerformanceConfig(BaseModel):
     segmentation: SegmentationConfig = Field(default_factory=SegmentationConfig)
     visualization: VisualizationConfig = Field(default_factory=VisualizationConfig)
-
-
-
 
 
 # Define main Settings Schema with built-in defaults
@@ -113,20 +122,26 @@ class SettingsManager:
         return cls._instance
 
     def __init__(self, filename="settings.json"):
+        from backend.data_util import DirectoryManager
         self.file_path = DirectoryManager().base_directory / filename
-        self.settings: AppSettings = self.load_settings()
+        self.settings: AppSettings = None
+
+        self.load_settings()
 
     def load_settings(self) -> AppSettings:
         if self.file_path.exists():
             try:
                 with open(self.file_path, "r") as f:
                     data = json.load(f)
-                return AppSettings.model_validate(data)
+                settings = AppSettings.model_validate(data)
             except Exception as e:
                 print(f"Invalid settings file ({e}). Falling back to defaults.")
-                return AppSettings()
+                settings = AppSettings()
         else:
-            return AppSettings()
+            settings = AppSettings()
+
+        self.settings = settings
+        return settings
 
     def save_settings(self):
         with open(self.file_path, "w") as f:

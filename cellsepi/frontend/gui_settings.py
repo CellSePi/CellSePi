@@ -1,11 +1,10 @@
-from typing import Literal, get_origin, get_args
+from enum import Enum
+from typing import get_args
 
 import flet as ft
-from PIL.ImageChops import overlay
-from openpyxl.worksheet import controls
 from pydantic import BaseModel
 
-from backend.settings_file import SettingsManager
+from backend.settings import SettingsManager
 from frontend.gui_page_overlay import PageOverlay
 
 
@@ -15,10 +14,11 @@ class GUISettings:
         self.page = page
         self.gui = gui
         self.settings_manager = SettingsManager()
-        self.settings = self.settings_manager.settings
+        # self.settings = self.settings_manager.settings
         self.overlay = PageOverlay(
             page,
-            content=None
+            content=None,
+            modal=False
         )
         pass
 
@@ -26,7 +26,8 @@ class GUISettings:
         await self.settings_manager.save_settings_async()
         self.overlay.close()
 
-    def _cancel(self):
+    async def _cancel(self):
+        await self.settings_manager.load_settings_async()
         self.overlay.close()
 
     def build(self):
@@ -94,23 +95,25 @@ class GUISettings:
         """
         items = []
         # Iterate over top-level sub-models (e.g., cache: CacheConfig)
-        for field_name, field_info in self.settings.model_fields.items():
-            sub_model = getattr(self.settings, field_name)
+        for field_name, field_info in self.settings_manager.settings.model_fields.items():
+            sub_model = getattr(self.settings_manager.settings, field_name)
 
             if isinstance(sub_model, BaseModel):
                 # Create a visual card/section for each settings module
-                section = ft.Card(
+                section = ft.Container(
                     content=ft.Container(
-                        content=ft.Column([
-                            ft.Text(
-                                field_name.upper(),
-                                weight=ft.FontWeight.BOLD,
-                                size=16
-                            ),
-                            ft.Divider(),
-                            # Recursively generate form fields for this model
-                            self._generate_fields_for_model(sub_model)
-                        ]),
+                        content=ft.Column(
+                            [
+                                ft.Text(
+                                    field_name.upper(),
+                                    weight=ft.FontWeight.BOLD,
+                                    size=16
+                                ),
+                                ft.Divider(),
+                                # Recursively generate form fields for this model
+                                self._generate_fields_for_model(sub_model)
+                            ]
+                        ),
                         padding=15
                     )
                 )
@@ -145,41 +148,93 @@ class GUISettings:
             label_text = field_name.replace("_", " ").title()
 
             # Handle Choice Options (Pydantic Literal -> Flet Dropdown)
-            if get_origin(field_type) is Literal:
-                allowed_values = get_args(field_type)
-                control = ft.Dropdown(
-                    label=label_text,
-                    value=str(value),
-                    options=[
-                        ft.dropdown.Option(v)
-                        for v in allowed_values
+            if issubclass(field_type, Enum):
+                control = ft.Row(
+                    controls=[
+                        ft.Text(
+                            label_text,
+                            weight=ft.FontWeight.W_600,
+                            size=14
+                        ),
+                        ft.CupertinoSlidingSegmentedButton(
+                            selected_index=list(field_type).index(value),
+                            thumb_color=ft.Colors.BLUE_400,
+                            on_change=
+                            lambda e, m=model, f=field_name, t=field_type:
+                            self._on_change_handler(e, m, f, target_type=t),
+                            padding=ft.Padding.symmetric(vertical=0, horizontal=0),
+                            controls=[
+                                ft.Text(v.value)
+                                for v in field_type
+                            ],
+                        ),
+                        # ft.Dropdown(
+                        #     label=label_text,
+                        #     value=value.value,
+                        #     options=[
+                        #         ft.dropdown.Option(v.value)
+                        #         for v in field_type
+                        #     ],
+                        #     on_select=lambda e, m=model, f=field_name, t=field_type:
+                        #     self._on_change_handler(e, m, f, target_type=t)
+                        # )
                     ],
-                    on_select=lambda e, m=model, f=field_name: self._on_change_handler(e, m, f, str)
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                 )
 
             # Handle Toggles (bool -> Flet Switch)
             elif field_type is bool:
-                control = ft.Switch(
-                    label=label_text,
-                    value=bool(value),
-                    on_change=lambda e, m=model, f=field_name: self._on_change_handler(e, m, f, bool)
+                control = ft.Row(
+                    controls=[
+                        ft.Text(
+                            label_text,
+                            weight=ft.FontWeight.W_600,
+                            size=14
+                        ),
+                        ft.Switch(
+                            label=label_text,
+                            value=bool(value),
+                            on_change=lambda e, m=model, f=field_name: self._on_change_handler(e, m, f, bool)
+                        )
+                    ],
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN
                 )
 
             # Handle Numeric Inputs (int/float -> Flet TextField with numeric filters)
             elif field_type in (int, float):
-                control = ft.TextField(
-                    label=label_text,
-                    value=str(value),
-                    input_filter=ft.InputFilter(allow=True, regex_string=r"^[0-9.]*$", replacement_string=""),
-                    on_change=lambda e, m=model, f=field_name, t=field_type: self._on_change_handler(e, m, f, t)
+                control = ft.Row(
+                    controls=[
+                        ft.Text(
+                            label_text,
+                            weight=ft.FontWeight.W_600,
+                            size=14
+                        ),
+                        ft.TextField(
+                            label=label_text,
+                            value=str(value),
+                            input_filter=ft.InputFilter(allow=True, regex_string=r"^[0-9.]*$", replacement_string=""),
+                            on_change=lambda e, m=model, f=field_name, t=field_type: self._on_change_handler(e, m, f, t)
+                        ),
+                    ],
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                 )
 
             # Handle General Text Inputs (str -> Flet TextField)
             else:
-                control = ft.TextField(
-                    label=label_text,
-                    value=str(value),
-                    on_change=lambda e, m=model, f=field_name: self._on_change_handler(e, m, f, str)
+                control = ft.Row(
+                    controls=[
+                        ft.Text(
+                            label_text,
+                            weight=ft.FontWeight.W_600,
+                            size=14
+                        ),
+                        ft.TextField(
+                            label=label_text,
+                            value=str(value),
+                            on_change=lambda e, m=model, f=field_name: self._on_change_handler(e, m, f, str)
+                        ),
+                    ],
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                 )
 
             controls.append(control)
@@ -191,6 +246,7 @@ class GUISettings:
         Event handler that extracts input UI data, safely casts it,
         and mutates the internal configuration object state.
         """
+        print(e)
         try:
             # Extract input values safely based on control type
             raw_value = e.control.value if hasattr(e.control, "value") else e.data
@@ -200,6 +256,8 @@ class GUISettings:
                 casted_value = bool(raw_value)
             elif raw_value == "" or raw_value is None:
                 return  # Avoid breaking validation loops mid-typing
+            elif issubclass(target_type, Enum):
+                casted_value = list(target_type)[int(raw_value)]
             else:
                 casted_value = target_type(raw_value)
 

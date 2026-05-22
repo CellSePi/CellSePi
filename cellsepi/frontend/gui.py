@@ -11,7 +11,7 @@ import importlib.util
 import inspect
 import pathlib
 
-from backend.constants import DirectoryManager
+from backend.data_util import DirectoryManager
 from backend.expert_mode.module import Module
 from image_editing_view import ImageEditingView
 from backend.avg_diameter import AverageDiameter
