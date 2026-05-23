@@ -1,6 +1,6 @@
 from backend.config_file import ConfigFile
 from backend.constants import APP_DIR
-from images import BatchImageSegmentation
+from backend.images import BatchImageSegmentation
 
 
 class CellSePi:

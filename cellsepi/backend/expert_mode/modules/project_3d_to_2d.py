@@ -6,7 +6,7 @@ from tifffile import tifffile
 
 from backend.expert_mode.listener import ProgressEvent
 from backend.expert_mode.module import *
-from expert_mode.pipeline_manager import PipelineRunningException
+from backend.expert_mode.pipeline_manager import PipelineRunningException
 
 
 class ProjectionType(Enum):
