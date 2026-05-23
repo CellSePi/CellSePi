@@ -555,7 +555,7 @@ class GUISegmentation:
                 ),
                 ft.DropdownOption(
                     key="Custom",
-                    text="Cellpose",
+                    text="\u200BCellpose",
                     content=ft.Row([
                         ft.Text("Custom", weight=ft.FontWeight.BOLD),
                         ft.Text("Cellpose")
