@@ -3,20 +3,20 @@ import os
 import pathlib
 import platform
 import shutil
+import threading
 
 import flet as ft
 import numpy as np
 
+from frontend.dialogs import ChoiceDialog
 from frontend.gui_fluorescence import FluorescenceReadoutControl
-from backend.constants import FileType, SourceType, DirectoryManager, CSP_CHANNEL_PREFIX
-from backend.data_util import consistent_hash, extract_from_directory
+from backend.constants import FileType, SourceType, APP_DIR, ModelType
+from backend.data_util import consistent_hash, extract_from_directory, DirectoryManager
 from backend.data_util import extract_from_file, load_directory, \
     convert_tiffs_to_png_parallel
 from backend.expert_mode.event_manager import EventManager
-from backend.expert_mode.listener import ProgressEvent
 from backend.expert_mode.pipeline_manager import PipelineRunningException
 from frontend.gui_canvas import update_main_image
-
 
 
 def format_directory_path(dir_path: str, max_length=30):
@@ -49,7 +49,8 @@ async def copy_to_clipboard(page, value: str, name: str):
         name (str): Name of the thing that got copied.
     """
     await ft.Clipboard().set(value)
-    page.show_dialog(ft.SnackBar(ft.Text(f"{name} copied to clipboard!",color=ft.Colors.WHITE),bgcolor=ft.Colors.GREEN))
+    page.show_dialog(
+        ft.SnackBar(ft.Text(f"{name} copied to clipboard!", color=ft.Colors.WHITE), bgcolor=ft.Colors.GREEN))
     page.update()
 
 
@@ -75,7 +76,7 @@ class DirectoryCard(ft.Card):
             self.count_results_txt = ft.Text(value="Results: 0")
             self.directory_path = ft.Text(value='Directory Path', weight=ft.FontWeight.BOLD)
             self.formatted_path = ft.Text(value=format_directory_path(self.directory_path.value),
-                                          weight=ft.FontWeight.BOLD)
+                                          weight=ft.FontWeight.BOLD, tooltip="Copy to clipboard")
             self.file_type = self.gui.csp.config.get_file_type_slider()
 
             index = np.where([elem is self.file_type for elem in FileType])[0].item()
@@ -96,6 +97,15 @@ class DirectoryCard(ft.Card):
             # self.create_handlers()
             self.directory_row = self.create_dir_row()
             self.files_row = self.create_files_row()
+            self.images_and_mask_export_button = ft.Button(
+                content="Export",
+                icon=ft.Icons.FILE_DOWNLOAD,
+                tooltip="Export Images and Masks",
+                disabled=True,
+                visible=True
+            )
+            self.buttons_row = ft.Row([ft.Column([ft.Row([self.directory_row, self.files_row, ]),ft.Row([self.images_and_mask_export_button])],
+                                                        )], expand=True,alignment=ft.MainAxisAlignment.END)
             self.lif_slider_blocker = ft.Container(
                 height=30,
                 expand=True,
@@ -103,7 +113,7 @@ class DirectoryCard(ft.Card):
                 on_click=None,
                 visible=False,
             )
-            self.lif_row = ft.Column(
+            self.file_type_selection_row = ft.Column(
                 [
                     ft.Stack(
                         [
@@ -116,7 +126,7 @@ class DirectoryCard(ft.Card):
             )
             self.content = self.create_directory_container()
             self.output_dir = False
-            self.is_supported_lif = True
+            self.is_file_type_supported = True
             self.update_source_type(file_type=self.file_type)
             self.selected_images_visualise = {}
             self.icon_check = {}
@@ -130,13 +140,14 @@ class DirectoryCard(ft.Card):
         def on_exit_text(text_filed):
             text_filed.color = None
             text_filed.update()
+
         return ft.ListTile(leading=ft.Icon(icon=ft.Icons.FOLDER_OPEN),
                            title=ft.GestureDetector(content=self.formatted_path,
-                                               on_tap=lambda e: e.page.run_task(copy_to_clipboard, page=self.page,
-                                                                                value=self.gui.directory.directory_path.value,
-                                                                                name="Directory path"),
-                                               on_enter=lambda e: on_enter_text(self.formatted_path),
-                                               on_exit= lambda e: on_exit_text(self.formatted_path)),
+                                                    on_tap=lambda e: e.page.run_task(copy_to_clipboard, page=self.page,
+                                                                                     value=self.gui.directory.directory_path.value,
+                                                                                     name="Directory path"),
+                                                    on_enter=lambda e: on_enter_text(self.formatted_path),
+                                                    on_exit=lambda e: on_exit_text(self.formatted_path)),
                            subtitle=self.count_results_txt,
                            width=310
                            )
@@ -157,10 +168,6 @@ class DirectoryCard(ft.Card):
             if self.directory_path.value != "Directory Path" \
             else pathlib.Path.home() / "Downloads"
         if self.source_type == SourceType.FILE:
-            # allowed_extensions = [ext
-            #                       for file_type in FileType
-            #                       for ext in file_type.value.extensions
-            #                       if file_type.value.source == SourceType.FILE]
             allowed_extensions = self.file_type.value.extensions
             files = await ft.FilePicker().pick_files(
                 initial_directory=str(previous_directory),
@@ -212,17 +219,20 @@ class DirectoryCard(ft.Card):
             path = files
         else:
             raise Exception(f"Source type {self.source_type} not supported!")
+        self.page.run_thread(self.select_dir_and_update, path)
 
+
+    def select_dir_and_update(self,path):
         if path:
             self.directory_path.value = path
-            await self.select_directory_parallel(path, self.file_type, self.gui.csp.config.get_channel_prefix())
+            self.select_directory(path, self.file_type, self.gui.csp.config.get_channel_prefix())
             self.load_images()
         else:
             self.image_gallery.controls.clear()
             self.image_gallery.update()
 
         self.formatted_path.value = format_directory_path(self.directory_path.value)
-        if self.output_dir or not self.is_supported_lif:
+        if self.output_dir or not self.is_file_type_supported:
             self.formatted_path.color = ft.Colors.RED
             self.gui.diameter_text.value = 0.0
             self.gui.diameter_display.update()
@@ -233,12 +243,13 @@ class DirectoryCard(ft.Card):
             self.formatted_path.color = None
         self.formatted_path.update()
 
-    async def select_directory_parallel(
+    def select_directory(
             self,
             path,
             file_type: FileType,
             channel_prefix: str,
-            event_manager: EventManager = None
+            event_manager: EventManager = None,
+            overwrite: bool = True,
     ):
         """
             Gets the working directory and copies the images in there.
@@ -248,47 +259,64 @@ class DirectoryCard(ft.Card):
                 file_type (FileType): the type of the image (lif, tiff, nd2, czi, etc.)
                 channel_prefix (str): the channel prefix
                 event_manager (EventManager): the event manager which is used when the methode gets started as a module.
-                """
-        is_supported_tif = True
+                overwrite (bool): if the system should overwrite already existing temp files.
+        """
         if event_manager is None:
-            self.is_supported_lif = True
+            self.is_file_type_supported = True
         path = pathlib.Path(path)
 
         image_source_identifier = consistent_hash(str(path.absolute()))
 
-        working_directory = (DirectoryManager(self.gui.csp.app_dir)
+        working_directory = (DirectoryManager(APP_DIR)
                              .get_cache_dir_path(f"tmp_{file_type.name}_{image_source_identifier}/", makedir=False))
 
-        #case empty folder
+        # case empty folder
         if file_type.value.source == SourceType.DIRECTORY:
             has_images = any(
-                any(str(file).lower().endswith(ext) for ext in self.file_type.value.extensions)
+                any(str(file).lower().endswith(ext) for ext in file_type.value.extensions)
                 for file in path.iterdir()
                 if file.is_file()
             )
 
             if not has_images:
-                self.gui.page.show_dialog(ft.SnackBar(ft.Text("The directory is empty.",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
-                self.output_dir = True
-                self.gui.page.update()
-                self.gui.csp.image_paths = {}
-                self.gui.csp.linux_images = {}
-                self.gui.csp.mask_paths = {}
-                self.gui.ready_to_start = False
-                self.gui.progress_ring.visible = False
-                return None
+                if event_manager is None:
+                    self.gui.page.show_dialog(
+                        ft.SnackBar(ft.Text("The directory is empty.", color=ft.Colors.WHITE), bgcolor=ft.Colors.RED))
+                    self.output_dir = True
+                    self.gui.page.update()
+                    self.gui.csp.image_paths = {}
+                    self.gui.csp.linux_images = {}
+                    self.gui.csp.mask_paths = {}
+                    self.gui.ready_to_start = False
+                    self.gui.progress_ring.visible = False
+                    return None
+                else:
+                    raise PipelineRunningException("Loading Error",f"The directory is empty.")
 
-        overwrite = True
         if working_directory.exists():
-            dialog = ChoiceDialog(
-                page=self.page,
-                title="Data already imported",
-                text="Do you want to overwrite the existing data?\nThis will erase all intermediate data and reload the original file.",
-                option_1="Overwrite",
-                option_2="Keep existing",
-            )
-            result = await dialog.show()
-            overwrite = result == 0
+            if event_manager is None:
+                dialog = ChoiceDialog(
+                    page=self.page,
+                    title="Data already imported",
+                    text="Do you want to overwrite the existing data?\nThis will erase all intermediate data and reload the original file.",
+                    option_1="Overwrite",
+                    option_2="Keep existing",
+                )
+
+                dialog_result = []
+                dialog_finished = threading.Event()
+
+                async def show_dialog_async():
+                    res = await dialog.show()
+                    dialog_result.append(res)
+                    dialog_finished.set()
+
+                self.page.run_task(show_dialog_async)
+
+                dialog_finished.wait()
+
+                overwrite = (dialog_result[0] == 0)
+
 
         if overwrite:
             if working_directory.exists():
@@ -312,29 +340,12 @@ class DirectoryCard(ft.Card):
                         )
                     else:
                         if event_manager is not None:
-                            raise PipelineRunningException("Type Error", "Expected .lif!")
+                            raise PipelineRunningException("Type Error", f"Expected filetype: {file_type.extension_string}")
                         else:
-                            self.is_supported_lif = False
+                            self.is_file_type_supported = False
                 case SourceType.DIRECTORY:  # Directory Case
-                    if path.name == "output":
-                        if event_manager is not None:
-                            raise PipelineRunningException("Directory Error", "Directory ’output’ is not supported!")
-                        else:
-                            self.gui.page.show_dialog(ft.SnackBar(ft.Text("The directory path output is not allowed!",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
-                            self.output_dir = True
-                            self.gui.page.update()
-                            self.gui.csp.image_paths = {}
-                            self.gui.csp.linux_images = {}
-                            self.gui.csp.mask_paths = {}
-                            self.gui.ready_to_start = False
-                            self.gui.progress_ring.visible = False
-                            return None
                     if event_manager is None:
                         self.output_dir = False
-                    # Copy .tif, .tiff and .npy files into subdirectory
-
-                    # os.makedirs(working_directory, exist_ok=True)
-                    # Copies direectory
 
                     extract_from_directory(
                         file_type=file_type,
@@ -343,50 +354,6 @@ class DirectoryCard(ft.Card):
                         channel_prefix=channel_prefix,
                         event_manager=event_manager
                     )
-                    failed = False
-
-                    # file_types = file_type.value.extensions + Suffixes.SEGMENTATION_MASK.value.extensions + Suffixes.SPOT_MASK.value.extensions
-                    # copy_files_between_directories(path, working_directory,
-                    #                                file_types=[f".{ext}" for ext in file_types],
-                    #                                # ToDo EK: What is the spot dection mask extension?
-                    #                                event_manager=event_manager)
-                    # tiff_paths = [p for p in working_directory.iterdir() if
-                    #               p.suffix.lower().replace(".", "") in file_type.value.extensions and p.is_file()]
-                    # total = len(tiff_paths)
-                    # converted_count = 0
-                    # failed = False
-                    #
-                    # if event_manager is not None:
-                    #     event_manager.notify(
-                    #         ProgressEvent(percent=0, process=f"Convert TIFFs: {converted_count}/{total}"))
-                    #
-                    # # Converts TIFFS to 8 Bit.
-                    # with concurrent.futures.ThreadPoolExecutor() as executor:
-                    #     futures = {executor.submit(self.convert_tiffs_to_8_bit, path): path for path in tiff_paths}
-                    #     for future in concurrent.futures.as_completed(futures):
-                    #         result = future.result()
-                    #         if not result:
-                    #             failed = True
-                    #         converted_count += 1
-                    #         if event_manager is not None:
-                    #             event_manager.notify(
-                    #                 ProgressEvent(percent=int(converted_count / total * 100),
-                    #                               process=f"Convert Tiff's: {converted_count}/{total}")
-                    #             )
-
-                    # ToDo: Currently without use. Is this still needed?
-                    if failed:
-                        if event_manager is not None:
-                            raise PipelineRunningException("Type Error",
-                                                           "The directory contains an unsupported file type. Only 8 or 16 bit .tiff files allowed.")
-                        else:
-                            is_supported_tif = False
-                    else:
-                        if event_manager is not None:
-                            event_manager.notify(
-                                ProgressEvent(percent=100,
-                                              process=f"Finished converting Tiff's!")
-                            )
                 case _:
                     raise Exception(f"File type {file_type} currently not supported!")
 
@@ -394,57 +361,44 @@ class DirectoryCard(ft.Card):
             return working_directory
         else:
             self.gui.csp.working_directory = working_directory
-            self.set_paths(is_supported_tif)
+            self.set_paths()
             return None
 
-    def set_paths(self, is_supported_tif):
+    def set_paths(self):
         """
         Updates the image and mask paths in csp (CellSePi).
-
-        Args:
-             is_supported_tif (bool): True if the image types for tif are supported.
         """
-        bfc = self.gui.csp.config.get_bf_channel()
-        # cp = self.gui.csp.config.get_channel_prefix()
-        cp = CSP_CHANNEL_PREFIX
         ms = self.gui.csp.config.get_mask_suffix()
         working_directory = self.gui.csp.working_directory
 
-        if not self.is_supported_lif:
+        if not self.is_file_type_supported:
             self.gui.ready_to_start = False
             self.gui.page.show_dialog(ft.SnackBar(
-                ft.Text("The selected file is not supported! Only .lif are supported.",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
+                ft.Text("The selected file is not supported!", color=ft.Colors.WHITE),
+                bgcolor=ft.Colors.RED))
             image_paths = {}
             mask_paths = {}
             self.gui.progress_ring.visible = False
             self.gui.page.update()
         else:
-            image_paths, mask_paths = load_directory(working_directory, channel_prefix=cp, mask_suffix=ms)
+            image_paths, mask_paths = load_directory(working_directory, mask_suffix=ms)
 
             if len(image_paths) == 0:
                 self.gui.ready_to_start = False
                 self.gui.page.show_dialog(
-                    ft.SnackBar(ft.Text("The directory contains no valid files with the current channel prefix!",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
+                    ft.SnackBar(ft.Text("The directory contains no valid files with the current channel prefix!",
+                                        color=ft.Colors.WHITE), bgcolor=ft.Colors.RED))
                 self.gui.page.update()
                 self.count_results_txt.color = ft.Colors.RED
                 self.gui.progress_ring.visible = False
                 if not self.file_type:
                     os.rmdir(self.gui.csp.working_directory)
-            elif not is_supported_tif:
-                self.gui.ready_to_start = False
-                self.gui.page.show_dialog(ft.SnackBar(
-                    ft.Text("The directory contains an unsupported file type. Only 8 or 16 bit .tiff files allowed.",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
-                self.count_results_txt.color = ft.Colors.RED
-                self.gui.progress_ring.visible = False
-                self.gui.page.update()
-                image_paths = {}
-                mask_paths = {}
             else:
                 self.count_results_txt.color = None
                 self.gui.training_environment.start_button.disabled = False
                 if ((self.gui.csp.model_path is not None and (
-                        self.gui.csp.model_type == "CustomV3" or self.gui.csp.model_type == "CustomV4"))
-                        or self.gui.csp.model_type == "Cellpose" or self.gui.csp.model_type == "CellposeSAM"):
+                        self.gui.csp.model_type == ModelType.CUSTOM))
+                        or self.gui.csp.model_type == ModelType.C_CYTO or self.gui.csp.model_type == ModelType.C_NUCLEI or self.gui.csp.model_type == ModelType.C_SAM):
                     self.gui.progress_bar_text.value = "Ready to Start"
                     self.gui.start_button.disabled = False
                 self.gui.ready_to_start = True
@@ -528,6 +482,8 @@ class DirectoryCard(ft.Card):
 
         self.gui.progress_ring.visible = False
         self.gui.progress_ring.update()
+        self.images_and_mask_export_button.disabled = False
+        self.images_and_mask_export_button.update()
         self.update_results_text()
 
     def update_mask_check(self, image_id, update=True):
@@ -586,18 +542,6 @@ class DirectoryCard(ft.Card):
             ], alignment=ft.MainAxisAlignment.START  # Change alignment to extend fully to the left
         )
 
-    def create_handlers(self):
-        """
-        Creates the handlers.
-        """
-        # self.get_directory_dialog = ft.FilePicker(on_upload=lambda e: self.get_directory_result(e))
-        # self.pick_files_dialog = ft.FilePicker(on_upload=lambda e: self.get_directory_result(e))
-        # self.get_directory_dialog = ft.FilePicker()
-        # self.pick_files_dialog = ft.FilePicker()
-
-        # add the handlers to the page
-        # self.gui.page.overlay.extend([ self.get_directory_dialog])
-
     async def update_view(self, e):
         """
         Changes the visibility of the directory/file picking.
@@ -621,11 +565,11 @@ class DirectoryCard(ft.Card):
     def create_directory_container(self):
         return ft.Container(
             content=ft.Column(
-                            [
-                                ft.Row([self.path_list_tile,ft.Row([self.directory_row,self.files_row,],expand=True,alignment=ft.MainAxisAlignment.END)]),
-                                self.lif_row
-                            ]
-                        ),
+                [
+                    ft.Row([ft.Column([self.path_list_tile]), self.buttons_row]),
+                    self.file_type_selection_row
+                ]
+            ),
             padding=10,
             clip_behavior=ft.ClipBehavior.HARD_EDGE
         )
@@ -635,7 +579,8 @@ class DirectoryCard(ft.Card):
         Disables everything related with path choosing.
         """
         self.path_list_tile.disabled = True
-        self.lif_row.disabled = True
+        self.buttons_row.disabled = True
+        self.file_type_selection_row.disabled = True
         self.toggle_slider_state(self.file_type_slider, disabled=True)
 
         self.gui.page.update()
@@ -645,7 +590,8 @@ class DirectoryCard(ft.Card):
         Activates everything related with path choosing.
         """
         self.path_list_tile.disabled = False
-        self.lif_row.disabled = False
+        self.buttons_row.disabled = False
+        self.file_type_selection_row.disabled = False
         self.toggle_slider_state(self.file_type_slider, disabled=False)
         self.gui.page.update()
 
@@ -687,61 +633,9 @@ class DirectoryCard(ft.Card):
             )
             fluorescence_readout_control = FluorescenceReadoutControl()
 
-            if all_mask_present and self.gui.csp.image_paths is not None and len(self.gui.csp.image_paths) != 0 :
+            if all_mask_present and self.gui.csp.image_paths is not None and len(self.gui.csp.image_paths) != 0:
                 fluorescence_readout_control.visible = True
                 fluorescence_readout_control.update()
             else:
                 fluorescence_readout_control.visible = False
                 fluorescence_readout_control.update()
-
-
-class ChoiceDialog:
-    def __init__(self, page: ft.Page, title: str, text: str, option_1: str, option_2: str, ):
-        self.page = page
-        self.result = None
-        # asyncio.Event manages the pause/resume state of the execution flow
-        self.event = asyncio.Event()
-
-        # Build the reusable AlertDialog control template
-        self.dialog = ft.AlertDialog(
-            modal=True,
-            title=ft.Text(title),
-            content=ft.Text(text),
-            actions=[
-                # ft.TextButton("Cancel", on_click=self._on_cancel),
-                ft.FilledButton(option_1, color=ft.Colors.WHITE, bgcolor=ft.Colors.PRIMARY, on_click=self._on_opt_1),
-                ft.ElevatedButton(option_2, on_click=self._on_opt_2),
-            ],
-            actions_alignment=ft.MainAxisAlignment.END,
-        )
-
-    # Event handlers update choice state and clear the thread block
-    async def _on_opt_1(self, e):
-        self.result = 0
-        await self._close()
-
-    async def _on_opt_2(self, e):
-        self.result = 1
-        await self._close()
-
-    async def _on_cancel(self, e):
-        self.result = "cancel"
-        await self._close()
-
-    async def _close(self):
-        self.dialog.open = False
-        self.page.update()
-        self.event.set()  # Unblocks the await statement in show()
-
-    # The primary method to call from your main app flow
-    async def show(self) -> str:
-        self.result = None
-        self.event.clear()
-
-        self.page.overlay.append(self.dialog)
-        self.dialog.open = True
-        self.page.update()
-
-        # execution halts here until self.event.set() runs
-        await self.event.wait()
-        return self.result

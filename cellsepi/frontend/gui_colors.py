@@ -5,6 +5,7 @@ from enum import Enum
 from frontend.gui_page_overlay import PageOverlay
 from frontend.expert_mode.expert_constants import MODULE_REGISTRY
 
+
 def hex_to_rgb(hex_color):
     """
     Converts a hex color string to rgb color
@@ -21,6 +22,7 @@ def hex_to_rgb(hex_color):
 
     return tuple(int(hex_color[i:i + 2], 16) for i in (0, 2, 4))
 
+
 def rgb_to_hex(rgb_color):
     """
     Converts a rgb color to hex color
@@ -31,32 +33,37 @@ def rgb_to_hex(rgb_color):
     """
     return "#{:02x}{:02x}{:02x}".format(*rgb_color)
 
+
 class ColorTypes(Enum):
     Mask = 1
     Outline = 2
 
+
 class ColorSelection:
-    def __init__(self,gui):
+    def __init__(self, gui):
         self.config = gui.csp.config
         self.gui = gui
-        color_mask = rgb_to_hex(self.config.get_mask_color())#rgb_to_hex((255, 0, 0))
-        color_outline = rgb_to_hex(self.config.get_outline_color())#rgb_to_hex((0, 255, 0))
+        color_mask = rgb_to_hex(self.config.get_mask_color())  # rgb_to_hex((255, 0, 0))
+        color_outline = rgb_to_hex(self.config.get_outline_color())  # rgb_to_hex((0, 255, 0))
 
         self.current_color = None
         self.picker_container = ft.Container()
-        self.color_icon_mask = ft.Icon(icon=ft.Icons.BRIGHTNESS_1_ROUNDED,color=color_mask,disabled=True)
-        self.color_icon_outline = ft.Icon(icon=ft.Icons.BRIGHTNESS_1_ROUNDED, color=color_outline,disabled=True)
+        self.color_icon_mask = ft.Icon(icon=ft.Icons.BRIGHTNESS_1_ROUNDED, color=color_mask, disabled=True)
+        self.color_icon_outline = ft.Icon(icon=ft.Icons.BRIGHTNESS_1_ROUNDED, color=color_outline, disabled=True)
         self.color_type = None
-        self.dialog = PageOverlay(self.gui.page,ft.Stack([ft.Row([
+        self.dialog = PageOverlay(self.gui.page, ft.Stack([ft.Row([
             ft.Column([ft.Card(content=ft.Stack([ft.Container(ft.Column(
                 [self.picker_container,
-                ft.Container(ft.Row([ft.TextButton("Save", on_click=self.change_color)
-                 ],alignment=ft.MainAxisAlignment.END))
-                ]
-            ),padding=20,alignment=ft.Alignment.CENTER)]),height=385,width=700)],horizontal_alignment=ft.CrossAxisAlignment.CENTER,alignment=ft.MainAxisAlignment.CENTER)],alignment=ft.MainAxisAlignment.CENTER)]),
-            on_dismiss=self.close_dialog,
-        )
-    async def open_color_picker_mask(self,e):
+                 ft.Container(ft.Row([ft.TextButton("Save", on_click=self.change_color)
+                                      ], alignment=ft.MainAxisAlignment.END))
+                 ]
+            ), padding=20, alignment=ft.Alignment.CENTER)]), height=385, width=700)],
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER, alignment=ft.MainAxisAlignment.CENTER)],
+            alignment=ft.MainAxisAlignment.CENTER)]),
+                                  on_dismiss=self.close_dialog,
+                                  )
+
+    async def open_color_picker_mask(self, e):
         self.picker_container.content = ColorPicker(
             color=rgb_to_hex(self.config.get_mask_color()),
             on_color_change=self.on_color_change,
@@ -78,7 +85,7 @@ class ColorSelection:
         self.color_type = ColorTypes.Outline
         e.control.page.update()
 
-    async def on_color_change(self,e):
+    async def on_color_change(self, e):
         self.current_color = e.data
 
     async def change_color(self, e):
@@ -105,8 +112,9 @@ class ColorSelection:
     def close_dialog(self, e):
         self.dialog.close()
 
+
 class ColorOpacity:
-    def __init__(self,gui):
+    def __init__(self, gui):
         self.gui = gui
         self.slider = ft.Slider(
             min=10, max=128, value=128, width=142,

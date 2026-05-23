@@ -799,8 +799,8 @@ class ModuleGUI(ft.GestureDetector):
                 attr = getattr(self.module, attribute_name)
                 file_picker = ft.FilePicker()
                 self.pipeline_gui._page.services.append(file_picker)
-                items.append(
-                    ft.Stack(
+                ref = ft.Ref[ft.Stack]()
+                file_stack = ft.Stack(
                         [
                             text_field,
                             ft.Container(
@@ -812,12 +812,15 @@ class ModuleGUI(ft.GestureDetector):
                                         self.on_select_file,
                                         a,
                                         file_picker,
-                                        attr.suffix,
                                         attr_name,
                                         content),
                                 ), alignment=ft.Alignment.TOP_RIGHT, right=10, top=5)
-                        ]
-                    ))
+                        ],ref = ref
+                    )
+                setattr(self.module, "ref_" + attribute_name, ref)
+                items.append(
+                        file_stack
+                    )
             elif typ == DirectoryPath:
                 text_field = ft.TextField(
                     label=attribute_name.removeprefix("user_"),
@@ -829,8 +832,8 @@ class ModuleGUI(ft.GestureDetector):
                     expand=True
                 )
                 file_picker = ft.FilePicker()
-                items.append(
-                    ft.Stack(
+                ref = ft.Ref[ft.Stack]()
+                dir_stack = ft.Stack(
                         [
                             text_field,
                             ft.Container(
@@ -845,8 +848,11 @@ class ModuleGUI(ft.GestureDetector):
                                 ),
                                 alignment=ft.Alignment.TOP_RIGHT, right=10, top=5
                             )
-                        ]
+                        ],ref = ref
                     )
+                setattr(self.module, "ref_" + attribute_name, ref)
+                items.append(
+                    dir_stack
                 )
             elif type(typ) == enum.EnumType:  # An enumeration
                 enum_class = typ
@@ -856,7 +862,7 @@ class ModuleGUI(ft.GestureDetector):
                 slider_bool = ft.CupertinoSlidingSegmentedButton(
                     selected_index=index,
                     thumb_color=ft.Colors.BLUE_400,
-                    on_change=lambda e, attr_name=attribute_name: self.update_enum(e, attr_name,enum_class),
+                    on_change=lambda e, attr_name=attribute_name, e_class=enum_class: self.update_enum(e, attr_name, e_class),
                     padding=ft.padding.symmetric(0, 0),
                     controls=[
                         ft.Text(enum_val.name) for enum_val in enum_class
@@ -874,10 +880,11 @@ class ModuleGUI(ft.GestureDetector):
                 raise ValueError(f"Unsupported 'user_' attribute file type: {typ}")
         return items
 
-    async def on_select_file(self, e: ft.Event[ft.Button], file_picker, suffix, attr_name, text):
+    async def on_select_file(self, e: ft.Event[ft.Button], file_picker, attr_name, text):
         """
         Handles if a file is selected.
         """
+        suffix = getattr(self.module, attr_name).suffix
         files = await file_picker.pick_files(allow_multiple=False,
                                                  dialog_title=attr_name.removeprefix("user_"),
                                                  file_type=ft.FilePickerFileType.CUSTOM if suffix is not None else ft.FilePickerFileType.ANY,

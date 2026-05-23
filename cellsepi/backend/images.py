@@ -12,7 +12,7 @@ from cellpose import models, io
 from scipy.ndimage import binary_erosion
 from tifffile import tifffile
 
-from backend.constants import ExportFileType
+from backend.constants import ExportFileType, ModelType
 from backend.data_util import load_image_to_numpy,export_dataframe_to_pdf
 from backend.expert_mode.event_manager import EventManager
 from backend.expert_mode.listener import ProgressEvent
@@ -24,7 +24,7 @@ class BatchImageSegmentation(Notifier):
     """
     This class handles the segmentation of the images.
     """
-
+    GPU:bool = False
     def __init__(self,
                  segmentation=None,
                  gui=None,
@@ -56,7 +56,7 @@ class BatchImageSegmentation(Notifier):
     def _is_cellpose_model(self, model_path):
         try:
             from cellpose import models
-            _ = models.CellposeModel(pretrained_model=model_path, gpu=self.gui.csp.gpu)
+            _ = models.CellposeModel(pretrained_model=model_path, gpu=self.GPU)
             return True
         except Exception:
             return False
@@ -150,7 +150,7 @@ class BatchImageSegmentation(Notifier):
                             self.delete_mask(path, channels_to_delete, image_id, segmentation_channel)
         else:  # case where no masks for this bf_channel existed before
             for image_id, channels in list(self.gui.csp.mask_paths.items()):
-                for segmentation_channel, path in channels.items():
+                for segmentation_channel, path in list(channels.items()):
                     if segmentation_channel == self.segmentation_channel:
                         self.delete_mask(path, channels_to_delete, image_id, segmentation_channel)
 
@@ -176,11 +176,12 @@ class BatchImageSegmentation(Notifier):
     def resume_action(self):
         self.resume_now = True
 
-    def run(self, event_manager: EventManager = None, image_paths=None, mask_paths=None, model_path=None):
+    def run(self, event_manager: EventManager = None, image_paths=None, mask_paths=None, model_path=None,model_type=None):
         """
         Applies the segmentation model to every image and stores the resulting masks.
         """
         if event_manager is None:
+            print("event_manager is None")
             if self.num_seg_images == 0:  # shouldn't backup again, if it was paused and now resuming
                 self.backup_masks()
                 self.segmentation_channel = self.gui.csp.config.get_bf_channel()
@@ -215,25 +216,32 @@ class BatchImageSegmentation(Notifier):
             segmentation_model = model_path
             event_manager.notify(ProgressEvent(0, f"Segmenting Images: 0/{n_images}"))
 
-        device = torch.device("cuda" if self.gui.csp.gpu else "cpu")  # converts string to device object
+        device = torch.device("cuda" if self.GPU else "cpu")  # converts string to device object
 
-        # if self._is_cellpose_model(segmentation_model):
-        if self.gui.csp.model_type == "CustomV3":
-            model_type = 'CustomV3'
-            model = modelsV3.CellposeModel(pretrained_model=segmentation_model, gpu=self.gui.csp.gpu)
+        if event_manager is None:
+            model_type = self.gui.csp.model_type
+
+        if model_type == ModelType.CUSTOM:
+            state_dict = torch.load(segmentation_model, map_location=device, weights_only=True)
+            w2_data = state_dict.get('W2', None)
+            if w2_data is None:
+                model = modelsV3.CellposeModel(pretrained_model=segmentation_model, gpu=self.GPU)
+                ioV3.logger_setup()
+                model_type = ModelType.C_CYTO
+            else:
+                model = models.CellposeModel(pretrained_model=segmentation_model, gpu=self.GPU)
+                io.logger_setup()
+                model_type = ModelType.C_SAM
+        elif model_type == ModelType.C_CYTO:
+            model = modelsV3.CellposeModel(model_type="cyto3", gpu=self.GPU)
             ioV3.logger_setup()
-        elif self.gui.csp.model_type == "Cellpose":
-            model_type = 'Cellpose'
-            model = modelsV3.CellposeModel(model_type="cyto3", gpu=self.gui.csp.gpu)
+        elif model_type == ModelType.C_NUCLEI:
+            model = modelsV3.CellposeModel(model_type="nuclei", gpu=self.GPU)
             ioV3.logger_setup()
-        elif self.gui.csp.model_type == "CellposeSAM":
-            model_type = 'CellposeSAM'
-            model = models.CellposeModel(gpu=self.gui.csp.gpu)
+        elif model_type == ModelType.C_SAM:
+            model = models.CellposeModel(gpu=self.GPU)
             io.logger_setup()
-        elif self.gui.csp.model_type == "CustomV4":
-            model_type = 'CustomV4'
-            model = models.CellposeModel(pretrained_model=segmentation_model, gpu=self.gui.csp.gpu)
-            io.logger_setup()
+
         """else:
             model_type = 'pytorch'
             model = maskrcnn_resnet50_fpn(weights="DEFAULT")
@@ -276,7 +284,7 @@ class BatchImageSegmentation(Notifier):
                     image = np.zeros_like(image)
 
                 # model evaluates image
-                if model_type == 'Cellpose' or model_type == 'CustomV3':
+                if model_type == ModelType.C_NUCLEI or model_type == ModelType.C_CYTO:
                     if image.ndim == 3:  # z, y, x dimensions
                         res = model.eval(image, diameter=diameter, channels=[0, 0], z_axis=0, do_3D=False,
                                          stitch_threshold=0.5)
@@ -284,7 +292,7 @@ class BatchImageSegmentation(Notifier):
                         res = model.eval(image, diameter=diameter, channels=[0, 0])
                     mask, flow, style = res[:3]
 
-                elif model_type == 'CellposeSAM' or model_type == 'CustomV4':
+                elif model_type == ModelType.C_SAM:
                     if image.ndim == 3:  # z, y, x dimensions
                         res = model.eval(image, diameter=diameter, z_axis=0, do_3D=False, stitch_threshold=0.5)
                     else:
@@ -331,18 +339,9 @@ class BatchImageSegmentation(Notifier):
                             os.remove(backup_path)
                         os.rename(default_suffix_path, backup_path)
                 # Save the segmentation results directly with the default name first
-                if model_type == 'Cellpose' or model_type == 'CustomV3':
-                    print(mask.dtype, mask.shape, np.unique(mask)[:10])
+                if model_type == ModelType.C_NUCLEI or model_type == ModelType.C_CYTO:
                     ioV3.masks_flows_to_seg([image], [mask], [flow], [image_path])
-                    seg = np.load(default_suffix_path, allow_pickle=True).item()
-
-                    print(seg.keys())
-
-                    print(type(seg))
-
-                    print(seg["masks"].dtype)
-                    print(np.unique(seg["masks"])[:20])
-                elif model_type == 'CellposeSAM' or model_type == 'CustomV4':
+                elif model_type == ModelType.C_SAM:
                     io.masks_flows_to_seg([image], [mask], [flow], [image_path])
                 else:
                     H, W = image.shape[:2]
@@ -472,7 +471,8 @@ class BatchImageReadout(Notifier):
             cur_row_entries = [None] * len(cell_ids)
             for iX, cell_id in enumerate(cell_ids):
                 data_entry = {"image_id": image_id,
-                              "cell_id": cell_id}
+                              "id": cell_id,
+                              "seg_channel": segmentation_channel,}
                 for channel_id in channels:
                     channel_name = self._channel_name(channel_id)
                     data_entry[channel_name] = None

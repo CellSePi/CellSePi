@@ -6,9 +6,10 @@ import pathlib
 import platform
 import shutil
 import stat
+from pathlib import Path
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
-from typing import Any
+from typing import Any, Optional
 
 import cv2
 import numpy as np
@@ -23,8 +24,10 @@ from bioio_base.dimensions import Dimensions
 from bioio_base.transforms import reshape_data
 from tifffile import tifffile
 
-from backend.constants import ReturnTypePath, FileType, BIT_DEPTH, Suffixes, CSP_CHANNEL_PREFIX
+from backend.constants import ReturnTypePath, FileType, BIT_DEPTH, Suffixes, CSP_CHANNEL_PREFIX, APP_DIR
 from backend.expert_mode.event_manager import *
+from backend.notifier import Notifier
+from backend.settings import SettingsManager
 
 
 def listdir(directory):
@@ -59,7 +62,7 @@ def organize_files(files, channel_prefix, mask_suffix=""):
     return id_to_file
 
 
-def load_directory(directory, channel_prefix=None, mask_suffix=None,
+def load_directory(directory, channel_prefix=CSP_CHANNEL_PREFIX, mask_suffix=None,
                    return_type: ReturnTypePath = ReturnTypePath.BOTH_PATHS, event_manager: EventManager = None):
     assert directory is not None
 
@@ -111,6 +114,73 @@ def load_directory(directory, channel_prefix=None, mask_suffix=None,
     return None
 
 
+class FileTransfer(Notifier):
+    def __init__(self, file_types=None, event_manager: EventManager = None):
+        super().__init__()
+        self.file_types = file_types
+        self.event_manager = event_manager
+
+    def __call__(self, source_dir=None, target_dir=None,new_prefix=None,source_paths=None, *args, **kwargs):
+        self._call_start_listeners(True)
+
+        if source_dir is None and source_paths is None:
+            raise ValueError("Either source_dir or source_paths must be provided.")
+        if target_dir is None:
+            raise ValueError("Target directory must be provided.")
+
+        files_to_copy = source_paths
+        if source_paths is None:
+            file_filter = lambda file_path: file_path.is_file() and (
+                True if self.file_types is None else file_path.suffix in self.file_types or file_path.suffix == ".npy")
+
+            files = listdir(source_dir)
+            files_to_copy = [file for file in files if file_filter(file)]
+
+        target_dir.mkdir(parents=True, exist_ok=True)
+
+        total_files = len(files_to_copy)
+        copied_files = 0
+
+        if self.event_manager is not None:
+            self.event_manager.notify(event=ProgressEvent(0, process=f"Copy Files: {copied_files}/{total_files}"))
+
+        n_files = len(files_to_copy)
+        for iN, src_path in enumerate(files_to_copy):
+            new_filename = src_path.name
+            if new_prefix is not None and CSP_CHANNEL_PREFIX in new_filename:
+                new_filename = new_filename.replace(CSP_CHANNEL_PREFIX, new_prefix, 1)
+
+            target_path = target_dir / new_filename
+
+            try:
+                if target_path.exists():
+                    if platform.system() == "Windows":
+                        os.chmod(target_path, stat.S_IWRITE)
+                    else:
+                        target_path.chmod(0o777)
+                    target_path.unlink()
+
+                shutil.copy(str(src_path), str(target_path))
+
+            except Exception as e:
+                print(f"Something went wrong while processing {new_filename}: {str(e)}")
+            finally:
+                copied_files += 1
+                if self.event_manager is not None:
+                    self.event_manager.notify(event=ProgressEvent(int(copied_files / total_files * 100),
+                                                                  process=f"Copy Files: {copied_files}/{total_files}"))
+
+            if self.event_manager is None:
+                kwargs = {"progress": str(int((iN + 1) / n_files * 100)) + "%",
+                          "current_image": {"image_id": new_filename}}
+                self._call_update_listeners(**kwargs)
+            else:
+                self.event_manager.notify(ProgressEvent(percent=int((iN + 1) / n_files * 100),
+                                                        process=f"Exporting Images: {iN + 1}/{n_files} (Latest Image: {new_filename})"))
+
+        self._call_completion_listeners()
+
+
 def copy_files_between_directories(source_dir, target_dir, file_types=None, event_manager: EventManager = None):
     file_filter = lambda file_path: file_path.is_file() and (
         True if file_types is None else file_path.suffix in file_types)
@@ -124,7 +194,9 @@ def copy_files_between_directories(source_dir, target_dir, file_types=None, even
     if event_manager is not None:
         event_manager.notify(
             event=ProgressEvent(0, process=f"Copy Files: {copied_files}/{total_files}"))
-    for src_path in files_to_copy:
+
+    n_files = len(files_to_copy)
+    for iN, src_path in enumerate(files_to_copy):
         target_path = target_dir / src_path.name
 
         try:
@@ -145,90 +217,19 @@ def copy_files_between_directories(source_dir, target_dir, file_types=None, even
                 event_manager.notify(event=ProgressEvent(int(copied_files / total_files * 100),
                                                          process=f"Copy Files: {copied_files}/{total_files}"))
 
-    if event_manager is not None:
-        event_manager.notify(
-            event=ProgressEvent(100, process="Finished copy Files!"))
-
-
-"""
-def extract_from_lif_file(lif_path, target_dir, channel_prefix, event_manager: EventManager = None):
-    
-    #Extracts all series from the lif file using the bioio-lif library and
-    #copies the images to the target directory.
-    #Arguments:
-     #     lif_path {str} -- The path to the lif file.
-    #      target_dir {str} -- The path to the target directory.
-    
-
-    lif_path = pathlib.Path(lif_path)
-    target_dir = pathlib.Path(target_dir)
-    if lif_path.suffix == ".lif":
-        bio_image = BioImage(lif_path, reader=bioio_lif.Reader)  # Specify the backend explicitly
-        data = np.squeeze(bio_image.data)
-        is_3d = (data.ndim >= 4 and data.shape[1] > 1)
-
-        if is_3d:
-            extract_from_lif3d_file(lif_path, target_dir, channel_prefix, event_manager)
-            return
-
-        # Create the target directory if it doesn't exist
-        target_dir.mkdir(parents=True, exist_ok=True)
-
-        # get all series in the lif file
-        scenes = bio_image.scenes
-        total_scenes = len(scenes)
-        if event_manager is not None:
-            event_manager.notify(
-                event=ProgressEvent(0, process=f"Extracting Series: {0}/{total_scenes}"))
-
-        for index, scene_id in enumerate(scenes):
-            scene = scene_id
-
-            # remove the unnecessary data in the array
-            bio_image.set_scene(scene)
-            # TCZXY 5D array
-            npy_array = bio_image.data
-            squeezed_img = np.squeeze(npy_array)
-
-            # get the amount of channels
-            n_channels = squeezed_img.shape[0]
-
-            for channel_id in range(n_channels):
-                # Extract the height and width of the image
-                image = squeezed_img[channel_id]
-                img = Image.fromarray(image)  # doesnt work
-
-                # Construct file name and path
-                file_name = f"{scene}{channel_prefix}{channel_id + 1}.tif"
-                target_path = target_dir / file_name
-
-                try:
-                    # Handle existing files
-                    if target_path.exists():
-                        if platform.system() == "Windows":
-                            os.chmod(target_path, stat.S_IWRITE)  # Set writable on Windows
-                        else:
-                            target_path.chmod(0o777)  # Set writable on Unix
-                        target_path.unlink()  # Remove the existing file
-
-                    # Save the image to the target path using pillows save function
-                    img.save(str(target_path))
-
-                except Exception as e:
-                    print(f"Error processing {file_name}: {e}")
-                    continue
-            if event_manager is not None:
-                event_manager.notify(event=ProgressEvent(int((index + 1) / total_scenes * 100),
-                                                         process=f"Extracted Series: {index + 1}/{total_scenes}"))
-        if event_manager is not None:
-            event_manager.notify(
-                event=ProgressEvent(100, process=f"Finished extracting Series!"))
-"""
+        if event_manager is None:
+            # kwargs = {"progress": str(int((iN + 1) / n_images * 100)) + "%",
+            #          "current_image": {"image_id": image_id}}
+            # self._call_update_listeners(**kwargs)
+            pass
+        else:
+            event_manager.notify(ProgressEvent(percent=int((iN + 1) / n_files * 100),
+                                               process=f"Readout Images: {iN + 1}/{n_files} (Latest Image: {src_path.name})"))
 
 
 def write_image_with_preprocessing(target_path, image_data):
     # TODO:PREPROCESSING (resize,dark corners,etc...)
-    clean_data = image_data  # np.squeeze(image_data)
+    clean_data = np.squeeze(image_data)
     tifffile.imwrite(target_path, clean_data)
 
 
@@ -712,3 +713,86 @@ def load_image_to_numpy(path):
     im = tifffile.imread(path)
     array = np.array(im)
     return array
+
+
+class DirectoryManager:
+    """
+    Manages project directories and intermediate file storage.
+    """
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __init__(self, app_dir=None):
+        if app_dir is None:
+            app_dir = APP_DIR
+        self._base_path = Path(app_dir)
+        self._cache_path: Optional[Path] = None
+
+    @property
+    def base_directory(self) -> Path:
+        return self._base_path
+
+    @property
+    def cache_directory(self) -> Path:
+        """
+        Returns the path for intermediate files, creating it if it doesn't exist.
+        """
+        if self._cache_path is None:
+            self._cache_path = self._base_path / "cache"
+            self._cache_path.mkdir(parents=True, exist_ok=True)
+
+        return self._cache_path
+
+    def get_cache_file_path(self, filename: str) -> Path:
+        """
+        Returns a full path for a file within the intermediate directory.
+        """
+        # Accessing the property ensures the directory is created
+        dir_path = Path(self.cache_directory.path)
+        return dir_path / filename
+
+    def get_cache_dir_path(self, dirname: str, makedir=True) -> Path:
+        dirpath = self.cache_directory / dirname
+
+        if makedir:
+            os.makedirs(dirpath, exist_ok=True)
+        return dirpath
+
+    def streamline_cache(self):
+        """
+        Removes only the old entries in the cache directory.
+        Keeps the three most recent directories.
+        """
+        if self.cache_directory and self.cache_directory.exists():
+            modification_times = []
+            for item in self._cache_path.glob("*"):
+                if item.is_dir():
+                    modification_times.append([item, item.stat().st_mtime])
+
+            print(modification_times)
+            modification_times = sorted(modification_times, key=lambda elem: elem[1], reverse=True)
+            for elem in modification_times[SettingsManager().settings.cache.cutoff:]:
+                item = elem[0]
+                if item.is_dir():
+                    shutil.rmtree(item)
+                else:
+                    item.unlink()
+
+            pass
+
+    def clear_cache(self):
+        """
+        Removes all files in the cache directory.
+        """
+        if self.cache_directory and self.cache_directory.exists():
+            for item in self._cache_path.glob("*"):
+
+                if item.is_dir():
+                    shutil.rmtree(item)
+                else:
+                    item.unlink()
+

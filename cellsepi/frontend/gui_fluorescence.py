@@ -51,7 +51,7 @@ class FluorescenceReadoutControl(ft.Container):
             [
                 self.slider,
                 self.button,
-            ], alignment=ft.MainAxisAlignment.CENTER,
+            ]
         )
         self.visible = False
         self._initialized = True
@@ -69,7 +69,8 @@ class FluorescenceReadoutControl(ft.Container):
     # def on_click(self, handler):
     #     self.button.on_click = handler
 
+
 def error_banner(gui, message):
     gui.page.show_dialog(ft.SnackBar(
-        ft.Text(message,color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
+        ft.Text(message, color=ft.Colors.WHITE), bgcolor=ft.Colors.RED))
     gui.page.update()

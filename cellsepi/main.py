@@ -1,8 +1,19 @@
 import flet as ft
+
 from frontend.gui import GUI
 
 
-async def async_main(page: ft.Page):
+def async_main(page: ft.Page):
+    def window_event(e: ft.WindowEvent):
+        if e.type == ft.WindowEventType.CLOSE:
+            page.show_dialog(ft.Text("Are you sure you want to exit?"),
+                on_confirm=lambda _: page.window.close())
+            page.update()
+
+    page.window.prevent_close = True
+    page.window.on_event = window_event
+
+
     # page.title = "CellSePi"
     # page.update()
     # # page.window.icon = "assets/icon.png"

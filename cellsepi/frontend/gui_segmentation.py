@@ -7,10 +7,12 @@ import sys
 
 import flet as ft
 
-from backend.constants import ExportFileType
+from backend.constants import downloads_directory, ModelType, ExportFileType
+from backend.data_util import FileTransfer
 from backend.fluorescence import Fluorescence
-from frontend.gui_fluorescence import FluorescenceReadoutControl
 from backend.segmentation import Segmentation
+from frontend.dialogs import ChoiceDialog
+from frontend.gui_fluorescence import FluorescenceReadoutControl
 
 
 class GUISegmentation:
@@ -66,14 +68,6 @@ class GUISegmentation:
             on_click=None,
         )
 
-        # button to start the fluorescence readout
-        # fl_button = fluorescence_button
-        fluorescence_readout_control = FluorescenceReadoutControl()
-
-        # progress bar, which is updated throughout the segmentation calculation and fluorescence readout
-        self.progress_bar = ft.ProgressBar(value=0, width=180)
-        self.progress_bar_text = ft.Text("Waiting for Input")
-
         def open_readout(e):
             file_path = self.gui.csp.readout_path
             if os.name == "nt":  # Check if Windows
@@ -88,6 +82,13 @@ class GUISegmentation:
             visible=False
         )
 
+        fluorescence_readout_control = FluorescenceReadoutControl(open_button)
+        file_transfer = FileTransfer()
+
+        # progress bar, which is updated throughout the segmentation calculation and fluorescence readout
+        self.progress_bar = ft.ProgressBar(value=0, width=180)
+        self.progress_bar_text = ft.Text("Waiting for Input")
+
         # the following methods are called when clicking on the corresponding button
         async def pick_model_result(e: ft.Event[ft.Button]):
             """
@@ -96,8 +97,9 @@ class GUISegmentation:
             Arguments:
                 e (ft.Event): pseudo Event, when button pressed
             """
+            model_directory = pathlib.Path(self.gui.csp.models_dir)
             files = await ft.FilePicker().pick_files(allow_multiple=False,
-                                                     initial_directory=model_directory
+                                                     initial_directory=str(model_directory)
                                                      )
             if files is None or len(files) == 0:
                 # case: no model selected
@@ -112,18 +114,12 @@ class GUISegmentation:
                 self.gui.page.update()
 
         def new_pick_model_result(e):
-            if model_drop_down.value == "CustomV3":
+            if model_drop_down.value == "Custom":
                 model_choose_button.visible = True
                 model_text.value = "Choose model"
                 model_text.color = None
                 self.gui.csp.model_path = None
-                self.gui.csp.model_type = "CustomV3"
-            elif model_drop_down.value == "CustomV4":
-                model_choose_button.visible = True
-                model_text.value = "Choose model"
-                model_text.color = None
-                self.gui.csp.model_path = None
-                self.gui.csp.model_type = "CustomV4"
+                self.gui.csp.model_type = ModelType.CUSTOM
             elif model_drop_down.value == "CellposeSAM":
                 if self.gui.ready_to_start:
                     self.progress_bar_text.value = "Ready to Start"
@@ -132,16 +128,26 @@ class GUISegmentation:
                 model_text.color = None
                 self.gui.csp.model_path = "pre_def"
                 model_choose_button.visible = False
-                self.gui.csp.model_type = "CellposeSAM"
-            elif model_drop_down.value == "Cellpose":
+                self.gui.csp.model_type = ModelType.C_SAM
+            elif model_drop_down.value == "CellposeNuclei":
                 if self.gui.ready_to_start:
                     self.progress_bar_text.value = "Ready to Start"
                     start_button.disabled = False
-                model_text.value = "Cellpose"
+                model_text.value = "Cellpose Nuclei"
                 model_text.color = None
                 model_choose_button.visible = False
                 self.gui.csp.model_path = "pre_def"
-                self.gui.csp.model_type = "Cellpose"
+                self.gui.csp.model_type = ModelType.C_NUCLEI
+            elif model_drop_down.value == "CellposeCyto":
+                if self.gui.ready_to_start:
+                    self.progress_bar_text.value = "Ready to Start"
+                    start_button.disabled = False
+                model_text.value = "Cellpose Cyto"
+                model_text.color = None
+                model_choose_button.visible = False
+                self.gui.csp.model_path = "pre_def"
+                self.gui.csp.model_type = ModelType.C_CYTO
+
             self.gui.page.update()
 
         def start_segmentation(e):  # called when the start button is clicked
@@ -150,7 +156,7 @@ class GUISegmentation:
             This includes error handling for the case where something other than a model is chosen.
             """
             # visibility of buttons before start of segmentation (needed in case of error)
-            state_fl_button = FluorescenceReadoutControl().visible
+            state_fl_control = FluorescenceReadoutControl().visible
             state_open_button = self.gui.open_button.visible
             try:
                 start_button.visible = False
@@ -170,7 +176,8 @@ class GUISegmentation:
                 self.gui.page.run_thread(self.segmentation.run)
             except:
                 self.gui.page.show_dialog(
-                    ft.SnackBar(ft.Text("You have selected an incompatible file for the segmentation model.",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
+                    ft.SnackBar(ft.Text("You have selected an incompatible file for the segmentation model.",
+                                        color=ft.Colors.WHITE), bgcolor=ft.Colors.RED))
                 self.gui.training_environment.enable_switch_environment()
                 start_button.visible = True
                 start_button.disabled = True
@@ -179,7 +186,7 @@ class GUISegmentation:
                 model_title.disabled = False
                 model_text.color = ft.Colors.RED
                 model_chooser.disabled = False
-                FluorescenceReadoutControl().visible = state_fl_button
+                FluorescenceReadoutControl().visible = state_fl_control
                 self.gui.open_button.visible = state_open_button
                 self.gui.directory.enable_path_choosing()
                 self.gui.csp.segmentation_running = False
@@ -359,21 +366,24 @@ class GUISegmentation:
             """
             Updates the segmentation card and starts readout of the fluorescence data when the fluorescence button is clicked.
             """
-            # ToDo EK: Retrieve here the export format of the data from the FluorescenceReadoutControl slider
+            # Retrieve the export format of the data from the FluorescenceReadoutControl slider
             export_ft = list(ExportFileType)[FluorescenceReadoutControl().slider.selected_index]
-
 
             file_picker = ft.FilePicker()
             chosen_path = await file_picker.save_file(
                 dialog_title="Save fluorescence data",
-                file_name=f"fluorescence_readout{export_ft.value.extension}"       # the "." is already part of the extension
+                initial_directory=str(downloads_directory()),
+                file_name=f"fluorescence_readout{export_ft.value.extension}"  # the "." is already part of the extension
             )
+            if chosen_path is None:
+                return
             path = pathlib.Path(chosen_path)
             # add extension if deleted during rename
             if path.suffix == "":
                 path = path.with_suffix(export_ft.value.extension)
 
-            self.gui.page.run_thread(self.fluorescence.readout_fluorescence,export_ft, path)
+            self.gui.page.run_thread(self.fluorescence.readout_fluorescence, export_ft, path)
+
             FluorescenceReadoutControl().disabled = True
             start_button.disabled = True
             self.gui.open_button.visible = False
@@ -400,6 +410,7 @@ class GUISegmentation:
             else:
                 self.progress_bar_text.value = "Waiting for Input"
 
+            FluorescenceReadoutControl().disabled = False
             self.gui.directory.enable_path_choosing()
             model_title.disabled = False
             model_chooser.disabled = False
@@ -409,10 +420,82 @@ class GUISegmentation:
         def complete_fl(*args, **kwargs):
             self.gui.page.run_task(complete_fl_ui)
 
+        async def export_images_and_masks(e):
+            """
+            Copies the internal tiff and npy files to a directory specified by the user
+            """
+            if self.gui.csp.image_paths is None:
+                return
+            file_picker = ft.FilePicker()
+            chosen_path = await file_picker.get_directory_path(
+                dialog_title="Export images and masks",
+                initial_directory=str(downloads_directory()),
+            )
+            if chosen_path is None:
+                return
+            path = pathlib.Path(chosen_path)
+            if path.exists() and any(path.iterdir()):
+                dialog = ChoiceDialog(
+                    page=self.gui.page,
+                    title="Directory is not empty",
+                    text="The selected directory already contains files. Existing files with the same name might be overwritten.",
+                    option_1="Cancel",
+                    option_2="Continue",
+                )
+                result = await dialog.show()
+                if result == 0:
+                    return
+
+            first_series = next(iter(self.gui.csp.image_paths.values()))
+            first_path = next(iter(first_series.values()))
+            source_dir = pathlib.Path(first_path).parent
+            target_dir = path
+            self.gui.page.run_thread(file_transfer, source_dir, target_dir,self.gui.csp.config.get_channel_prefix())
+            FluorescenceReadoutControl().disabled = True
+            start_button.disabled = True
+            self.gui.open_button.visible = False
+            self.progress_bar_text.value = "Exporting images and masks"
+            self.gui.directory.disable_path_choosing()
+            model_title.disabled = True
+            model_chooser.disabled = True
+            self.gui.page.update()
+
+        def start_export_of_images_and_masks(e):
+            self.progress_bar.value = 0
+            if not platform.system() == "Linux":
+                self.gui.page.window.progress_bar = 0
+            self.progress_bar_text.value = "0 %"
+            self.gui.page.update()
+
+        async def complete_export_of_images_and_masks_ui():
+            self.progress_bar.value = 0
+            if not platform.system() == "Linux":
+                self.gui.page.window.progress_bar = -1
+
+            if self.gui.csp.model_path is not None:
+                self.progress_bar_text.value = "Ready to start"
+            else:
+                self.progress_bar_text.value = "Waiting for Input"
+
+            FluorescenceReadoutControl().disabled = False
+            self.gui.directory.enable_path_choosing()
+            model_title.disabled = False
+            model_chooser.disabled = False
+            self.gui.page.update()
+            self.gui.readout_event.set()
+
+        def complete_export_of_images_and_masks(*args, **kwargs):
+            self.gui.page.run_task(complete_export_of_images_and_masks_ui)
+
         fluorescence_readout_control.button.on_click = fluorescence_readout
         self.fluorescence.add_start_listener(listener=start_fl)
         self.fluorescence.add_update_listener(listener=update_progress_bar)
         self.fluorescence.add_completion_listener(listener=complete_fl)
+
+        self.gui.directory.images_and_mask_export_button.on_click = export_images_and_masks
+        file_transfer.add_start_listener(listener=start_export_of_images_and_masks)
+        file_transfer.add_update_listener(listener=update_progress_bar)
+        file_transfer.add_completion_listener(listener=complete_export_of_images_and_masks)
 
         pick_model_row = ft.Row(
             [
@@ -459,17 +542,25 @@ class GUISegmentation:
             )
         )
 
-        project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        model_directory = os.path.join(project_root, "models")
-
         model_drop_down = ft.Dropdown(
             width=250,
             label="Choose model",
             border_color=ft.Colors.BLUE_ACCENT,
-            options=[ft.DropdownOption(key="Cellpose", text="Cellpose"),
-                     ft.DropdownOption(key="CellposeSAM", text="CellposeSAM"),
-                     ft.DropdownOption(key="CustomV3",text="\u200BCellpose",content=ft.Row([ft.Text("Custom",weight=ft.FontWeight.BOLD),ft.Text("Cellpose")])),
-                     ft.DropdownOption(key="CustomV4",text="\u200BCellposeSAM",content=ft.Row([ft.Text("Custom",weight=ft.FontWeight.BOLD),ft.Text("CellposeSAM")])),
+            options=[
+                ft.DropdownOption(key="CellposeCyto", text="Cellpose Cyto"),
+                ft.DropdownOption(key="CellposeNuclei", text="Cellpose Nuclei"),
+                ft.DropdownOption(
+                    key="CellposeSAM",
+                    text="Cellpose SAM"
+                ),
+                ft.DropdownOption(
+                    key="Custom",
+                    text="Cellpose",
+                    content=ft.Row([
+                        ft.Text("Custom", weight=ft.FontWeight.BOLD),
+                        ft.Text("Cellpose")
+                    ])
+                ),
             ],
             on_select=lambda e: new_pick_model_result(e))
 
@@ -479,17 +570,23 @@ class GUISegmentation:
             visible=False,
             on_click=lambda e: e.page.run_task(pick_model_result, e))
 
-        model_chooser = ft.Container(ft.Row(
-            controls=[model_drop_down, model_choose_button],
-            alignment=ft.MainAxisAlignment.END, ),
-            alignment=ft.Alignment.BOTTOM_RIGHT)
-
+        model_chooser = ft.Container(
+            content=ft.Row(
+                controls=[
+                    model_drop_down,
+                    model_choose_button
+                ],
+                alignment=ft.MainAxisAlignment.END,
+            ),
+            alignment=ft.Alignment.BOTTOM_RIGHT
+        )
         segmentation_card = ft.Card(
             content=ft.Container(
                 content=ft.Stack(
-                    [segmentation_container,
-                     model_chooser
-                     ]
+                    [
+                        segmentation_container,
+                        model_chooser
+                    ]
                 ),
                 padding=10,
                 clip_behavior=ft.ClipBehavior.HARD_EDGE

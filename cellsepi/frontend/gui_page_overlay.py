@@ -3,6 +3,7 @@ from typing import Any
 
 import flet as ft
 
+
 class PageOverlay(ft.Stack):
     """
     Overlay which gets placed above the normal page with half transparent background
@@ -19,9 +20,9 @@ class PageOverlay(ft.Stack):
     def page(self):
         return self._page
 
-    def __init__(self,page: ft.Page,content: ft.Stack = None,on_dismiss = None,modal = False):
+    def __init__(self, page: ft.Page, content: ft.Stack = None, on_dismiss=None, modal=False):
         super().__init__()
-        self.page =page
+        self.page = page
         self.controls = []
         self._content: ft.Stack | None = None
         self.on_dismiss: Any | None = on_dismiss
@@ -32,7 +33,8 @@ class PageOverlay(ft.Stack):
         self.container = ft.Container(content=self,
                                       animate_opacity=ft.Animation(duration=300,
                                                                    curve=ft.AnimationCurve.LINEAR_TO_EASE_OUT),
-                                      animate=ft.Animation(duration=300, curve=ft.AnimationCurve.LINEAR_TO_EASE_OUT), visible=False,opacity=0.0)
+                                      animate=ft.Animation(duration=300, curve=ft.AnimationCurve.LINEAR_TO_EASE_OUT),
+                                      visible=False, opacity=0.0)
         page.overlay.append(self.container)
         page.update()
 
@@ -79,8 +81,8 @@ class PageOverlay(ft.Stack):
             mouse_cursor=ft.MouseCursor.BASIC,
             on_tap=bg_click,
             content=ft.Container(
-            expand=True,
-            bgcolor=ft.Colors.with_opacity(0.5, ft.Colors.BLACK),
+                expand=True,
+                bgcolor=ft.Colors.with_opacity(0.5, ft.Colors.BLACK),
             )
         )
         self.controls.append(background)
@@ -89,4 +91,3 @@ class PageOverlay(ft.Stack):
     @page.setter
     def page(self, value):
         self._page = value
-

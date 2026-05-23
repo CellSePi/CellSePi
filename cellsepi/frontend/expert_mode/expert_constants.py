@@ -2,13 +2,14 @@ import math
 from enum import Enum
 import flet as ft
 
+from backend.expert_mode.modules.image_and_mask_export import ImageExportModule
 from backend.expert_mode.modules.image_readout import ImageReadoutModule
 from backend.expert_mode.modules.image_segmentation import ImageSegmentationModule
 from backend.expert_mode.modules.project_3d_to_2d import Project3dTo2d
-from backend.expert_mode.modules.read_lif import ReadLif
-from backend.expert_mode.modules.read_tif import ReadTif
+from backend.expert_mode.modules.read_files import ReadFiles
 from backend.expert_mode.modules.review import Review
 from backend.expert_mode.modules.spot_detection import SpotDetectionModule
+from expert_mode.modules.read_dir import ReadDir
 
 #Constants used in the PipelineBuildingTool(ExpertMode)
 CANVAS_HEIGHT = 10000
@@ -36,10 +37,11 @@ DEBUG = False
 
 MODULE_REGISTRY = {
     "IMAGE_READOUT": ImageReadoutModule,
+    "IMAGE_EXPORT": ImageExportModule,
     "IMAGE_SEGMENTATION": ImageSegmentationModule,
     "SPOT_DETECTION": SpotDetectionModule,
-    "READ_LIF": ReadLif,
-    "READ_TIF": ReadTif,
+    "READ_FILES": ReadFiles,
+    "READ_DIRS": ReadDir,
     "PROJECTION_3D_TO_2D": Project3dTo2d,
     "REVIEW": Review
 }

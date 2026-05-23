@@ -6,12 +6,14 @@ import flet as ft
 import torch
 
 from frontend.gui_colors import ColorSelection, ColorOpacity
+from frontend.gui_page_overlay import PageOverlay
 
 
 class Options(ft.Container):
     """
     Class which handles the options in the right up corner in the GUI.
     """
+
     def __init__(self, gui):
         super().__init__()
         self.gui = gui
@@ -21,7 +23,7 @@ class Options(ft.Container):
             color=None,
         )
         self.color_selection = ColorSelection(gui)
-        self.color_opacity= ColorOpacity(gui)
+        self.color_opacity = ColorOpacity(gui)
         self.slider = ft.CupertinoSlidingSegmentedButton(
             selected_index=1 if torch.cuda.is_available() else 0,
             thumb_color=ft.Colors.BLUE_400,
@@ -73,12 +75,12 @@ class Options(ft.Container):
         self.padding = 10
         self.alignment = ft.Alignment.TOP_RIGHT
 
-
     async def theme_changed(self, e):
         """
         Changes the theme of the page to the opposite of the current selected theme.
         """
-        if self.gui.page.theme_mode == ft.ThemeMode.LIGHT or (self.gui.page.theme_mode == ft.ThemeMode.SYSTEM and self.gui.page.platform_brightness == ft.Brightness.LIGHT):
+        if self.gui.page.theme_mode == ft.ThemeMode.LIGHT or (
+                self.gui.page.theme_mode == ft.ThemeMode.SYSTEM and self.gui.page.platform_brightness == ft.Brightness.LIGHT):
             self.gui.page.theme_mode = ft.ThemeMode.DARK
             self.dark_light_text.value = "Light Theme"
             self.dark_light_icon.icon = ft.Icons.BRIGHTNESS_HIGH
@@ -88,7 +90,7 @@ class Options(ft.Container):
             self.dark_light_icon.icon = ft.Icons.BRIGHTNESS_2_OUTLINED
         self.gui.page.update()
 
-    def check_current_theme(self,e):
+    def check_current_theme(self, e):
         """
         Checks what the current theme is.
         """
@@ -108,13 +110,27 @@ class Options(ft.Container):
                 self.dark_light_icon.icon = ft.Icons.BRIGHTNESS_HIGH
         self.gui.page.update()
 
+    async def on_settings_clicked(self, e):
+        overlay = self.gui.gui_settings.build()
+        overlay.open()
+
     def create_appbar_items(self):
         """
         Creates the appbar items that will be displayed in the GUI when the option button is clicked.
         """
         return [
             ft.PopupMenuItem(
-                content=ft.Row([self.dark_light_icon, self.dark_light_text],alignment=ft.MainAxisAlignment.START),
+                content=ft.Row([
+                    ft.Icon(ft.Icons.SETTINGS),
+                    ft.Text("Settings")
+                ], alignment=ft.MainAxisAlignment.START),
+                on_click=self.on_settings_clicked,
+            ),
+            ft.PopupMenuItem(
+                content=ft.Row([
+                    self.dark_light_icon,
+                    self.dark_light_text
+                ], alignment=ft.MainAxisAlignment.START),
                 on_click=self.theme_changed,
             ),
             ft.PopupMenuItem(
@@ -123,17 +139,19 @@ class Options(ft.Container):
                 on_click=self.open_plugin_folder
             ),
             ft.PopupMenuItem(
-                content=ft.Row([self.color_selection.color_icon_mask, ft.Text("Mask Color")],alignment=ft.MainAxisAlignment.START),
+                content=ft.Row([self.color_selection.color_icon_mask, ft.Text("Mask Color")],
+                               alignment=ft.MainAxisAlignment.START),
                 on_click=self.color_selection.open_color_picker_mask,
             ),
             ft.PopupMenuItem(
-                content=ft.Row([self.color_selection.color_icon_outline, ft.Text("Outline Color")],alignment=ft.MainAxisAlignment.START),
+                content=ft.Row([self.color_selection.color_icon_outline, ft.Text("Outline Color")],
+                               alignment=ft.MainAxisAlignment.START),
                 on_click=self.color_selection.open_color_picker_outline,
             ),
             ft.PopupMenuItem(
                 content=ft.Container(
                     content=ft.Column(
-                [
+                        [
                             ft.Container(
                                 content=self.color_opacity.text,
                                 padding=ft.Padding.only(bottom=-10)
@@ -150,10 +168,11 @@ class Options(ft.Container):
                     padding=ft.Padding.all(0),
                 ),
             ),
-            ft.PopupMenuItem(content=ft.Container(ft.Stack([self.slider,self.slider_blocker]),alignment=ft.Alignment.CENTER),),
+            ft.PopupMenuItem(
+                content=ft.Container(ft.Stack([self.slider, self.slider_blocker]), alignment=ft.Alignment.CENTER), ),
         ]
 
-    async def gpu_slider_change(self,e):
+    async def gpu_slider_change(self, e):
         if e.data == 1:
             self.gui.csp.gpu = True
         else:
@@ -166,4 +185,3 @@ class Options(ft.Container):
             os.startfile(folder_path)
         elif os.name == "posix":  # Check if Mac or Linux
             subprocess.run(["open", folder_path] if sys.platform == "darwin" else ["xdg-open", folder_path])
-

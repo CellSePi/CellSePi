@@ -11,6 +11,7 @@ import importlib.util
 import inspect
 import pathlib
 
+from backend.data_util import DirectoryManager
 from backend.expert_mode.module import Module
 from image_editing_view import ImageEditingView
 from backend.avg_diameter import AverageDiameter
@@ -22,9 +23,11 @@ from frontend.gui_config import GUIConfig
 from frontend.gui_directory import DirectoryCard, copy_to_clipboard
 from backend.cellsepi import CellSePi
 from frontend.gui_image_tuning import GUIAutoImageTuning
+from frontend.gui_settings import GUISettings
 from frontend.gui_training_environment import Training
 from frontend.gui_page_overlay import PageOverlay
 from frontend.expert_mode.expert_constants import MODULE_REGISTRY
+
 
 def check_for_file_picker_support():
     if not platform.system() == "Linux":
@@ -34,6 +37,8 @@ def check_for_file_picker_support():
             return True
 
     return False
+
+
 class GUI:
     """
     Class GUI to handle the complete GUI and their attributes, also contains the CellSePi class and updates their attributes
@@ -63,6 +68,7 @@ class GUI:
         self.op = Options(self)
         self.ex_mode = ExpertEnvironment(self)
         gui_config = GUIConfig(self)
+        self.gui_settings = GUISettings(page, self)
         self.gui_config = gui_config.create_profile_container()
         self.segmentation = GUISegmentation(self)
         seg_card, start_button, open_button, progress_bar, progress_bar_text, cancel_segmentation = self.segmentation.create_segmentation_card()
@@ -75,9 +81,11 @@ class GUI:
         self.progress_bar_text = progress_bar_text
         self.progress_ring = ft.ProgressRing(visible=False)
         self.closing_sheet = ft.Stack([
-            ft.Column([ft.Container(ft.ProgressRing(), alignment=ft.Alignment.CENTER)],
-                      alignment=ft.MainAxisAlignment.CENTER,
-                      ),
+            ft.Column([
+                ft.Container(ft.ProgressRing(), alignment=ft.Alignment.CENTER)
+            ],
+                alignment=ft.MainAxisAlignment.CENTER,
+            ),
         ])
 
         self.brightness_slider = ft.Slider(
@@ -125,11 +133,14 @@ class GUI:
 
         def close_banner(e):
             e.control.page.pop_dialog()
+
         async def launch_help_link(e):
             await page.launch_url("https://github.com/CellSePi/CellSePi/blob/main/README.md")
+
         def ignore_warning(e):
             e.control.page.pop_dialog()
             self.csp.config.set_ignore_warning()
+
         self.zenity_warning = ft.Banner(
             bgcolor=ft.Colors.RED,
             leading=ft.Icon(ft.Icons.WARNING_AMBER_ROUNDED, color=ft.Colors.WHITE_60, size=40),
@@ -140,9 +151,10 @@ class GUI:
                 color=ft.Colors.WHITE
             ),
             actions=[
-                ft.TextButton("Help",style=ft.ButtonStyle(color=ft.Colors.WHITE),on_click=launch_help_link),
-                ft.TextButton("Dismiss",style=ft.ButtonStyle(color=ft.Colors.WHITE), on_click=close_banner),
-                ft.TextButton("Ignore warning", style=ft.ButtonStyle(color=ft.Colors.WHITE_60), on_click=ignore_warning, tooltip="Do not show this warning again in the future"),
+                ft.TextButton("Help", style=ft.ButtonStyle(color=ft.Colors.WHITE), on_click=launch_help_link),
+                ft.TextButton("Dismiss", style=ft.ButtonStyle(color=ft.Colors.WHITE), on_click=close_banner),
+                ft.TextButton("Ignore warning", style=ft.ButtonStyle(color=ft.Colors.WHITE_60), on_click=ignore_warning,
+                              tooltip="Do not show this warning again in the future"),
             ],
         )
 
@@ -188,7 +200,6 @@ class GUI:
                                                     )
                                                 ])
                                         ]),
-
                                     self.segmentation_card
                                 ],
                                 expand=6,
@@ -319,6 +330,9 @@ class GUI:
             self.page.window.prevent_close = False
             self.page.window.on_event = None
             self.page.update()
+
+            DirectoryManager().streamline_cache()
+
             self.page.run_task(self.handle_window_closing)
 
     def on_enter_diameter(self):

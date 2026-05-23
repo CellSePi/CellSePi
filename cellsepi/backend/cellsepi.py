@@ -1,6 +1,6 @@
-import torch
 from backend.config_file import ConfigFile
 from backend.constants import APP_DIR
+from images import BatchImageSegmentation
 
 
 class CellSePi:
@@ -17,12 +17,12 @@ class CellSePi:
         self.readout_running = False
         self.readout_thread = None
         self.readout_path = None
-        self.gpu = torch.cuda.is_available()
 
         self.image_id = None
         self.channel_id = None
         self.current_channel_prefix = None
         self.current_mask_suffix = None
+
 
         self.readout = None
 
@@ -31,6 +31,14 @@ class CellSePi:
         self.linux_images = None  # [image_id][channel_id] = base64 png image
         self.mask_paths = None
         self.working_directory = None
+
+    @property
+    def gpu(self) -> bool:
+        return BatchImageSegmentation.GPU
+
+    @gpu.setter
+    def gpu(self, value: bool):
+        BatchImageSegmentation.GPU = value
 
     def createDirectory(self):
         app_dir = APP_DIR
