@@ -61,7 +61,7 @@ class GUI:
         self.page.window.height = 800
         self.page.title = "CellSePi"
         self.canvas = ImageEditingView(
-            on_mask_change=lambda img_id, mask_added_or_removed: self.mask_update(img_id, mask_added_or_removed))
+            on_mask_change=self._mask_update_async)
         self.canvas.mask_color = self.csp.config.get_mask_color()
         self.canvas.outline_color = self.csp.config.get_outline_color()
         self.canvas.mask_suffix = self.csp.config.get_mask_suffix()
@@ -277,11 +277,12 @@ class GUI:
         if not check_for_file_picker_support() and not self.csp.config.get_ignore_warning():
             self.page.show_dialog(self.zenity_warning)
 
-    def mask_update(self, image_id, mask_added_or_removed):
+    async def _mask_update_async(self, image_id, mask_added_or_removed):
         if mask_added_or_removed:
             self.directory.update_mask_check(image_id)
             self.page.run_task(self.directory.check_masks)
-        self.diameter_text.value = self.average_diameter.get_avg_diameter()
+        diameter = await asyncio.to_thread(self.average_diameter.get_avg_diameter)
+        self.diameter_text.value = diameter
         self.diameter_text.update()
 
     async def handle_closing_event(self, e, saved_checked: bool = False):
