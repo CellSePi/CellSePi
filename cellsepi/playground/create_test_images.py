@@ -45,4 +45,4 @@ for res_name, (w, h) in resolutions.items():
     create_test_image(output_folder, f"test_{res_name}_horiz_c2", w, h, f"{res_name} Horiz")
     create_test_image(output_folder, f"test_{res_name}_vert_c2", h, w, f"{res_name} Vert")
 
-print(f"\nAlle Test images are created in the folder:'{output_folder}/'")
+print(f"\nAll test images have been created inside the folder: '{output_folder}/'")
