@@ -281,9 +281,12 @@ class GUI:
         if mask_added_or_removed:
             self.directory.update_mask_check(image_id)
             self.page.run_task(self.directory.check_masks)
-        diameter = await asyncio.to_thread(self.average_diameter.get_avg_diameter)
-        self.diameter_text.value = diameter
-        self.diameter_text.update()
+            self.average_diameter.remove_image_from_cache(image_id)
+            self.page.run_task(self.average_diameter.get_avg_diameter)
+        else:
+            self.page.run_task(self.average_diameter.get_avg_diameter,image_id)
+
+
 
     async def handle_closing_event(self, e, saved_checked: bool = False):
         """

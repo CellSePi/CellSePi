@@ -268,7 +268,6 @@ class GUISegmentation:
             start_button.disabled = False
             model_title.disabled = False
             model_chooser.disabled = False
-            self.gui.diameter_text.value = self.gui.average_diameter.get_avg_diameter()
             self.gui.training_environment.enable_switch_environment()
             self.gui.directory.enable_path_choosing()
             self.gui.csp.segmentation_running = False
@@ -293,7 +292,8 @@ class GUISegmentation:
             model_title.disabled = False
             model_chooser.disabled = False
             self.gui.diameter_display.opacity = 1
-            self.gui.diameter_text.value = self.gui.average_diameter.get_avg_diameter()
+            self.gui.average_diameter.clear_cache()
+            self.gui.page.run_task(self.gui.average_diameter.get_avg_diameter)
             for image_id in self.gui.csp.image_paths:
                 self.gui.directory.update_mask_check(image_id)
             self.gui.page.update()

@@ -237,7 +237,8 @@ class DirectoryCard(ft.Card):
             self.gui.diameter_text.value = 0.0
             self.gui.diameter_display.update()
         else:
-            self.gui.diameter_text.value = self.gui.average_diameter.get_avg_diameter()
+            self.gui.average_diameter.clear_cache()
+            self.gui.page.run_task(self.gui.average_diameter.get_avg_diameter)
             self.gui.diameter_display.opacity = 1
             self.gui.diameter_display.update()
             self.formatted_path.color = None

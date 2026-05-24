@@ -381,7 +381,7 @@ class BatchImageSegmentation(Notifier):
                 self.num_seg_images = self.num_seg_images + 1
                 if event_manager is None:
                     self.gui.directory.update_mask_check(image_id)
-                    self.gui.diameter_text.value = self.gui.average_diameter.get_avg_diameter()
+                    self.gui.page.run_task(self.gui.average_diameter.get_avg_diameter,image_id)
             else:
                 percent = round((iN + 1) / n_images * 100)
                 progress = str(percent) + " %"

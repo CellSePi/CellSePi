@@ -348,7 +348,7 @@ class GUIConfig:
                                              bf_channel=e.control.value)
             self.txt_bf_ref.current.color = None
             self.gui.directory.update_all_masks_check()
-            self.gui.diameter_text.value = self.gui.average_diameter.get_avg_diameter()
+            self.gui.page.run_task(self.gui.average_diameter.get_avg_diameter)
             self.page.update()
             if self.gui.csp.image_id is not None:
                 await update_main_image(self.gui.csp.image_id, self.gui.csp.channel_id, self.gui, False)
