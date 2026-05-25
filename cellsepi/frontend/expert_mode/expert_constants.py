@@ -9,7 +9,7 @@ from backend.expert_mode.modules.project_3d_to_2d import Project3dTo2d
 from backend.expert_mode.modules.read_files import ReadFiles
 from backend.expert_mode.modules.review import Review
 from backend.expert_mode.modules.spot_detection import SpotDetectionModule
-from expert_mode.modules.read_dir import ReadDir
+from backend.expert_mode.modules.read_dir import ReadDir
 
 #Constants used in the PipelineBuildingTool(ExpertMode)
 CANVAS_HEIGHT = 10000
