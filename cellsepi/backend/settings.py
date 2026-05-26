@@ -68,11 +68,7 @@ from typing import Any
 import anyio
 from pydantic import BaseModel, Field
 
-
-class DownscaleMode(str, Enum):
-    NONE = "none"
-    PIXELS = "pixels"
-    FRACTION = "fraction"
+from backend.constants import DownscaleMode
 
 
 # Setup individual settings
@@ -102,8 +98,8 @@ class VisualizationConfig(BaseModel):
 
 
 class PerformanceConfig(BaseModel):
-    segmentation: SegmentationConfig = Field(default_factory=SegmentationConfig)
-    visualization: VisualizationConfig = Field(default_factory=VisualizationConfig)
+    segmentation_downscaling: SegmentationConfig = Field(default_factory=SegmentationConfig)
+    visualization_downscaling: VisualizationConfig = Field(default_factory=VisualizationConfig)
 
 
 class ImageNormalizationConfig(BaseModel):

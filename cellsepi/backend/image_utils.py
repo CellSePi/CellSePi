@@ -1,5 +1,6 @@
+import cv2
 import numpy as np
-from backend.settings import SettingsManager
+from backend.settings import SettingsManager, DownscaleMode
 
 
 def normalize_image(image: np.ndarray, ) -> np.ndarray:
@@ -25,4 +26,26 @@ def normalize_image(image: np.ndarray, ) -> np.ndarray:
 
     image[image < 0] = 0
     image[image > 1] = 1
+    return image
+
+
+def rescale_image(image, target_shape=None, rescale_settings=None):
+    if target_shape is None and rescale_settings is None:
+        raise ValueError("Either target_shape or rescale_settings must be provided.")
+
+    if target_shape is None:
+        match rescale_settings.mode:
+            case DownscaleMode.NONE:
+                target_shape = image.shape
+            case DownscaleMode.PIXELS:
+                max_pixels = int(rescale_settings.max_pixels)
+                max_size = np.max(image.shape[-2, -1])
+                fraction = max_pixels / max_size
+                target_shape = tuple((fraction * np.array(image.shape)).astype(int))
+            case DownscaleMode.FRACTION:
+                fraction = float(rescale_settings.max_fraction)
+                target_shape = tuple((fraction * np.array(image.shape)).astype(int))
+
+    image = cv2.resize(image, target_shape, interpolation=cv2.INTER_AREA)
+
     return image

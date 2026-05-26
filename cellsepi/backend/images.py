@@ -19,7 +19,8 @@ from backend.expert_mode.listener import ProgressEvent
 from backend.notifier import Notifier
 from backend.CellposeV3 import modelsV3, ioV3
 
-from backend.image_utils import normalize_image
+from backend.image_utils import normalize_image, rescale_image
+from backend.settings import SettingsManager, DownscaleMode
 
 
 class BatchImageSegmentation(Notifier):
@@ -220,7 +221,7 @@ class BatchImageSegmentation(Notifier):
 
         device = torch.device("cuda" if self.gui.csp.gpu else "cpu")  # converts string to device object
 
-        if module_type is None:
+        if model_type is None:
             model_type = self.gui.csp.model_type
 
         if model_type == ModelType.CUSTOM:
@@ -279,6 +280,10 @@ class BatchImageSegmentation(Notifier):
                 # Normalization
                 image = image.astype(np.float32)
                 image = normalize_image(image)
+
+                # Rescaling
+                rescale_settings = SettingsManager().settings.performance.segmentation_downscaling
+                image = rescale_image(image, rescale_settings)
 
                 # model evaluates image
                 if model_type == ModelType.C_NUCLEI or model_type == ModelType.C_CYTO:
