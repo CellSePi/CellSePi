@@ -27,7 +27,8 @@ class BatchImageSegmentation(Notifier):
     """
     This class handles the segmentation of the images.
     """
-    GPU:bool = False
+    GPU: bool = False
+
     def __init__(self,
                  segmentation=None,
                  gui=None,
@@ -278,13 +279,20 @@ class BatchImageSegmentation(Notifier):
                 image_path = image_paths[image_id][segmentation_channel]
                 image = tifffile.imread(image_path)
 
+                original_shape = image.shape
+                original_image = image.copy()
+                # print(f"Original Shape: {original_shape}")
+
                 # Normalization
                 image = image.astype(np.float32)
                 image = normalize_image(image)
 
                 # Rescaling
                 rescale_settings = SettingsManager().settings.performance.segmentation_downscaling
-                image = rescale_image(image, rescale_settings)
+                image = rescale_image(image, rescale_settings=rescale_settings)
+                factor = np.max(image.shape[-2:]) / np.max(original_shape[-2:])
+                diameter = diameter * factor
+                # print(f"Rescaled Shape: {image.shape}")
 
                 # model evaluates image
                 if model_type == ModelType.C_NUCLEI or model_type == ModelType.C_CYTO:
@@ -325,6 +333,20 @@ class BatchImageSegmentation(Notifier):
                         mask = self.masks_to_label_mask(mask)
 
                     flow, style = None, None
+
+                # print(f"Original Mask Shape: {mask.shape}")
+                # Restore the original image shape and adapt the masks and flows accordingly
+                if mask is not None:
+                    mask = rescale_image(mask, target_shape=original_shape)
+                if flow is not None:
+                    flow[0] = np.stack([rescale_image(flow[0][..., iD], target_shape=original_shape) for iD in
+                                        range(flow[0].shape[2])], axis=2)
+                    flow[1] = np.array([rescale_image(flow[1][iD], target_shape=original_shape) for iD in
+                                        range(flow[1].shape[0])])
+                    flow[2] = rescale_image(flow[2], target_shape=original_shape)
+
+                # print(f"Rescaled Mask Shape: {mask.shape}")
+                image = original_image
 
                 # Generate the output filename directly using the suffix attribute
                 directory, filename = os.path.split(image_path)
@@ -384,7 +406,7 @@ class BatchImageSegmentation(Notifier):
                 self.num_seg_images = self.num_seg_images + 1
                 if event_manager is None:
                     self.gui.directory.update_mask_check(image_id)
-                    self.gui.page.run_task(self.gui.average_diameter.get_avg_diameter,image_id)
+                    self.gui.page.run_task(self.gui.average_diameter.get_avg_diameter, image_id)
             else:
                 percent = round((iN + 1) / n_images * 100)
                 progress = str(percent) + " %"
@@ -475,7 +497,7 @@ class BatchImageReadout(Notifier):
             for iX, cell_id in enumerate(cell_ids):
                 data_entry = {"image_id": image_id,
                               "id": cell_id,
-                              "seg_channel": segmentation_channel,}
+                              "seg_channel": segmentation_channel, }
                 for channel_id in channels:
                     channel_name = self._channel_name(channel_id)
                     data_entry[channel_name] = None

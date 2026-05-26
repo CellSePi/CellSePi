@@ -39,13 +39,20 @@ def rescale_image(image, target_shape=None, rescale_settings=None):
                 target_shape = image.shape
             case DownscaleMode.PIXELS:
                 max_pixels = int(rescale_settings.max_pixels)
-                max_size = np.max(image.shape[-2, -1])
+                max_size = np.max(image.shape[-2:])
                 fraction = max_pixels / max_size
                 target_shape = tuple((fraction * np.array(image.shape)).astype(int))
             case DownscaleMode.FRACTION:
                 fraction = float(rescale_settings.max_fraction)
                 target_shape = tuple((fraction * np.array(image.shape)).astype(int))
 
-    image = cv2.resize(image, target_shape, interpolation=cv2.INTER_AREA)
+    if np.max(target_shape) > np.max(image.shape):
+        # Upscaling
+        interpolation = cv2.INTER_CUBIC
+    else:
+        # Downscaling
+        interpolation = cv2.INTER_AREA
+
+    image = cv2.resize(image, target_shape, interpolation=interpolation)
 
     return image
