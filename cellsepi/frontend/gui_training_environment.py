@@ -47,7 +47,7 @@ class Training(ft.Container):
         self.learning_rate = 0.001
         self.pre_trained = None
         self.diameter_default = True
-        self.diameter = self.gui.average_diameter.get_avg_diameter()
+        self.diameter = 0.0
         self.weight = 1e-4  # standard value for the weight
         self.model_name = "new_model"
         self.re_train_model_name = None

@@ -812,7 +812,6 @@ class ModuleGUI(ft.GestureDetector):
                                         self.on_select_file,
                                         a,
                                         file_picker,
-                                        attr.suffix,
                                         attr_name,
                                         content),
                                 ), alignment=ft.Alignment.TOP_RIGHT, right=10, top=5)
@@ -863,7 +862,7 @@ class ModuleGUI(ft.GestureDetector):
                 slider_bool = ft.CupertinoSlidingSegmentedButton(
                     selected_index=index,
                     thumb_color=ft.Colors.BLUE_400,
-                    on_change=lambda e, attr_name=attribute_name: self.update_enum(e, attr_name,enum_class),
+                    on_change=lambda e, attr_name=attribute_name, e_class=enum_class: self.update_enum(e, attr_name, e_class),
                     padding=ft.padding.symmetric(0, 0),
                     controls=[
                         ft.Text(enum_val.name) for enum_val in enum_class
@@ -881,10 +880,11 @@ class ModuleGUI(ft.GestureDetector):
                 raise ValueError(f"Unsupported 'user_' attribute file type: {typ}")
         return items
 
-    async def on_select_file(self, e: ft.Event[ft.Button], file_picker, suffix, attr_name, text):
+    async def on_select_file(self, e: ft.Event[ft.Button], file_picker, attr_name, text):
         """
         Handles if a file is selected.
         """
+        suffix = getattr(self.module, attr_name).suffix
         files = await file_picker.pick_files(allow_multiple=False,
                                                  dialog_title=attr_name.removeprefix("user_"),
                                                  file_type=ft.FilePickerFileType.CUSTOM if suffix is not None else ft.FilePickerFileType.ANY,

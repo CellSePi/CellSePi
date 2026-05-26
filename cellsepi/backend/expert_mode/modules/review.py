@@ -83,7 +83,7 @@ class Review(Module, ABC):
             )
             )
             self._canvas = ImageEditingView(
-                on_mask_change=lambda img_id, mask_added_or_removed: self.mask_update(img_id, mask_added_or_removed))
+                on_mask_change=self._mask_update_async)
             self._canvas.auto_adjust = True
             self._canvas.mask_color = self.mask_color
             self._canvas.outline_color = self.outline_color
@@ -234,7 +234,7 @@ class Review(Module, ABC):
             for image_id in self.inputs["image_paths"].data:
                 self.update_mask_check(image_id)
 
-    def mask_update(self, image_id, mask_added_or_removed):
+    async def _mask_update_async(self, image_id, mask_added_or_removed):
         if mask_added_or_removed:
             self.update_mask_check(image_id)
 

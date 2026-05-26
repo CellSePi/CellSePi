@@ -128,7 +128,7 @@ class GUISegmentation:
                 model_text.color = None
                 self.gui.csp.model_path = "pre_def"
                 model_choose_button.visible = False
-                self.gui.csp.model_type = ModelType.CELLPOSE_SAM
+                self.gui.csp.model_type = ModelType.C_SAM
             elif model_drop_down.value == "CellposeNuclei":
                 if self.gui.ready_to_start:
                     self.progress_bar_text.value = "Ready to Start"
@@ -137,7 +137,7 @@ class GUISegmentation:
                 model_text.color = None
                 model_choose_button.visible = False
                 self.gui.csp.model_path = "pre_def"
-                self.gui.csp.model_type = ModelType.CELLPOSE_NUCLEI
+                self.gui.csp.model_type = ModelType.C_NUCLEI
             elif model_drop_down.value == "CellposeCyto":
                 if self.gui.ready_to_start:
                     self.progress_bar_text.value = "Ready to Start"
@@ -146,7 +146,8 @@ class GUISegmentation:
                 model_text.color = None
                 model_choose_button.visible = False
                 self.gui.csp.model_path = "pre_def"
-                self.gui.csp.model_type = ModelType.CELLPOSE_CYTO
+                self.gui.csp.model_type = ModelType.C_CYTO
+
             self.gui.page.update()
 
         def start_segmentation(e):  # called when the start button is clicked
@@ -267,7 +268,6 @@ class GUISegmentation:
             start_button.disabled = False
             model_title.disabled = False
             model_chooser.disabled = False
-            self.gui.diameter_text.value = self.gui.average_diameter.get_avg_diameter()
             self.gui.training_environment.enable_switch_environment()
             self.gui.directory.enable_path_choosing()
             self.gui.csp.segmentation_running = False
@@ -292,7 +292,8 @@ class GUISegmentation:
             model_title.disabled = False
             model_chooser.disabled = False
             self.gui.diameter_display.opacity = 1
-            self.gui.diameter_text.value = self.gui.average_diameter.get_avg_diameter()
+            self.gui.average_diameter.clear_cache()
+            self.gui.page.run_task(self.gui.average_diameter.get_avg_diameter)
             for image_id in self.gui.csp.image_paths:
                 self.gui.directory.update_mask_check(image_id)
             self.gui.page.update()
@@ -449,7 +450,7 @@ class GUISegmentation:
             first_path = next(iter(first_series.values()))
             source_dir = pathlib.Path(first_path).parent
             target_dir = path
-            self.gui.page.run_thread(file_transfer, source_dir, target_dir)
+            self.gui.page.run_thread(file_transfer, source_dir, target_dir,self.gui.csp.config.get_channel_prefix())
             FluorescenceReadoutControl().disabled = True
             start_button.disabled = True
             self.gui.open_button.visible = False
@@ -549,12 +550,12 @@ class GUISegmentation:
                 ft.DropdownOption(key="CellposeCyto", text="Cellpose Cyto"),
                 ft.DropdownOption(key="CellposeNuclei", text="Cellpose Nuclei"),
                 ft.DropdownOption(
-                    key="Cellpose SAM",
+                    key="CellposeSAM",
                     text="Cellpose SAM"
                 ),
                 ft.DropdownOption(
                     key="Custom",
-                    text="Cellpose",
+                    text="\u200BCellpose",
                     content=ft.Row([
                         ft.Text("Custom", weight=ft.FontWeight.BOLD),
                         ft.Text("Cellpose")
