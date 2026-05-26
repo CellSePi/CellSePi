@@ -1,5 +1,6 @@
 import os
 import pathlib
+import shutil
 import threading
 
 import pandas as pd
@@ -84,6 +85,22 @@ class BatchImageSegmentation(Notifier):
 
         return label_mask
 
+    def cleanup_backups(self):
+        """
+        Deletes the .backup files from disk after a successful run.
+        """
+        if self.prev_masks_exist:
+            for image_id, channels in self.masks_backup.items():
+                for segmentation_channel, backup_file_path in channels.items():
+                    if backup_file_path is not None and os.path.exists(backup_file_path):
+                        try:
+                            os.remove(backup_file_path)
+                        except OSError as e:
+                            print(f"Error removing backup {backup_file_path}: {e}")
+
+        self.masks_backup = {}
+        self.prev_masks_exist = False
+
     def backup_masks(self):
         """
         This method creates a backup of the previously generated masks.
@@ -96,21 +113,12 @@ class BatchImageSegmentation(Notifier):
                 if segmentation_channel == self.segmentation_channel:
                     if os.path.exists(path):
                         # needed to add error catches to handle listener with ui thread (can not update page ui in listener thread in version 0.84)
-                        try:
-                            if os.path.getsize(path) == 0:
-                                print("Empty file:", path)
-                                continue
-                            mask = np.load(path, allow_pickle=True)
-                        except EOFError:
-                            print("Corrupted file (EOF):", path)
-                            continue
-                        except Exception as e:
-                            print("Error loading mask:", path, e)
-                            continue
+                        backup_path = path + ".backup"
+                        shutil.copy2(path, backup_path)
 
                         self.masks_backup[image_id] = {}
+                        self.masks_backup[image_id][segmentation_channel] = backup_path
                         self.prev_masks_exist = True
-                        self.masks_backup[image_id][segmentation_channel] = mask
 
         if self.prev_masks_exist:
             for image_id in self.gui.csp.image_paths:
@@ -136,14 +144,14 @@ class BatchImageSegmentation(Notifier):
             for image_id, channels in self.masks_backup.items():
                 if image_id not in self.gui.csp.mask_paths:
                     self.gui.csp.mask_paths[image_id] = {}
-                for segmentation_channel, mask in channels.items():
-                    if mask is not None:
-                        backup_path = self.gui.csp.mask_paths[image_id].get(segmentation_channel)
-                        if backup_path:
-                            np.save(backup_path, mask)
+                for segmentation_channel, backup_path in channels.items():
+                    if backup_path is not None:
+                        original_path = self.gui.csp.mask_paths[image_id].get(segmentation_channel)
+                        if original_path:
+                            shutil.move(backup_path, original_path)
                             if image_id == self.gui.csp.image_id and segmentation_channel == self.gui.csp.config.get_bf_channel():  # refreshes or delete the current generated mask
                                 self.gui.page.run_task(self.gui.canvas.update_mask_image, True)
-                                self.gui.mask_update(image_id, True)
+                                self.gui.page.run_task(self.gui._mask_update_async,image_id, True)
                     else:
                         if segmentation_channel in self.gui.csp.mask_paths[image_id]:
                             path = self.gui.csp.mask_paths[image_id][segmentation_channel]
@@ -183,14 +191,15 @@ class BatchImageSegmentation(Notifier):
         if event_manager is None:
             print("event_manager is None")
             if self.num_seg_images == 0:  # shouldn't backup again, if it was paused and now resuming
-                self.backup_masks()
                 self.segmentation_channel = self.gui.csp.config.get_bf_channel()
                 self.diameter = self.gui.csp.config.get_diameter()
                 self.suffix = self.gui.csp.current_mask_suffix
+                self.backup_masks()
             if self.cancel_now:
                 self.cancel_now = False
                 self.restore_backup()
                 self.num_seg_images = 0
+                self.cleanup_backups()
                 return
             elif self.pause_now:
                 self.pause_now = False
@@ -263,6 +272,7 @@ class BatchImageSegmentation(Notifier):
                         self.cancel_now = False
                         self.restore_backup()
                         self.num_seg_images = 0
+                        self.cleanup_backups()
                         return
                     elif self.pause_now:
                         self.pause_now = False
@@ -395,6 +405,7 @@ class BatchImageSegmentation(Notifier):
 
         if event_manager is None:
             self._call_completion_listeners()
+            self.cleanup_backups()
         else:
             event_manager.notify(ProgressEvent(percent=100, process=f"All images segmented."))
         # reset variables
