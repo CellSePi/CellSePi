@@ -16,7 +16,10 @@ class GUISettings:
         self.settings_manager = SettingsManager()
         ImageEditingView.update_settings(self.settings_manager.settings.image.margin,
                                          self.settings_manager.settings.image.lower_quantile,
-                                         self.settings_manager.settings.image.upper_quantile)
+                                         self.settings_manager.settings.image.upper_quantile,
+                                         self.settings_manager.settings.performance.visualization_downscaling.mode.value,
+                                         self.settings_manager.settings.performance.visualization_downscaling.max_pixels,
+                                         self.settings_manager.settings.performance.visualization_downscaling.max_fraction)
         self.overlay = PageOverlay(
             page,
             content=None,
@@ -29,7 +32,10 @@ class GUISettings:
         await self.settings_manager.save_settings_async()
         ImageEditingView.update_settings(self.settings_manager.settings.image.margin,
                                          self.settings_manager.settings.image.lower_quantile,
-                                         self.settings_manager.settings.image.upper_quantile)
+                                         self.settings_manager.settings.image.upper_quantile,
+                                         self.settings_manager.settings.performance.visualization_downscaling.mode.value,
+                                         self.settings_manager.settings.performance.visualization_downscaling.max_pixels,
+                                         self.settings_manager.settings.performance.visualization_downscaling.max_fraction)
         self.overlay.close()
 
     async def _cancel(self):
