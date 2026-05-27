@@ -128,7 +128,7 @@ class GUISegmentation:
                 model_text.color = None
                 self.gui.csp.model_path = "pre_def"
                 model_choose_button.visible = False
-                self.gui.csp.model_type = ModelType.C_SAM
+                self.gui.csp.model_type = ModelType.CELLPOSE_SAM
             elif model_drop_down.value == "CellposeNuclei":
                 if self.gui.ready_to_start:
                     self.progress_bar_text.value = "Ready to Start"
@@ -137,7 +137,7 @@ class GUISegmentation:
                 model_text.color = None
                 model_choose_button.visible = False
                 self.gui.csp.model_path = "pre_def"
-                self.gui.csp.model_type = ModelType.C_NUCLEI
+                self.gui.csp.model_type = ModelType.CELLPOSE_NUCLEI
             elif model_drop_down.value == "CellposeCyto":
                 if self.gui.ready_to_start:
                     self.progress_bar_text.value = "Ready to Start"
@@ -146,7 +146,7 @@ class GUISegmentation:
                 model_text.color = None
                 model_choose_button.visible = False
                 self.gui.csp.model_path = "pre_def"
-                self.gui.csp.model_type = ModelType.C_CYTO
+                self.gui.csp.model_type = ModelType.CELLPOSE_CYTO
 
             self.gui.page.update()
 

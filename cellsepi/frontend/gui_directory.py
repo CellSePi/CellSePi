@@ -243,7 +243,7 @@ class DirectoryCard(ft.Card):
     def select_dir_and_update(self, path):
         if path:
             self.directory_path.value = path
-            self.select_directory(path, self.file_type, self.gui.csp.config.get_channel_prefix())
+            self.select_directory(path, self.file_type, self.gui.csp.config.get_channel_prefix(), self.gui.csp.config.get_mask_suffix())
             self.load_images()
         else:
             self.image_gallery.controls.clear()
@@ -267,6 +267,7 @@ class DirectoryCard(ft.Card):
             path,
             file_type: FileType,
             channel_prefix: str,
+            mask_suffix: str = "_seg",
             event_manager: EventManager = None,
             overwrite: bool = True,
     ):
@@ -371,6 +372,7 @@ class DirectoryCard(ft.Card):
                         path=path,
                         target_dir=working_directory,
                         channel_prefix=channel_prefix,
+                        mask_suffix=mask_suffix,
                         event_manager=event_manager
                     )
                 case _:
@@ -417,7 +419,7 @@ class DirectoryCard(ft.Card):
                 self.gui.training_environment.start_button.disabled = False
                 if ((self.gui.csp.model_path is not None and (
                         self.gui.csp.model_type == ModelType.CUSTOM))
-                        or self.gui.csp.model_type == ModelType.C_CYTO or self.gui.csp.model_type == ModelType.C_NUCLEI or self.gui.csp.model_type == ModelType.C_SAM):
+                        or self.gui.csp.model_type == ModelType.CELLPOSE_CYTO or self.gui.csp.model_type == ModelType.CELLPOSE_NUCLEI or self.gui.csp.model_type == ModelType.CELLPOSE_SAM):
                     self.gui.progress_bar_text.value = "Ready to Start"
                     self.gui.start_button.disabled = False
                 self.gui.ready_to_start = True
