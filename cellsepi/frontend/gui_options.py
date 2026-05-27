@@ -52,8 +52,7 @@ class Options(ft.Container):
                                               f"Use a CUDA-compatible NVIDIA card for faster segmentation,\n" \
                                               f"and ensure the required drivers are installed."
             else:
-                self.slider_blocker.tooltip = f"GPU acceleration is unavailable.\n" \
-                                              f"This version of cellsepi is not capable of CUDA."
+                self.slider_blocker.tooltip = f"GPU acceleration is unavailable."
             for control in self.slider.controls:
                 control.color = ft.Colors.GREY_700
         else:
