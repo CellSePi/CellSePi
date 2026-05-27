@@ -17,7 +17,7 @@ import pandas as pd
 from reportlab.lib import colors
 from reportlab.lib import pagesizes
 from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
 
 from bioio import BioImage
 from bioio_base.dimensions import Dimensions
@@ -28,6 +28,9 @@ from backend.constants import ReturnTypePath, FileType, BIT_DEPTH, Suffixes, CSP
 from backend.expert_mode.event_manager import *
 from backend.notifier import Notifier
 from backend.settings import SettingsManager
+
+from backend.image_utils import normalize_image
+from backend.constants import BIT_DEPTH
 
 
 def listdir(directory):
@@ -120,7 +123,7 @@ class FileTransfer(Notifier):
         self.file_types = file_types
         self.event_manager = event_manager
 
-    def __call__(self, source_dir=None, target_dir=None,new_prefix=None,source_paths=None, *args, **kwargs):
+    def __call__(self, source_dir=None, target_dir=None, new_prefix=None, source_paths=None, *args, **kwargs):
         self._call_start_listeners(True)
 
         if source_dir is None and source_paths is None:
@@ -609,6 +612,12 @@ def process_channel(channel_id, channel_path):
     if image.ndim == 3:
         image = np.max(image, axis=0)
 
+    if SettingsManager().settings.image.normalize_gallery:
+        image = image.astype(np.float32)
+        image = normalize_image(image)
+        image = image * 2 ** BIT_DEPTH
+        image = image.astype(np.uint16)
+
     h, w = image.shape[:2]
 
     max_size = 150
@@ -665,10 +674,23 @@ def consistent_hash(data):
     return c_hash
 
 
-def export_dataframe_to_pdf(df: pd.DataFrame, output_path: str):
+def export_dataframe_to_pdf_old(df: pd.DataFrame, output_path: str):
     # Setup document geometry (Standard Letter size)
-    doc = SimpleDocTemplate(output_path, pagesize=pagesizes.A4, rightMargin=30, leftMargin=30, topMargin=30,
-                            bottomMargin=30)
+
+    margin = 30
+    page_width, page_height = pagesizes.A4
+    available_width = page_width - 2 * margin
+    num_cols = len(df.columns)
+    col_widths = [available_width / num_cols] * num_cols
+
+    doc = SimpleDocTemplate(
+        output_path,
+        pagesize=pagesizes.A4,
+        rightMargin=margin,
+        leftMargin=margin,
+        topMargin=margin,
+        bottomMargin=margin
+    )
     story = []
 
     # Add a title header
@@ -682,10 +704,10 @@ def export_dataframe_to_pdf(df: pd.DataFrame, output_path: str):
     if df.empty or len(df.columns) == 0:
         data_matrix = [["No mask was generated"]]
     else:
-        data_matrix = [df.columns.to_list()] + df.values.tolist()
+        data_matrix = [df.columns.to_list()] + df.round(2).values.tolist()
 
     # Create the ReportLab dynamic Table widget
-    pdf_table = Table(data_matrix)
+    pdf_table = Table(data_matrix)  # , colWidths=col_widths)
 
     # Apply a clean, modern aesthetic theme (JetBrains-style dark/light structure)
     pdf_table.setStyle(TableStyle([
@@ -706,6 +728,106 @@ def export_dataframe_to_pdf(df: pd.DataFrame, output_path: str):
     ]))
 
     story.append(pdf_table)
+    doc.build(story)
+
+
+def export_dataframe_to_pdf(df: pd.DataFrame, output_path: str):
+    # Setup document geometry (Standard A4 size)
+    margin = 30
+    page_width, page_height = pagesizes.A4
+    available_width = page_width - (2 * margin)
+
+    # Define constraints for grid splitting
+    MAX_COLUMNS_PER_PAGE = 7  # Adjust based on your cell content size
+    MAX_ROWS_PER_PAGE = 25  # Adjust based on your cell content height
+
+    doc = SimpleDocTemplate(
+        output_path,
+        pagesize=pagesizes.A4,
+        rightMargin=margin,
+        leftMargin=margin,
+        topMargin=margin,
+        bottomMargin=margin
+    )
+    story = []
+
+    # Add a title header on the very first page
+    styles = getSampleStyleSheet()
+    title_style = styles['Heading1']
+    story.append(Paragraph("Fluorescence Values", title_style))
+    story.append(Spacer(1, 15))
+
+    # Handle edge case for empty DataFrames
+    if df.empty or len(df.columns) == 0:
+        data_matrix = [["No mask was generated"]]
+        pdf_table = Table(data_matrix, colWidths=[available_width])
+        pdf_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 11),
+        ]))
+        story.append(pdf_table)
+        doc.build(story)
+        return
+
+    prefix_cols = df.columns[:2].to_list()
+    data_cols = df.columns[2:].to_list()
+    num_data_cols = len(data_cols)
+    num_rows = len(df)
+
+    MAX_DATA_COLUMNS_PER_PAGE = MAX_COLUMNS_PER_PAGE - len(prefix_cols)
+
+    # Calculate grid chunks
+    col_chunks = int(np.ceil(num_data_cols / MAX_DATA_COLUMNS_PER_PAGE))
+    row_chunks = int(np.ceil(num_rows / MAX_ROWS_PER_PAGE))
+
+    # Iterate through the grid layout
+    for c in range(col_chunks):
+        col_start = c * MAX_DATA_COLUMNS_PER_PAGE
+        col_end = min(col_start + MAX_DATA_COLUMNS_PER_PAGE, num_data_cols)
+
+        # Slice columns for this page chunk
+        sub_cols = prefix_cols + data_cols[col_start:col_end]
+        col_width_allocation = [available_width / len(sub_cols)] * len(sub_cols)
+
+        for r in range(row_chunks):
+            row_start = r * MAX_ROWS_PER_PAGE
+            row_end = min(row_start + MAX_ROWS_PER_PAGE, num_rows)
+
+            # Slice rows for this page chunk
+            sub_df = df[sub_cols].iloc[row_start:row_end]
+
+            # Prepare data matrix: Header + Row values
+            data_matrix = [sub_cols] + sub_df.round(2).values.tolist()
+
+            # Create the sub-table
+            pdf_table = Table(data_matrix)#, colWidths=col_width_allocation)
+
+            # Apply clean aesthetic theme
+            pdf_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#1A73E8")),  # Primary header color
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 11),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+                ('TOPPADDING', (0, 0), (-1, 0), 8),
+                # Zebra striping
+                ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor("#F8F9FA")),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor("#E0E0E0")),
+                ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                ('FONTSIZE', (0, 1), (-1, -1), 9),
+                ('BOTTOMPADDING', (0, 1), (-1, -1), 6),
+                ('TOPPADDING', (0, 1), (-1, -1), 6),
+            ]))
+
+            # Append table chunk to story
+            story.append(pdf_table)
+
+            # Do not add a PageBreak after the absolute final sub-table chunk
+            if not (c == col_chunks - 1 and r == row_chunks - 1):
+                story.append(PageBreak())
+
     doc.build(story)
 
 
@@ -795,4 +917,3 @@ class DirectoryManager:
                     shutil.rmtree(item)
                 else:
                     item.unlink()
-

@@ -104,12 +104,12 @@ class GUISettings:
                     content=ft.Container(
                         content=ft.Column(
                             [
+                                ft.Divider(),
                                 ft.Text(
                                     field_name.upper(),
                                     weight=ft.FontWeight.BOLD,
                                     size=16
                                 ),
-                                ft.Divider(),
                                 # Recursively generate form fields for this model
                                 self._generate_fields_for_model(sub_model)
                             ]
@@ -192,7 +192,7 @@ class GUISettings:
                             size=14
                         ),
                         ft.Switch(
-                            label=label_text,
+                            # label=label_text,
                             value=bool(value),
                             on_change=lambda e, m=model, f=field_name: self._on_change_handler(e, m, f, bool)
                         )

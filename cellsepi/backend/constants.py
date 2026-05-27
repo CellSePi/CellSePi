@@ -74,6 +74,12 @@ class Suffixes(Enum):
     SPOT_MASK = SimpleNamespace(name="SPOT_MASK", suffixes=["_sdm"], extensions=["npy"])
 
 
+class DownscaleMode(str, Enum):
+    NONE = "Disabled"
+    PIXELS = "Pixels"
+    FRACTION = "Fraction"
+
+
 def downloads_directory() -> Path:
     home = Path.home()
     downloads_dir = home / "Downloads"

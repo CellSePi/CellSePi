@@ -15,6 +15,7 @@
     </content>
     <orderEntry type="jdk" jdkName="cellsepi" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="CellSePiDrawing" />
   </component>
   <component name="PyDocumentationSettings">
     <option name="format" value="PLAIN" />

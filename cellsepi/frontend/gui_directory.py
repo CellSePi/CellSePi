@@ -104,8 +104,27 @@ class DirectoryCard(ft.Card):
                 disabled=True,
                 visible=True
             )
-            self.buttons_row = ft.Row([ft.Column([ft.Row([self.directory_row, self.files_row, ]),ft.Row([self.images_and_mask_export_button])],
-                                                        )], expand=True,alignment=ft.MainAxisAlignment.END)
+            self.buttons_row = ft.Row(
+                [
+                    ft.Column(
+                        [
+                            ft.Row(
+                                [
+                                    self.directory_row,
+                                    self.files_row,
+                                ]
+                            ),
+                            ft.Row(
+                                [
+                                    self.images_and_mask_export_button
+                                ]
+                            )
+                        ],
+                    )
+                ],
+                expand=True,
+                alignment=ft.MainAxisAlignment.END
+            )
             self.lif_slider_blocker = ft.Container(
                 height=30,
                 expand=True,
@@ -221,8 +240,7 @@ class DirectoryCard(ft.Card):
             raise Exception(f"Source type {self.source_type} not supported!")
         self.page.run_thread(self.select_dir_and_update, path)
 
-
-    def select_dir_and_update(self,path):
+    def select_dir_and_update(self, path):
         if path:
             self.directory_path.value = path
             self.select_directory(path, self.file_type, self.gui.csp.config.get_channel_prefix())
@@ -292,7 +310,7 @@ class DirectoryCard(ft.Card):
                     self.gui.progress_ring.visible = False
                     return None
                 else:
-                    raise PipelineRunningException("Loading Error",f"The directory is empty.")
+                    raise PipelineRunningException("Loading Error", f"The directory is empty.")
 
         if working_directory.exists():
             if event_manager is None:
@@ -318,7 +336,6 @@ class DirectoryCard(ft.Card):
 
                 overwrite = (dialog_result[0] == 0)
 
-
         if overwrite:
             if working_directory.exists():
                 shutil.rmtree(working_directory)
@@ -341,7 +358,8 @@ class DirectoryCard(ft.Card):
                         )
                     else:
                         if event_manager is not None:
-                            raise PipelineRunningException("Type Error", f"Expected filetype: {file_type.extension_string}")
+                            raise PipelineRunningException("Type Error",
+                                                           f"Expected filetype: {file_type.extension_string}")
                         else:
                             self.is_file_type_supported = False
                 case SourceType.DIRECTORY:  # Directory Case
@@ -443,7 +461,8 @@ class DirectoryCard(ft.Card):
                                         [
                                             get_image(cur_image_paths[channel_id]),
                                             self.selected_images_visualise[image_id][channel_id]
-                                        ]), width=156, height=156),
+                                        ]
+                                    ), width=156, height=156),
                                 on_tap=lambda e, img_id=image_id,
                                               c_id=channel_id: e.page.run_task(update_main_image,
                                                                                img_id,
