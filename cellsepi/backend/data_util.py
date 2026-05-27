@@ -615,9 +615,7 @@ def process_channel(channel_id, channel_path):
     if SettingsManager().settings.image.normalize_gallery:
         image = image.astype(np.float32)
         image = normalize_image(image)
-        image = image * 2 ** BIT_DEPTH
-        image = image.astype(np.uint16)
-
+        image = (image * 65535).clip(0, 65535).astype(np.uint16)
     h, w = image.shape[:2]
 
     max_size = 150

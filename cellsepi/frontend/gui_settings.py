@@ -1,11 +1,11 @@
 from enum import Enum
-from typing import get_args
 
 import flet as ft
 from pydantic import BaseModel
 
 from backend.settings import SettingsManager
 from frontend.gui_page_overlay import PageOverlay
+from image_editing_view import ImageEditingView
 
 
 class GUISettings:
@@ -14,7 +14,9 @@ class GUISettings:
         self.page = page
         self.gui = gui
         self.settings_manager = SettingsManager()
-        # self.settings = self.settings_manager.settings
+        ImageEditingView.update_settings(self.settings_manager.settings.image.margin,
+                                         self.settings_manager.settings.image.lower_quantile,
+                                         self.settings_manager.settings.image.upper_quantile)
         self.overlay = PageOverlay(
             page,
             content=None,
@@ -25,6 +27,9 @@ class GUISettings:
 
     async def _save(self):
         await self.settings_manager.save_settings_async()
+        ImageEditingView.update_settings(self.settings_manager.settings.image.margin,
+                                         self.settings_manager.settings.image.lower_quantile,
+                                         self.settings_manager.settings.image.upper_quantile)
         self.overlay.close()
 
     async def _cancel(self):
