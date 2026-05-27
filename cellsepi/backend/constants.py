@@ -23,10 +23,13 @@ class SourceType(Enum):
 
 
 class ModelType(Enum):
-    CUSTOM = auto()
-    C_NUCLEI = auto()
-    C_CYTO = auto()
-    C_SAM = auto()
+    CELLPOSE_SAM = "Cellpose SAM"
+    CELLPOSE_CYTO = "Cellpose Cyto"
+    CELLPOSE_NUCLEI = "Cellpose Nuclei"
+    CUSTOM = "Custom"
+
+
+
 
 class FileType(Enum):
     LIF = SimpleNamespace(name="Lif", extensions=["lif"], source=SourceType.FILE)

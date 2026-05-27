@@ -6,7 +6,9 @@ from cellpose import models, train, io
 import os
 
 from backend.CellposeV3 import ioV3, modelsV3, trainV3
+from backend.constants import ModelType
 from frontend.gui_directory import format_directory_path, copy_to_clipboard
+
 
 class Training(ft.Container):
 
@@ -38,7 +40,7 @@ class Training(ft.Container):
             icon=ft.Icons.PLAY_CIRCLE,
             tooltip="Start the training epochs",
             disabled=True,
-            on_click=lambda e : e.page.run_thread(self.start_training,e),
+            on_click=lambda e: e.page.run_thread(self.start_training, e),
         )
 
         self.model = "nuclei"
@@ -58,15 +60,19 @@ class Training(ft.Container):
         # Changed from TextField to Dropdown for model type selection
         self.model_dropdown = ft.Dropdown(
             label="Model Type",
-            value="nuclei",
+            value=ModelType.CELLPOSE_SAM,
             options=[
-                ft.dropdown.Option("CellposeSAM"),
-                ft.dropdown.Option("Cellpose Cyto"),
-                ft.dropdown.Option("Cellpose Nuclei"),
-            ],border_color=ft.Colors.BLUE_400,
-            on_select=lambda e: self.changed_input("modeltype", e),expand=True,
+                ft.dropdown.Option(key=v, text=v.value)
+                for v in ModelType if v != ModelType.CUSTOM
+            ], border_color=ft.Colors.BLUE_400,
+            on_select=lambda e: self.changed_input("modeltype", e),
+            expand=True,
         )
-        self.re_train_model = ft.Checkbox(value=False, label="Retrain Model",on_change=lambda e: self.change_re_train_model())
+        self.re_train_model = ft.Checkbox(
+            value=False,
+            label="Retrain Model",
+            on_change=lambda e: self.change_re_train_model()
+        )
 
         # the following methods are called when clicking on the corresponding button
         async def pick_model_result(e: ft.Event[ft.Button]):
@@ -80,9 +86,8 @@ class Training(ft.Container):
                                                      initial_directory=str(pathlib.Path(self.model_directory))
                                                      )
 
-
             if files is None or len(files) == 0:
-                #case: no model selected
+                # case: no model selected
                 pass
             elif files[0].path is not None:
                 self.gui.csp.re_train_model_path = files[0].path
@@ -91,43 +96,47 @@ class Training(ft.Container):
                 self.field_model_name.color = ft.Colors.BLUE_400
                 self.gui.page.update()
 
-
         self.re_train_model_chooser = ft.IconButton(
-                icon=ft.Icons.UPLOAD_FILE,
-                tooltip="Choose model to retrain",
-                on_click=lambda e: e.page.run_task(pick_model_result,e),
-                disabled=True
-            )
-        self.field_model_name = ft.TextField(label="Model Name", value=self.model_name, border_color=self.color,on_change=lambda e: self.changed_input("model_name", e))
-        self.model_stack = ft.Stack([self.field_model_name, self.re_train_model_chooser],alignment=ft.Alignment.TOP_RIGHT)
+            icon=ft.Icons.UPLOAD_FILE,
+            tooltip="Choose model to retrain",
+            on_click=lambda e: e.page.run_task(pick_model_result, e),
+            disabled=True
+        )
+        self.field_model_name = ft.TextField(label="Model Name", value=self.model_name, border_color=self.color,
+                                             on_change=lambda e: self.changed_input("model_name", e))
+        self.model_stack = ft.Stack([self.field_model_name, self.re_train_model_chooser],
+                                    alignment=ft.Alignment.TOP_RIGHT)
         self.field_model = ft.Row([self.model_dropdown, self.model_stack])
         # New field for custom model input, visible only if "custom" is selected
         self.field_custom_model = ft.TextField(label="Custom Model", value="", border_color=self.color, visible=False,
                                                on_change=lambda e: self.changed_input("custom_model", e))
 
         self.field_batch = ft.TextField(label="Batch Size", value=self.batch_size, border_color=self.color,
-                                        on_change=lambda e: self.changed_input("batch_size", e),expand=True)
+                                        on_change=lambda e: self.changed_input("batch_size", e), expand=True)
         self.field_epoch = ft.TextField(label="Epochs", value=self.epochs, border_color=self.color,
-                                        on_change=lambda e: self.changed_input("epochs", e),expand=True)
+                                        on_change=lambda e: self.changed_input("epochs", e), expand=True)
         self.field_lr = ft.TextField(label="Learning Rate", value=self.learning_rate, border_color=self.color,
-                                     on_change=lambda e: self.changed_input("learning_rate", e),expand=True)
+                                     on_change=lambda e: self.changed_input("learning_rate", e), expand=True)
         self.field_diameter = ft.TextField(label="Diameter", value=self.diameter, border_color=self.color,
-                                           on_change=lambda e: self.changed_input("diameter", e),expand=True)
+                                           on_change=lambda e: self.changed_input("diameter", e), expand=True)
         self.field_weights = ft.TextField(label="Weight Decay", value=self.weight, border_color=self.color,
-                                          on_change=lambda e: self.changed_input("weight", e),expand=True)
-        self.field_directory = ft.TextField(label="Directory", value=format_directory_path(str(self.model_directory),max_length=60), border_color=self.color,
-                                            read_only=True,disabled=True,expand=True)
+                                          on_change=lambda e: self.changed_input("weight", e), expand=True)
+        self.field_directory = ft.TextField(label="Directory",
+                                            value=format_directory_path(str(self.model_directory), max_length=60),
+                                            border_color=self.color,
+                                            read_only=True, disabled=True, expand=True)
 
-        self.directory_stack = ft.Stack([self.field_directory,ft.Container(
-                            content=ft.Container(
-                                content=ft.IconButton(
-                                    icon=ft.Icons.COPY,
-                                    tooltip="Copy to clipboard",
-                                    on_click=lambda e: e.page.run_task(copy_to_clipboard,self.gui.page,str(self.model_directory),"Model directory")
-                                ),
-                                alignment=ft.Alignment.TOP_RIGHT,
-                            )
-                        )])
+        self.directory_stack = ft.Stack([self.field_directory, ft.Container(
+            content=ft.Container(
+                content=ft.IconButton(
+                    icon=ft.Icons.COPY,
+                    tooltip="Copy to clipboard",
+                    on_click=lambda e: e.page.run_task(copy_to_clipboard, self.gui.page, str(self.model_directory),
+                                                       "Model directory")
+                ),
+                alignment=ft.Alignment.TOP_RIGHT,
+            )
+        )])
         self.progress_ring = ft.ProgressRing(visible=False)
         self.train_loss = None
         self.test_loss = None
@@ -170,7 +179,8 @@ class Training(ft.Container):
     def add_parameter_container(self):
         return ft.Container(
             ft.Column(
-                [self.field_model,self.re_train_model, self.field_custom_model, self.field_batch, self.field_epoch, self.field_weights,
+                [self.field_model, self.re_train_model, self.field_custom_model, self.field_batch, self.field_epoch,
+                 self.field_weights,
                  self.field_lr, self.field_diameter, self.directory_stack
                  ]
             ),
@@ -247,7 +257,7 @@ class Training(ft.Container):
         )
         pick_model_row = ft.Row(
             [
-                ft.Container(content=ft.Row([self.progress_ring, self.progress_bar_text]),padding=5),
+                ft.Container(content=ft.Row([self.progress_ring, self.progress_bar_text]), padding=5),
                 ft.Container(
                     content=ft.Row([self.start_button]))
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN
@@ -275,16 +285,27 @@ class Training(ft.Container):
         """
         This method starts the training process with the selected parameters and model.
         """
+        # ToDo EK: Check here whether all prerequisites are met
+        model_type = self.model_dropdown.value
+        try:
+            model_type = ModelType(model_type)
+        except ValueError:
+            self.page.show_dialog(
+                ft.SnackBar(
+                    ft.Text(f"Model type {model_type} not supported!")
+                )
+            )
+            return
+
         self.start_button.disabled = True
-        self.re_train_model_chooser.disabled =True
+        self.re_train_model_chooser.disabled = True
         self.gui.directory.disable_path_choosing()
         self.progress_ring.visible = True
         self.progress_bar_text.value = ""
         self.disable_switch_environment()
         self.gui.page.update()
-        model_type = self.model_dropdown.value
 
-        # checks if the right model type was selected
+        # checks if the right model type was selected for retraining a model
         if self.re_train_model.value and self.re_train_model_name is None:
             self.page.show_dialog(ft.SnackBar(
                 ft.Text(f"The model you inserted is not a retrained model!")))
@@ -298,26 +319,39 @@ class Training(ft.Container):
             return
         self.gui.csp.training_running = True
         self.gui.training_event.clear()
-        #try:
+        # try:
         mask_filter = f"{self.gui.csp.current_mask_suffix}.npy"
 
         if self.re_train_model.value:
-            state_dict = torch.load(self.gui.csp.re_train_model_path, map_location=torch.device("cuda" if self.gui.csp.gpu else "cpu"), weights_only=True)
+            state_dict = torch.load(self.gui.csp.re_train_model_path,
+                                    map_location=torch.device("cuda" if self.gui.csp.gpu else "cpu"), weights_only=True)
             w2_data = state_dict.get('W2', None)
             if w2_data is None:
-                model_type = "Cellpose Cyto"
+                model_type = ModelType.CELLPOSE_CYTO
             else:
-                model_type = "CellposeSAM"
+                model_type = ModelType.CELLPOSE_SAM
 
+        # TODO EK: By splitting the directory into train and test, one can provide two distinct dirs to support test_dir
         # loads the mask files out of the directory to start training
-        if model_type == "Cellpose Cyto" or model_type == "Cellpose Nuclei":
-            output = ioV3.load_train_test_data(train_dir=str(self.gui.csp.working_directory),
-                                             mask_filter=mask_filter,
-                                             look_one_level_down=False)
-        elif model_type == "CellposeSAM":
-            output = io.load_train_test_data(train_dir=str(self.gui.csp.working_directory),
-                                         mask_filter=mask_filter,
-                                         look_one_level_down=False)
+        if model_type == ModelType.CELLPOSE_CYTO or model_type == ModelType.CELLPOSE_NUCLEI:
+            output = ioV3.load_train_test_data(
+                train_dir=str(self.gui.csp.working_directory),  # test_dir=None,
+                mask_filter=mask_filter,
+                look_one_level_down=False
+            )
+        elif model_type == ModelType.CELLPOSE_SAM:
+            output = io.load_train_test_data(
+                train_dir=str(self.gui.csp.working_directory),  # test_dir=None,
+                mask_filter=mask_filter,
+                look_one_level_down=False
+            )
+        else:
+            self.page.show_dialog(
+                ft.SnackBar(
+                    ft.Text(f"Custom model not supported yet!")
+                )
+            )
+            return
 
         images, labels, image_names, test_images, test_labels, image_names_test = output
         print("images: ", images)
@@ -340,59 +374,84 @@ class Training(ft.Container):
             self.gui.csp.training_running = False
             self.gui.training_event.set()
             return
+
         try:
             # initializing variables, who differ if pretrained or not (Initialized with not pretrained)
             sgd_value = False
             model_name = self.model_name
 
-            if model_type == "CellposeSAM":
-                if self.re_train_model.value:
-                    sgd_value = True
-                    model_name = self.re_train_model_name
-                    model = models.CellposeModel(pretrained_model=self.gui.csp.re_train_model_path,gpu=self.gui.csp.gpu)
+            match model_type:
+                case ModelType.CELLPOSE_SAM:
+                    if self.re_train_model.value:
+                        sgd_value = True
+                        model_name = self.re_train_model_name
+                        model = models.CellposeModel(
+                            pretrained_model=self.gui.csp.re_train_model_path,
+                            gpu=self.gui.csp.gpu
+                        )
+                        # start the training epochs
+                    else:
+                        model = models.CellposeModel(
+                            gpu=self.gui.csp.gpu
+                        )
+
+                    train.train_seg(
+                        model.net,
+                        train_data=images,
+                        train_labels=labels,
+                        normalize=True,
+                        test_data=test_images,
+                        test_labels=test_labels,
+                        weight_decay=self.weight,
+                        SGD=sgd_value,
+                        learning_rate=self.learning_rate,
+                        n_epochs=self.epochs,
+                        model_name=model_name,
+                        save_path=os.path.dirname(self.model_directory)
+                    )
+
+                case ModelType.CELLPOSE_CYTO | ModelType.CELLPOSE_NUCLEI:
+                    if self.re_train_model.value:
+                        sgd_value = True
+                        model_name = self.re_train_model_name
+                        model = modelsV3.CellposeModel(
+                            pretrained_model=self.gui.csp.re_train_model_path,
+                            gpu=self.gui.csp.gpu
+                        )
+                    else:
+                        if model_type == ModelType.CELLPOSE_CYTO:
+                            model = modelsV3.CellposeModel(model_type="cyto3", gpu=self.gui.csp.gpu)
+                        elif model_type == ModelType.CELLPOSE_NUCLEI:
+                            model = modelsV3.CellposeModel(model_type="nuclei", gpu=self.gui.csp.gpu)
+
                     # start the training epochs
-                else:
-                    model = models.CellposeModel(gpu=self.gui.csp.gpu)
-
-                train.train_seg(model.net,
-                                train_data=images, train_labels=labels,
-                                normalize=True,
-                                test_data=test_images, test_labels=test_labels,
-                                weight_decay=self.weight, SGD=sgd_value, learning_rate=self.learning_rate,
-                                n_epochs=self.epochs, model_name=model_name,
-                                save_path=os.path.dirname(self.model_directory))
-
-            elif model_type == "Cellpose Cyto" or model_type == "Cellpose Nuclei":
-                if self.re_train_model.value:
-                    sgd_value = True
-                    model_name = self.re_train_model_name
-                    model = modelsV3.CellposeModel(pretrained_model=self.gui.csp.re_train_model_path,
-                                                   gpu=self.gui.csp.gpu)
-                else:
-                    if model_type == "Cellpose Cyto":
-                        model = modelsV3.CellposeModel(model_type= "cyto3",gpu=self.gui.csp.gpu)
-                    elif model_type == "Cellpose Nuclei":
-                        model = modelsV3.CellposeModel(model_type= "nuclei",gpu=self.gui.csp.gpu)
-
-                # start the training epochs
-                trainV3.train_seg(model.net,
-                                train_data=images, train_labels=labels,
-                                normalize=True,
-                                test_data=test_images, test_labels=test_labels,
-                                weight_decay=self.weight, SGD=sgd_value, learning_rate=self.learning_rate,
-                                n_epochs=self.epochs, model_name=model_name,
-                                save_path=os.path.dirname(self.model_directory))
+                    trainV3.train_seg(
+                        model.net,
+                        train_data=images,
+                        train_labels=labels,
+                        normalize=True,
+                        test_data=test_images,
+                        test_labels=test_labels,
+                        weight_decay=self.weight,
+                        SGD=sgd_value,
+                        learning_rate=self.learning_rate,
+                        n_epochs=self.epochs,
+                        model_name=model_name,
+                        save_path=os.path.dirname(self.model_directory)
+                    )
             self.progress_bar_text.value = "Finished Training"
 
         except Exception as e:
             self.page.show_dialog(ft.SnackBar(
-                ft.Text(f"Something went wrong while training: {str(e)}",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
+                ft.Text(f"Something went wrong while training: {str(e)}", color=ft.Colors.WHITE),
+                bgcolor=ft.Colors.RED))
             self.progress_bar_text.value = ""
             self.page.update()
+
         self.gui.directory.enable_path_choosing()
         self.start_button.disabled = False
         self.progress_ring.visible = False
-        self.re_train_model_chooser.disabled =False
+        self.re_train_model_chooser.disabled = False
         self.enable_switch_environment()
         self.page.update()
         print("finished training")

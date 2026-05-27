@@ -466,6 +466,7 @@ def extract_from_directory(
         path,
         target_dir,
         channel_prefix,
+        mask_suffix,
         event_manager: EventManager = None
 ):
     """
@@ -554,8 +555,9 @@ def extract_from_directory(
 
         for channel_id, mpath in scenes_masks[scene]:
             # Copy all associated mask information
+            channel_id = channel_id - smallest_channel_id
             src_path = mpath
-            target_path = target_dir / f"{scene}{CSP_CHANNEL_PREFIX}{mpath.stem.split(channel_prefix)[1]}.npy"
+            target_path = target_dir / f"{scene}{CSP_CHANNEL_PREFIX}{channel_id}{mask_suffix}.npy"
             shutil.copy(str(src_path), str(target_path))
 
         if event_manager is not None:
