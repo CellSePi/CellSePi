@@ -149,6 +149,9 @@ class SettingsManager:
         self.settings = settings
         return settings
 
+    def rest_settings(self):
+        self.settings = AppSettings()
+
     def save_settings(self):
         with open(self.file_path, "w") as f:
             # Serializes the object back into clean JSON
@@ -161,3 +164,7 @@ class SettingsManager:
     async def save_settings_async(self):
         """Saves settings on a background worker thread without blocking the GUI."""
         return await anyio.to_thread.run_sync(self.save_settings)
+
+    async def reset_settings_async(self):
+        return await anyio.to_thread.run_sync(self.rest_settings)
+

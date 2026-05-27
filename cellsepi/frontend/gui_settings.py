@@ -31,6 +31,11 @@ class GUISettings:
         await self.settings_manager.load_settings_async()
         self.overlay.close()
 
+    async def _reset(self):
+        await self.settings_manager.reset_settings_async()
+        self.build()
+        self.overlay.update()
+
     def build(self):
         self.overlay.content = ft.Stack(
             [
@@ -53,11 +58,16 @@ class GUISettings:
                                                 ),
                                                 ft.Row(
                                                     controls=[
-                                                        ft.ElevatedButton(
-                                                            "Cancel",
-                                                            on_click=self._cancel
+                                                        ft.FilledButton(
+                                                            ft.Text("Reset",color=ft.Colors.WHITE),
+                                                            on_click=self._reset,
+                                                            bgcolor=ft.Colors.RED
                                                         ),
-                                                        ft.ElevatedButton(
+                                                        ft.Button(
+                                                            "Cancel",
+                                                            on_click=self._cancel,
+                                                        ),
+                                                        ft.Button(
                                                             "Save",
                                                             on_click=self._save
                                                         )
