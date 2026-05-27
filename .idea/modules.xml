@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/CellSePi.iml" filepath="$PROJECT_DIR$/.idea/CellSePi.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../CellSePiDrawing/.idea/CellSePiDrawing.iml" filepath="$PROJECT_DIR$/../CellSePiDrawing/.idea/CellSePiDrawing.iml" />
     </modules>
   </component>
 </project>

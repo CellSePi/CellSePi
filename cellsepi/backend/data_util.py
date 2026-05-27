@@ -123,7 +123,7 @@ class FileTransfer(Notifier):
         self.file_types = file_types
         self.event_manager = event_manager
 
-    def __call__(self, source_dir=None, target_dir=None,new_prefix=None,source_paths=None, *args, **kwargs):
+    def __call__(self, source_dir=None, target_dir=None, new_prefix=None, source_paths=None, *args, **kwargs):
         self._call_start_listeners(True)
 
         if source_dir is None and source_paths is None:
@@ -676,8 +676,21 @@ def consistent_hash(data):
 
 def export_dataframe_to_pdf(df: pd.DataFrame, output_path: str):
     # Setup document geometry (Standard Letter size)
-    doc = SimpleDocTemplate(output_path, pagesize=pagesizes.A4, rightMargin=30, leftMargin=30, topMargin=30,
-                            bottomMargin=30)
+
+    margin = 30
+    page_width, page_height = pagesizes.A4
+    available_width = page_width - 2 * margin
+    num_cols = len(df.columns)
+    col_widths = [available_width / num_cols] * num_cols
+
+    doc = SimpleDocTemplate(
+        output_path,
+        pagesize=pagesizes.A4,
+        rightMargin=margin,
+        leftMargin=margin,
+        topMargin=margin,
+        bottomMargin=margin
+    )
     story = []
 
     # Add a title header
@@ -691,10 +704,10 @@ def export_dataframe_to_pdf(df: pd.DataFrame, output_path: str):
     if df.empty or len(df.columns) == 0:
         data_matrix = [["No mask was generated"]]
     else:
-        data_matrix = [df.columns.to_list()] + df.values.tolist()
+        data_matrix = [df.columns.to_list()] + df.round(2).values.tolist()
 
     # Create the ReportLab dynamic Table widget
-    pdf_table = Table(data_matrix)
+    pdf_table = Table(data_matrix)#, colWidths=col_widths)
 
     # Apply a clean, modern aesthetic theme (JetBrains-style dark/light structure)
     pdf_table.setStyle(TableStyle([
