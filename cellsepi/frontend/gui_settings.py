@@ -18,6 +18,7 @@ class GUISettings:
         self.overlay = PageOverlay(
             page,
             content=None,
+            on_dismiss=lambda e: self.page.run_task(self._cancel),
             modal=False
         )
         pass
