@@ -17,15 +17,15 @@ def normalize_image(image: np.ndarray, ) -> np.ndarray:
 
     cropped_image = image[..., offset[-2]: -offset[-2], offset[-1]: -offset[-1]]
 
-    min_val = np.quantile(cropped_image, settings.lower_quantile)
-    max_val = np.quantile(cropped_image, settings.upper_quantile)
+    min_val, max_val = np.quantile(cropped_image, [settings.lower_quantile, settings.upper_quantile])
+
     if (max_val - min_val) > 0:
         image = (image - min_val) / (max_val - min_val)
     else:
         image = np.zeros_like(image)
 
-    image[image < 0] = 0
-    image[image > 1] = 1
+    np.clip(image, 0.0, 1.0, out=image)
+
     return image
 
 
