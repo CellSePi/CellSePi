@@ -4,11 +4,13 @@ import platform
 import re
 import subprocess
 import sys
+import threading
 
 import flet as ft
 
 from backend.constants import downloads_directory, ModelType, ExportFileType
 from backend.data_util import FileTransfer
+from backend.expert_mode.event_manager import EventManager
 from backend.fluorescence import Fluorescence
 from backend.segmentation import Segmentation
 from frontend.dialogs import ChoiceDialog
@@ -172,8 +174,37 @@ class GUISegmentation:
                 self.gui.directory.disable_path_choosing()
 
                 self.gui.page.update()
-                # this will throw an error if something other than a model was chosen
-                self.gui.page.run_thread(self.segmentation.run)
+
+                async def flow():
+                    print("mask paths:",self.gui.csp.mask_paths)
+                    if self.gui.csp.mask_paths:
+
+                        dialog = ChoiceDialog(
+                            page=self.gui.page,
+                            title="Images previously segmented",
+                            text="Do you want to delete all pre-existing mask data?\nThis will re-segment all images instead of processing only images with missing masks.",
+                            option_1="Delete",
+                            option_2="Continue",
+                        )
+
+                        result = await dialog.show()
+                        delete = (result == 0)
+
+                        if delete:
+                            for img in self.gui.csp.mask_paths:
+                                for seg_channel in self.gui.csp.mask_paths[img]:
+                                    path = self.gui.csp.mask_paths[img][seg_channel]
+                                    if os.path.exists(path):
+                                        os.remove(path)
+
+                            self.gui.csp.mask_paths = None
+                            self.gui.directory.update_all_masks_check()
+                            self.gui.page.update()
+
+                    self.gui.page.run_thread(self.segmentation.run)
+
+                self.gui.page.run_task(flow)
+
             except:
                 self.gui.page.show_dialog(
                     ft.SnackBar(ft.Text("You have selected an incompatible file for the segmentation model.",
@@ -378,6 +409,7 @@ class GUISegmentation:
             if chosen_path is None:
                 return
             path = pathlib.Path(chosen_path)
+
             # add extension if deleted during rename
             if path.suffix == "":
                 path = path.with_suffix(export_ft.value.extension)

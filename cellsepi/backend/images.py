@@ -199,12 +199,12 @@ class BatchImageSegmentation(Notifier):
                 self.segmentation_channel = self.gui.csp.config.get_bf_channel()
                 self.diameter = self.gui.csp.config.get_diameter()
                 self.suffix = self.gui.csp.current_mask_suffix
-                self.backup_masks()
+                #self.backup_masks()
             if self.cancel_now:
                 self.cancel_now = False
-                self.restore_backup()
+                #self.restore_backup()
                 self.num_seg_images = 0
-                self.cleanup_backups()
+                #self.cleanup_backups()
                 return
             elif self.pause_now:
                 self.pause_now = False
@@ -270,14 +270,15 @@ class BatchImageSegmentation(Notifier):
 
         start_index = self.num_seg_images
         for iN, image_id in enumerate(list(image_paths)[start_index:], start=start_index):
+
             if (segmentation_channel in image_paths[image_id]
                     and os.path.isfile(image_paths[image_id][segmentation_channel])):
                 if event_manager is None:
                     if self.cancel_now:
                         self.cancel_now = False
-                        self.restore_backup()
+                        #self.restore_backup()
                         self.num_seg_images = 0
-                        self.cleanup_backups()
+                        #self.cleanup_backups()
                         return
                     elif self.pause_now:
                         self.pause_now = False
@@ -285,6 +286,11 @@ class BatchImageSegmentation(Notifier):
                     elif self.resume_now:
                         self.resume_now = False
                         self.segmentation.is_resuming()
+
+                if self.gui.csp.mask_paths and image_id in self.gui.csp.mask_paths:
+                    if self.gui.csp.mask_paths[image_id] is not None:
+                        print("skip image, mask already exists")
+                        continue
 
                 image_path = image_paths[image_id][segmentation_channel]
                 image = tifffile.imread(image_path)
@@ -544,7 +550,6 @@ class BatchImageReadout(Notifier):
 
         readout_path = self.file_path
         df = pd.DataFrame(row_entries)
-
         match self.export_file_type:
             case ExportFileType.EXCEL:
                 df.to_excel(readout_path, index=False)
