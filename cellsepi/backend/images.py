@@ -1,5 +1,6 @@
 import os
 import pathlib
+import shutil
 import threading
 
 import pandas as pd
@@ -13,18 +14,22 @@ from scipy.ndimage import binary_erosion
 from tifffile import tifffile
 
 from backend.constants import ExportFileType, ModelType
-from backend.data_util import load_image_to_numpy,export_dataframe_to_pdf
+from backend.data_util import load_image_to_numpy, export_dataframe_to_pdf
 from backend.expert_mode.event_manager import EventManager
 from backend.expert_mode.listener import ProgressEvent
 from backend.notifier import Notifier
 from backend.CellposeV3 import modelsV3, ioV3
+
+from backend.image_utils import normalize_image, rescale_image
+from backend.settings import SettingsManager, DownscaleMode
 
 
 class BatchImageSegmentation(Notifier):
     """
     This class handles the segmentation of the images.
     """
-    GPU:bool = False
+    GPU: bool = False
+
     def __init__(self,
                  segmentation=None,
                  gui=None,
@@ -84,6 +89,22 @@ class BatchImageSegmentation(Notifier):
 
         return label_mask
 
+    def cleanup_backups(self):
+        """
+        Deletes the .backup files from disk after a successful run.
+        """
+        if self.prev_masks_exist:
+            for image_id, channels in self.masks_backup.items():
+                for segmentation_channel, backup_file_path in channels.items():
+                    if backup_file_path is not None and os.path.exists(backup_file_path):
+                        try:
+                            os.remove(backup_file_path)
+                        except OSError as e:
+                            print(f"Error removing backup {backup_file_path}: {e}")
+
+        self.masks_backup = {}
+        self.prev_masks_exist = False
+
     def backup_masks(self):
         """
         This method creates a backup of the previously generated masks.
@@ -96,21 +117,12 @@ class BatchImageSegmentation(Notifier):
                 if segmentation_channel == self.segmentation_channel:
                     if os.path.exists(path):
                         # needed to add error catches to handle listener with ui thread (can not update page ui in listener thread in version 0.84)
-                        try:
-                            if os.path.getsize(path) == 0:
-                                print("Empty file:", path)
-                                continue
-                            mask = np.load(path, allow_pickle=True)
-                        except EOFError:
-                            print("Corrupted file (EOF):", path)
-                            continue
-                        except Exception as e:
-                            print("Error loading mask:", path, e)
-                            continue
+                        backup_path = path + ".backup"
+                        shutil.copy2(path, backup_path)
 
                         self.masks_backup[image_id] = {}
+                        self.masks_backup[image_id][segmentation_channel] = backup_path
                         self.prev_masks_exist = True
-                        self.masks_backup[image_id][segmentation_channel] = mask
 
         if self.prev_masks_exist:
             for image_id in self.gui.csp.image_paths:
@@ -136,14 +148,14 @@ class BatchImageSegmentation(Notifier):
             for image_id, channels in self.masks_backup.items():
                 if image_id not in self.gui.csp.mask_paths:
                     self.gui.csp.mask_paths[image_id] = {}
-                for segmentation_channel, mask in channels.items():
-                    if mask is not None:
-                        backup_path = self.gui.csp.mask_paths[image_id].get(segmentation_channel)
-                        if backup_path:
-                            np.save(backup_path, mask)
+                for segmentation_channel, backup_path in channels.items():
+                    if backup_path is not None:
+                        original_path = self.gui.csp.mask_paths[image_id].get(segmentation_channel)
+                        if original_path:
+                            shutil.move(backup_path, original_path)
                             if image_id == self.gui.csp.image_id and segmentation_channel == self.gui.csp.config.get_bf_channel():  # refreshes or delete the current generated mask
                                 self.gui.page.run_task(self.gui.canvas.update_mask_image, True)
-                                self.gui.mask_update(image_id, True)
+                                self.gui.page.run_task(self.gui._mask_update_async,image_id, True)
                     else:
                         if segmentation_channel in self.gui.csp.mask_paths[image_id]:
                             path = self.gui.csp.mask_paths[image_id][segmentation_channel]
@@ -176,21 +188,23 @@ class BatchImageSegmentation(Notifier):
     def resume_action(self):
         self.resume_now = True
 
-    def run(self, event_manager: EventManager = None, image_paths=None, mask_paths=None, model_path=None,model_type=None):
+    def run(self, event_manager: EventManager = None, image_paths=None, mask_paths=None, model_path=None,
+            model_type=None):
         """
         Applies the segmentation model to every image and stores the resulting masks.
         """
         if event_manager is None:
             print("event_manager is None")
             if self.num_seg_images == 0:  # shouldn't backup again, if it was paused and now resuming
-                self.backup_masks()
                 self.segmentation_channel = self.gui.csp.config.get_bf_channel()
                 self.diameter = self.gui.csp.config.get_diameter()
                 self.suffix = self.gui.csp.current_mask_suffix
+                self.backup_masks()
             if self.cancel_now:
                 self.cancel_now = False
                 self.restore_backup()
                 self.num_seg_images = 0
+                self.cleanup_backups()
                 return
             elif self.pause_now:
                 self.pause_now = False
@@ -227,18 +241,18 @@ class BatchImageSegmentation(Notifier):
             if w2_data is None:
                 model = modelsV3.CellposeModel(pretrained_model=segmentation_model, gpu=self.GPU)
                 ioV3.logger_setup()
-                model_type = ModelType.C_CYTO
+                model_type = ModelType.CELLPOSE_CYTO
             else:
                 model = models.CellposeModel(pretrained_model=segmentation_model, gpu=self.GPU)
                 io.logger_setup()
-                model_type = ModelType.C_SAM
-        elif model_type == ModelType.C_CYTO:
+                model_type = ModelType.CELLPOSE_SAM
+        elif model_type == ModelType.CELLPOSE_CYTO:
             model = modelsV3.CellposeModel(model_type="cyto3", gpu=self.GPU)
             ioV3.logger_setup()
-        elif model_type == ModelType.C_NUCLEI:
+        elif model_type == ModelType.CELLPOSE_NUCLEI:
             model = modelsV3.CellposeModel(model_type="nuclei", gpu=self.GPU)
             ioV3.logger_setup()
-        elif model_type == ModelType.C_SAM:
+        elif model_type == ModelType.CELLPOSE_SAM:
             model = models.CellposeModel(gpu=self.GPU)
             io.logger_setup()
 
@@ -256,13 +270,14 @@ class BatchImageSegmentation(Notifier):
 
         start_index = self.num_seg_images
         for iN, image_id in enumerate(list(image_paths)[start_index:], start=start_index):
-            if segmentation_channel in image_paths[image_id] and os.path.isfile(
-                    image_paths[image_id][segmentation_channel]):
+            if (segmentation_channel in image_paths[image_id]
+                    and os.path.isfile(image_paths[image_id][segmentation_channel])):
                 if event_manager is None:
                     if self.cancel_now:
                         self.cancel_now = False
                         self.restore_backup()
                         self.num_seg_images = 0
+                        self.cleanup_backups()
                         return
                     elif self.pause_now:
                         self.pause_now = False
@@ -274,17 +289,23 @@ class BatchImageSegmentation(Notifier):
                 image_path = image_paths[image_id][segmentation_channel]
                 image = tifffile.imread(image_path)
 
+                original_shape = image.shape
+                original_image = image.copy()
+                # print(f"Original Shape: {original_shape}")
+
                 # Normalization
                 image = image.astype(np.float32)
-                min_val = np.min(image)
-                max_val = np.max(image)
-                if (max_val - min_val) > 0:
-                    image = (image - min_val) / (max_val - min_val)
-                else:
-                    image = np.zeros_like(image)
+                image = normalize_image(image)
+
+                # Rescaling
+                rescale_settings = SettingsManager().settings.performance.segmentation_downscaling
+                image = rescale_image(image, rescale_settings=rescale_settings)
+                factor = np.max(image.shape[-2:]) / np.max(original_shape[-2:])
+                diameter = diameter * factor
+                # print(f"Rescaled Shape: {image.shape}")
 
                 # model evaluates image
-                if model_type == ModelType.C_NUCLEI or model_type == ModelType.C_CYTO:
+                if model_type == ModelType.CELLPOSE_NUCLEI or model_type == ModelType.CELLPOSE_CYTO:
                     if image.ndim == 3:  # z, y, x dimensions
                         res = model.eval(image, diameter=diameter, channels=[0, 0], z_axis=0, do_3D=False,
                                          stitch_threshold=0.5)
@@ -292,7 +313,7 @@ class BatchImageSegmentation(Notifier):
                         res = model.eval(image, diameter=diameter, channels=[0, 0])
                     mask, flow, style = res[:3]
 
-                elif model_type == ModelType.C_SAM:
+                elif model_type == ModelType.CELLPOSE_SAM:
                     if image.ndim == 3:  # z, y, x dimensions
                         res = model.eval(image, diameter=diameter, z_axis=0, do_3D=False, stitch_threshold=0.5)
                     else:
@@ -323,6 +344,20 @@ class BatchImageSegmentation(Notifier):
 
                     flow, style = None, None
 
+                # print(f"Original Mask Shape: {mask.shape}")
+                # Restore the original image shape and adapt the masks and flows accordingly
+                if mask is not None:
+                    mask = rescale_image(mask, target_shape=original_shape)
+                if flow is not None:
+                    flow[0] = np.stack([rescale_image(flow[0][..., iD], target_shape=original_shape) for iD in
+                                        range(flow[0].shape[2])], axis=2)
+                    flow[1] = np.array([rescale_image(flow[1][iD], target_shape=original_shape) for iD in
+                                        range(flow[1].shape[0])])
+                    flow[2] = rescale_image(flow[2], target_shape=original_shape)
+
+                # print(f"Rescaled Mask Shape: {mask.shape}")
+                image = original_image
+
                 # Generate the output filename directly using the suffix attribute
                 directory, filename = os.path.split(image_path)
                 name, _ = os.path.splitext(filename)
@@ -339,9 +374,9 @@ class BatchImageSegmentation(Notifier):
                             os.remove(backup_path)
                         os.rename(default_suffix_path, backup_path)
                 # Save the segmentation results directly with the default name first
-                if model_type == ModelType.C_NUCLEI or model_type == ModelType.C_CYTO:
+                if model_type == ModelType.CELLPOSE_NUCLEI or model_type == ModelType.CELLPOSE_CYTO:
                     ioV3.masks_flows_to_seg([image], [mask], [flow], [image_path])
-                elif model_type == ModelType.C_SAM:
+                elif model_type == ModelType.CELLPOSE_SAM:
                     io.masks_flows_to_seg([image], [mask], [flow], [image_path])
                 else:
                     H, W = image.shape[:2]
@@ -381,7 +416,7 @@ class BatchImageSegmentation(Notifier):
                 self.num_seg_images = self.num_seg_images + 1
                 if event_manager is None:
                     self.gui.directory.update_mask_check(image_id)
-                    self.gui.page.run_task(self.gui.average_diameter.get_avg_diameter,image_id)
+                    self.gui.page.run_task(self.gui.average_diameter.get_avg_diameter, image_id)
             else:
                 percent = round((iN + 1) / n_images * 100)
                 progress = str(percent) + " %"
@@ -395,6 +430,7 @@ class BatchImageSegmentation(Notifier):
 
         if event_manager is None:
             self._call_completion_listeners()
+            self.cleanup_backups()
         else:
             event_manager.notify(ProgressEvent(percent=100, process=f"All images segmented."))
         # reset variables
@@ -472,7 +508,7 @@ class BatchImageReadout(Notifier):
             for iX, cell_id in enumerate(cell_ids):
                 data_entry = {"image_id": image_id,
                               "id": cell_id,
-                              "seg_channel": segmentation_channel,}
+                              "seg_channel": segmentation_channel, }
                 for channel_id in channels:
                     channel_name = self._channel_name(channel_id)
                     data_entry[channel_name] = None

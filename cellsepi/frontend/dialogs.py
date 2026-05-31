@@ -17,7 +17,7 @@ class ChoiceDialog:
             actions=[
                 # ft.TextButton("Cancel", on_click=self._on_cancel),
                 ft.FilledButton(option_1, color=ft.Colors.WHITE, bgcolor=ft.Colors.PRIMARY, on_click=self._on_opt_1),
-                ft.ElevatedButton(option_2, on_click=self._on_opt_2) if option_2 else None,
+                ft.Button(option_2, on_click=self._on_opt_2) if option_2 else None,
             ],
             actions_alignment=ft.MainAxisAlignment.END,
         )

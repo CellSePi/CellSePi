@@ -54,7 +54,7 @@ class ColorSelection:
         self.dialog = PageOverlay(self.gui.page, ft.Stack([ft.Row([
             ft.Column([ft.Card(content=ft.Stack([ft.Container(ft.Column(
                 [self.picker_container,
-                 ft.Container(ft.Row([ft.TextButton("Save", on_click=self.change_color)
+                 ft.Container(ft.Row([ft.Button("Save", on_click=self.change_color)
                                       ], alignment=ft.MainAxisAlignment.END))
                  ]
             ), padding=20, alignment=ft.Alignment.CENTER)]), height=385, width=700)],
@@ -69,6 +69,7 @@ class ColorSelection:
             on_color_change=self.on_color_change,
             enable_alpha=False
         )
+        self.current_color = rgb_to_hex(self.config.get_mask_color())
         self.dialog.open()
         self.picker_container.update()
         self.color_type = ColorTypes.Mask
@@ -80,6 +81,7 @@ class ColorSelection:
             on_color_change=self.on_color_change,
             enable_alpha=False
         )
+        self.current_color = rgb_to_hex(self.config.get_outline_color())
         self.dialog.open()
         self.picker_container.update()
         self.color_type = ColorTypes.Outline

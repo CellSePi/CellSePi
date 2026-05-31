@@ -104,8 +104,27 @@ class DirectoryCard(ft.Card):
                 disabled=True,
                 visible=True
             )
-            self.buttons_row = ft.Row([ft.Column([ft.Row([self.directory_row, self.files_row, ]),ft.Row([self.images_and_mask_export_button])],
-                                                        )], expand=True,alignment=ft.MainAxisAlignment.END)
+            self.buttons_row = ft.Row(
+                [
+                    ft.Column(
+                        [
+                            ft.Row(
+                                [
+                                    self.directory_row,
+                                    self.files_row,
+                                ]
+                            ),
+                            ft.Row(
+                                [
+                                    self.images_and_mask_export_button
+                                ]
+                            )
+                        ],
+                    )
+                ],
+                expand=True,
+                alignment=ft.MainAxisAlignment.END
+            )
             self.lif_slider_blocker = ft.Container(
                 height=30,
                 expand=True,
@@ -221,11 +240,10 @@ class DirectoryCard(ft.Card):
             raise Exception(f"Source type {self.source_type} not supported!")
         self.page.run_thread(self.select_dir_and_update, path)
 
-
-    def select_dir_and_update(self,path):
+    def select_dir_and_update(self, path):
         if path:
             self.directory_path.value = path
-            self.select_directory(path, self.file_type, self.gui.csp.config.get_channel_prefix())
+            self.select_directory(path, self.file_type, self.gui.csp.config.get_channel_prefix(), self.gui.csp.config.get_mask_suffix())
             self.load_images()
         else:
             self.image_gallery.controls.clear()
@@ -249,6 +267,7 @@ class DirectoryCard(ft.Card):
             path,
             file_type: FileType,
             channel_prefix: str,
+            mask_suffix: str = "_seg",
             event_manager: EventManager = None,
             overwrite: bool = True,
     ):
@@ -292,7 +311,7 @@ class DirectoryCard(ft.Card):
                     self.gui.progress_ring.visible = False
                     return None
                 else:
-                    raise PipelineRunningException("Loading Error",f"The directory is empty.")
+                    raise PipelineRunningException("Loading Error", f"The directory is empty.")
 
         if working_directory.exists():
             if event_manager is None:
@@ -318,7 +337,6 @@ class DirectoryCard(ft.Card):
 
                 overwrite = (dialog_result[0] == 0)
 
-
         if overwrite:
             if working_directory.exists():
                 shutil.rmtree(working_directory)
@@ -341,7 +359,8 @@ class DirectoryCard(ft.Card):
                         )
                     else:
                         if event_manager is not None:
-                            raise PipelineRunningException("Type Error", f"Expected filetype: {file_type.extension_string}")
+                            raise PipelineRunningException("Type Error",
+                                                           f"Expected filetype: {file_type.extension_string}")
                         else:
                             self.is_file_type_supported = False
                 case SourceType.DIRECTORY:  # Directory Case
@@ -353,6 +372,7 @@ class DirectoryCard(ft.Card):
                         path=path,
                         target_dir=working_directory,
                         channel_prefix=channel_prefix,
+                        mask_suffix=mask_suffix,
                         event_manager=event_manager
                     )
                 case _:
@@ -399,7 +419,7 @@ class DirectoryCard(ft.Card):
                 self.gui.training_environment.start_button.disabled = False
                 if ((self.gui.csp.model_path is not None and (
                         self.gui.csp.model_type == ModelType.CUSTOM))
-                        or self.gui.csp.model_type == ModelType.C_CYTO or self.gui.csp.model_type == ModelType.C_NUCLEI or self.gui.csp.model_type == ModelType.C_SAM):
+                        or self.gui.csp.model_type == ModelType.CELLPOSE_CYTO or self.gui.csp.model_type == ModelType.CELLPOSE_NUCLEI or self.gui.csp.model_type == ModelType.CELLPOSE_SAM):
                     self.gui.progress_bar_text.value = "Ready to Start"
                     self.gui.start_button.disabled = False
                 self.gui.ready_to_start = True
@@ -443,7 +463,8 @@ class DirectoryCard(ft.Card):
                                         [
                                             get_image(cur_image_paths[channel_id]),
                                             self.selected_images_visualise[image_id][channel_id]
-                                        ]), width=156, height=156),
+                                        ]
+                                    ), width=156, height=156),
                                 on_tap=lambda e, img_id=image_id,
                                               c_id=channel_id: e.page.run_task(update_main_image,
                                                                                img_id,

@@ -23,10 +23,13 @@ class SourceType(Enum):
 
 
 class ModelType(Enum):
-    CUSTOM = auto()
-    C_NUCLEI = auto()
-    C_CYTO = auto()
-    C_SAM = auto()
+    CELLPOSE_SAM = "Cellpose SAM"
+    CELLPOSE_CYTO = "Cellpose Cyto"
+    CELLPOSE_NUCLEI = "Cellpose Nuclei"
+    CUSTOM = "Custom"
+
+
+
 
 class FileType(Enum):
     LIF = SimpleNamespace(name="Lif", extensions=["lif"], source=SourceType.FILE)
@@ -72,6 +75,12 @@ class ExportFileType(Enum):
 class Suffixes(Enum):
     SEGMENTATION_MASK = SimpleNamespace(name="SEGMENTATION_MASK", suffixes=["_seq"], extensions=["npy"])
     SPOT_MASK = SimpleNamespace(name="SPOT_MASK", suffixes=["_sdm"], extensions=["npy"])
+
+
+class DownscaleMode(str, Enum):
+    NONE = "Disabled"
+    PIXELS = "Pixels"
+    FRACTION = "Fraction"
 
 
 def downloads_directory() -> Path:

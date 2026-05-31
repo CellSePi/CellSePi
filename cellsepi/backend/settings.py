@@ -68,11 +68,7 @@ from typing import Any
 import anyio
 from pydantic import BaseModel, Field
 
-
-class DownscaleMode(str, Enum):
-    NONE = "none"
-    PIXELS = "pixels"
-    FRACTION = "fraction"
+from backend.constants import DownscaleMode
 
 
 # Setup individual settings
@@ -102,14 +98,24 @@ class VisualizationConfig(BaseModel):
 
 
 class PerformanceConfig(BaseModel):
-    segmentation: SegmentationConfig = Field(default_factory=SegmentationConfig)
-    visualization: VisualizationConfig = Field(default_factory=VisualizationConfig)
+    segmentation_downscaling: SegmentationConfig = Field(default_factory=SegmentationConfig)
+    visualization_downscaling: VisualizationConfig = Field(default_factory=VisualizationConfig)
+
+
+class ImageNormalizationConfig(BaseModel):
+    normalize_gallery: bool = True
+    margin: float = 0.1  # The distance to the image border to ignore in percent of image width (0.2 means that 20% of the image width and height is ignored on each side (total 40% per side))
+    upper_quantile: float = 0.99  # The value to consider as maximum for the image inside the margin
+    lower_quantile: float = 0.02  # The value to consider as minimum for the image inside the margin
 
 
 # Define main Settings Schema with built-in defaults
+
+
 class AppSettings(BaseModel):
     cache: DataPersistenceConfig = Field(default_factory=DataPersistenceConfig)
     performance: PerformanceConfig = Field(default_factory=PerformanceConfig)
+    image: ImageNormalizationConfig = Field(default_factory=ImageNormalizationConfig)
 
 
 # Manage the File I/O wrapping the schema
@@ -143,6 +149,9 @@ class SettingsManager:
         self.settings = settings
         return settings
 
+    def rest_settings(self):
+        self.settings = AppSettings()
+
     def save_settings(self):
         with open(self.file_path, "w") as f:
             # Serializes the object back into clean JSON
@@ -155,3 +164,7 @@ class SettingsManager:
     async def save_settings_async(self):
         """Saves settings on a background worker thread without blocking the GUI."""
         return await anyio.to_thread.run_sync(self.save_settings)
+
+    async def reset_settings_async(self):
+        return await anyio.to_thread.run_sync(self.rest_settings)
+

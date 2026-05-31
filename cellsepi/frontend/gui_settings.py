@@ -1,11 +1,11 @@
 from enum import Enum
-from typing import get_args
 
 import flet as ft
 from pydantic import BaseModel
 
 from backend.settings import SettingsManager
 from frontend.gui_page_overlay import PageOverlay
+from image_editing_view import ImageEditingView
 
 
 class GUISettings:
@@ -14,21 +14,38 @@ class GUISettings:
         self.page = page
         self.gui = gui
         self.settings_manager = SettingsManager()
-        # self.settings = self.settings_manager.settings
+        ImageEditingView.update_settings(self.settings_manager.settings.image.margin,
+                                         self.settings_manager.settings.image.lower_quantile,
+                                         self.settings_manager.settings.image.upper_quantile,
+                                         self.settings_manager.settings.performance.visualization_downscaling.mode.value,
+                                         self.settings_manager.settings.performance.visualization_downscaling.max_pixels,
+                                         self.settings_manager.settings.performance.visualization_downscaling.max_fraction)
         self.overlay = PageOverlay(
             page,
             content=None,
+            on_dismiss=lambda e: self.page.run_task(self._cancel),
             modal=False
         )
         pass
 
     async def _save(self):
         await self.settings_manager.save_settings_async()
+        ImageEditingView.update_settings(self.settings_manager.settings.image.margin,
+                                         self.settings_manager.settings.image.lower_quantile,
+                                         self.settings_manager.settings.image.upper_quantile,
+                                         self.settings_manager.settings.performance.visualization_downscaling.mode.value,
+                                         self.settings_manager.settings.performance.visualization_downscaling.max_pixels,
+                                         self.settings_manager.settings.performance.visualization_downscaling.max_fraction)
         self.overlay.close()
 
     async def _cancel(self):
         await self.settings_manager.load_settings_async()
         self.overlay.close()
+
+    async def _reset(self):
+        await self.settings_manager.reset_settings_async()
+        self.build()
+        self.overlay.update()
 
     def build(self):
         self.overlay.content = ft.Stack(
@@ -52,11 +69,16 @@ class GUISettings:
                                                 ),
                                                 ft.Row(
                                                     controls=[
-                                                        ft.ElevatedButton(
-                                                            "Cancel",
-                                                            on_click=self._cancel
+                                                        ft.FilledButton(
+                                                            ft.Text("Reset",color=ft.Colors.WHITE),
+                                                            on_click=self._reset,
+                                                            bgcolor=ft.Colors.RED
                                                         ),
-                                                        ft.ElevatedButton(
+                                                        ft.Button(
+                                                            "Cancel",
+                                                            on_click=self._cancel,
+                                                        ),
+                                                        ft.Button(
                                                             "Save",
                                                             on_click=self._save
                                                         )
@@ -104,12 +126,12 @@ class GUISettings:
                     content=ft.Container(
                         content=ft.Column(
                             [
+                                ft.Divider(),
                                 ft.Text(
                                     field_name.upper(),
                                     weight=ft.FontWeight.BOLD,
                                     size=16
                                 ),
-                                ft.Divider(),
                                 # Recursively generate form fields for this model
                                 self._generate_fields_for_model(sub_model)
                             ]
@@ -192,7 +214,7 @@ class GUISettings:
                             size=14
                         ),
                         ft.Switch(
-                            label=label_text,
+                            # label=label_text,
                             value=bool(value),
                             on_change=lambda e, m=model, f=field_name: self._on_change_handler(e, m, f, bool)
                         )
