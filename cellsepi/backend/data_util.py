@@ -612,13 +612,13 @@ def remove_gradient(img):
 def process_channel(channel_id, channel_path):
     image = tifffile.imread(channel_path)
 
+    if image.ndim == 3:
+        image = np.max(image, axis=0)
+
     if SettingsManager().settings.image.normalize_gallery:
         image = image.astype(np.float32)
         image = normalize_image(image)
         image = (image * 65535).clip(0, 65535).astype(np.uint16)
-
-    if image.ndim == 3:
-        image = np.max(image, axis=0)
 
     h, w = image.shape[:2]
 
