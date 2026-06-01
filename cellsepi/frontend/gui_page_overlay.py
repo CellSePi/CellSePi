@@ -20,12 +20,13 @@ class PageOverlay(ft.Stack):
     def page(self):
         return self._page
 
-    def __init__(self, page: ft.Page, content: ft.Stack = None, on_dismiss=None, modal=False):
+    def __init__(self, page: ft.Page, content: ft.Stack = None, on_dismiss=None,dismiss=True, modal=False):
         super().__init__()
         self.page = page
         self.controls = []
         self._content: ft.Stack | None = None
         self.on_dismiss: Any | None = on_dismiss
+        self.dismiss: bool = dismiss
         self.modal = modal
         self._background = self.create_background()
         self.content = content
@@ -73,9 +74,10 @@ class PageOverlay(ft.Stack):
     def create_background(self):
         async def bg_click(e):
             if not self.modal:
-                self.close()
-                if self.on_dismiss is not None:
-                    self.on_dismiss(e)
+                if self.dismiss:
+                    self.close()
+                    if self.on_dismiss is not None:
+                        self.on_dismiss(e)
 
         background = ft.GestureDetector(
             mouse_cursor=ft.MouseCursor.BASIC,

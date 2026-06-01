@@ -23,7 +23,7 @@ class GUISettings:
         self.overlay = PageOverlay(
             page,
             content=None,
-            on_dismiss=lambda e: self.page.run_task(self._cancel),
+            dismiss= False,
             modal=False
         )
         pass
@@ -67,13 +67,14 @@ class GUISettings:
                                                     spacing=10,
                                                     padding=10,
                                                 ),
+                                                ft.Row([
+                                                ft.Button(
+                                                    ft.Text("Reset", color=ft.Colors.RED),
+                                                    on_click=self._reset,
+                                                ),
                                                 ft.Row(
                                                     controls=[
-                                                        ft.FilledButton(
-                                                            ft.Text("Reset",color=ft.Colors.WHITE),
-                                                            on_click=self._reset,
-                                                            bgcolor=ft.Colors.RED
-                                                        ),
+
                                                         ft.Button(
                                                             "Cancel",
                                                             on_click=self._cancel,
@@ -84,9 +85,9 @@ class GUISettings:
                                                         )
                                                     ],
                                                     alignment=ft.MainAxisAlignment.END,
-                                                    width=self.calc_width(),
                                                     spacing=10
-                                                ),
+                                                ),],alignment=ft.MainAxisAlignment.SPACE_BETWEEN, width=self.calc_width()
+                                                )
                                             ],
                                             # horizontal_alignment=ft.CrossAxisAlignment.STRETCH
                                         ),
