@@ -1,9 +1,11 @@
 [tool.flet.app]
 path = "cellsepi"
 product_name = "CellSePi"
-executable_name = "cellsepi"
-version = "2.0"
+artifact = "cellsepi"
+version = "2.0.0"
 org = "org.cellsepi"
+company = "CellSePi"
+copyright = "Copyright © 2026 CellSePi"
 description = "Segmentation of microscopy images and data analysis pipeline with a graphical user interface, powered by Cellpose."
 
 [tool.poetry]

@@ -1,3 +1,4 @@
+import cv2
 import os
 import pathlib
 import shutil
@@ -270,7 +271,7 @@ class BatchImageSegmentation(Notifier):
 
         start_index = self.num_seg_images
         for iN, image_id in enumerate(list(image_paths)[start_index:], start=start_index):
-
+            diameter = self.diameter
             if (segmentation_channel in image_paths[image_id]
                     and os.path.isfile(image_paths[image_id][segmentation_channel])):
                 if event_manager is None:
@@ -353,13 +354,30 @@ class BatchImageSegmentation(Notifier):
                 # print(f"Original Mask Shape: {mask.shape}")
                 # Restore the original image shape and adapt the masks and flows accordingly
                 if mask is not None:
-                    mask = rescale_image(mask, target_shape=original_shape)
+                    mask = rescale_image(mask, target_shape=original_shape,interpolation=cv2.INTER_NEAREST)
                 if flow is not None:
-                    flow[0] = np.stack([rescale_image(flow[0][..., iD], target_shape=original_shape) for iD in
-                                        range(flow[0].shape[2])], axis=2)
-                    flow[1] = np.array([rescale_image(flow[1][iD], target_shape=original_shape) for iD in
-                                        range(flow[1].shape[0])])
-                    flow[2] = rescale_image(flow[2], target_shape=original_shape)
+                    fraction_y = original_shape[-2] / flow[0].shape[-3]
+                    fraction_x = original_shape[-1] / flow[0].shape[-2]
+
+                    flow[0] = np.stack(
+                        [rescale_image(flow[0][..., iD], target_shape=original_shape)
+                         for iD in range(flow[0].shape[-1])],
+                        axis=-1
+                    )
+
+                    flow[1] = np.stack(
+                        [rescale_image(flow[1][z], target_shape=original_shape)
+                         for z in range(flow[1].shape[0])],
+                        axis=0
+                    )
+                    flow[1][-2] = flow[1][-2] * fraction_y
+                    flow[1][-1] = flow[1][-1] * fraction_x
+
+                    flow[2] = rescale_image(
+                        flow[2],
+                        target_shape=original_shape,
+                        interpolation=cv2.INTER_NEAREST
+                    )
 
                 # print(f"Rescaled Mask Shape: {mask.shape}")
                 image = original_image
@@ -554,6 +572,7 @@ class BatchImageReadout(Notifier):
 
         readout_path = self.file_path
         df = pd.DataFrame(row_entries)
+
         match self.export_file_type:
             case ExportFileType.EXCEL:
                 df.to_excel(readout_path, index=False)
