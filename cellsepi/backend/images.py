@@ -371,7 +371,7 @@ class BatchImageSegmentation(Notifier):
                 new_path = os.path.join(directory, new_filename)
 
                 default_suffix_path = os.path.splitext(image_path)[0] + '_seg.npy'
-
+                """
                 backup_path = None
                 if default_suffix_path != new_path:
                     if os.path.exists(default_suffix_path):
@@ -379,6 +379,7 @@ class BatchImageSegmentation(Notifier):
                         if os.path.exists(backup_path):
                             os.remove(backup_path)
                         os.rename(default_suffix_path, backup_path)
+                """
                 # Save the segmentation results directly with the default name first
                 if model_type == ModelType.CELLPOSE_NUCLEI or model_type == ModelType.CELLPOSE_CYTO:
                     ioV3.masks_flows_to_seg([image], [mask], [flow], [image_path])
@@ -397,9 +398,12 @@ class BatchImageSegmentation(Notifier):
                         if os.path.exists(new_path):
                             os.remove(new_path)
                         os.rename(default_suffix_path, new_path)
-                        if backup_path is not None:
-                            os.rename(backup_path, default_suffix_path)
+                        #if backup_path is not None:
+                         #   os.rename(backup_path, default_suffix_path)
                 if event_manager is None:
+                    print("mask paths", self.gui.csp.mask_paths)
+                    if not self.gui.csp.mask_paths:
+                        self.gui.csp.mask_paths={}
                     if image_id not in self.gui.csp.mask_paths:
                         self.gui.csp.mask_paths[image_id] = {}
                 else:
