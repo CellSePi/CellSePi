@@ -10,7 +10,6 @@ CSP_CHANNEL_PREFIX = "_CSP-channel-pref_"
 APP_NAME = ".cellsepi"
 APP_DIR = Path(Path.home() / APP_NAME)
 
-
 class ReturnTypePath(Enum):
     IMAGE_PATHS = auto()
     MASK_PATHS = auto()
@@ -23,10 +22,10 @@ class SourceType(Enum):
 
 
 class ModelType(Enum):
-    CELLPOSE_SAM = "Cellpose SAM"
-    CELLPOSE_CYTO = "Cellpose Cyto"
-    CELLPOSE_NUCLEI = "Cellpose Nuclei"
-    CUSTOM = "Custom"
+    CP_SAM = auto()
+    CP_CYTO = auto()
+    CP_NUCLEI = auto()
+    CUSTOM = auto()
 
 
 

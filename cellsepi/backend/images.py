@@ -242,18 +242,18 @@ class BatchImageSegmentation(Notifier):
             if w2_data is None:
                 model = modelsV3.CellposeModel(pretrained_model=segmentation_model, gpu=self.GPU)
                 ioV3.logger_setup()
-                model_type = ModelType.CELLPOSE_CYTO
+                model_type = ModelType.CP_CYTO
             else:
                 model = models.CellposeModel(pretrained_model=segmentation_model, gpu=self.GPU)
                 io.logger_setup()
-                model_type = ModelType.CELLPOSE_SAM
-        elif model_type == ModelType.CELLPOSE_CYTO:
+                model_type = ModelType.CP_SAM
+        elif model_type == ModelType.CP_CYTO:
             model = modelsV3.CellposeModel(model_type="cyto3", gpu=self.GPU)
             ioV3.logger_setup()
-        elif model_type == ModelType.CELLPOSE_NUCLEI:
+        elif model_type == ModelType.CP_NUCLEI:
             model = modelsV3.CellposeModel(model_type="nuclei", gpu=self.GPU)
             ioV3.logger_setup()
-        elif model_type == ModelType.CELLPOSE_SAM:
+        elif model_type == ModelType.CP_SAM:
             model = models.CellposeModel(gpu=self.GPU)
             io.logger_setup()
 
@@ -312,7 +312,7 @@ class BatchImageSegmentation(Notifier):
                 # print(f"Rescaled Shape: {image.shape}")
 
                 # model evaluates image
-                if model_type == ModelType.CELLPOSE_NUCLEI or model_type == ModelType.CELLPOSE_CYTO:
+                if model_type == ModelType.CP_NUCLEI or model_type == ModelType.CP_CYTO:
                     if image.ndim == 3:  # z, y, x dimensions
                         res = model.eval(image, diameter=diameter, channels=[0, 0], z_axis=0, do_3D=False,
                                          stitch_threshold=0.5)
@@ -320,7 +320,7 @@ class BatchImageSegmentation(Notifier):
                         res = model.eval(image, diameter=diameter, channels=[0, 0])
                     mask, flow, style = res[:3]
 
-                elif model_type == ModelType.CELLPOSE_SAM:
+                elif model_type == ModelType.CP_SAM:
                     if image.ndim == 3:  # z, y, x dimensions
                         res = model.eval(image, diameter=diameter, z_axis=0, do_3D=False, stitch_threshold=0.5)
                     else:
@@ -399,9 +399,9 @@ class BatchImageSegmentation(Notifier):
                         os.rename(default_suffix_path, backup_path)
                 """
                 # Save the segmentation results directly with the default name first
-                if model_type == ModelType.CELLPOSE_NUCLEI or model_type == ModelType.CELLPOSE_CYTO:
+                if model_type == ModelType.CP_NUCLEI or model_type == ModelType.CP_CYTO:
                     ioV3.masks_flows_to_seg([image], [mask], [flow], [image_path])
-                elif model_type == ModelType.CELLPOSE_SAM:
+                elif model_type == ModelType.CP_SAM:
                     io.masks_flows_to_seg([image], [mask], [flow], [image_path])
                 else:
                     H, W = image.shape[:2]
@@ -420,8 +420,6 @@ class BatchImageSegmentation(Notifier):
                          #   os.rename(backup_path, default_suffix_path)
                 if event_manager is None:
                     print("mask paths", self.gui.csp.mask_paths)
-                    if not self.gui.csp.mask_paths:
-                        self.gui.csp.mask_paths={}
                     if image_id not in self.gui.csp.mask_paths:
                         self.gui.csp.mask_paths[image_id] = {}
                 else:
