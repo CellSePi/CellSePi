@@ -1,5 +1,7 @@
-[tool.flet]
+[tool.flet.app]
 path = "cellsepi"
+
+[tool.flet]
 product_name = "CellSePi"
 artifact = "cellsepi"
 org = "org.cellsepi"
