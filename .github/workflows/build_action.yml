@@ -78,6 +78,18 @@ jobs:
         run: |
           if [ "${{ runner.os }}" == "macOS" ]; then
             poetry run flet build ${{ matrix.name }} --arch arm64 --yes --verbose
+          elif [ "${{ runner.os }}" == "Windows" ]; then
+            mv assets/icon_windows.ico assets/icon_windows.ico.bak || true
+            mv assets/icon.png assets/icon.png.bak || true
+
+            poetry run flet build ${{ matrix.name }} --yes --verbose
+            
+            cp assets/icon_windows.ico.bak build/flutter/windows/runner/resources/app_icon.ico
+            
+            poetry run flet build ${{ matrix.name }} --yes --verbose
+
+            mv assets/icon_windows.ico.bak assets/icon_windows.ico || true
+            mv assets/icon.png.bak assets/icon.png || true
           else
             poetry run flet build ${{ matrix.name }} --yes --verbose
           fi
