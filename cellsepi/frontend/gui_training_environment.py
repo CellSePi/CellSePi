@@ -60,7 +60,7 @@ class Training(ft.Container):
         # Changed from TextField to Dropdown for model type selection
         self.model_dropdown = ft.Dropdown(
             label="Model Type",
-            value=ModelType.CELLPOSE_SAM,
+            value=ModelType.CP_SAM,
             options=[
                 ft.dropdown.Option(key=v, text=v.value)
                 for v in ModelType if v != ModelType.CUSTOM
@@ -327,19 +327,19 @@ class Training(ft.Container):
                                     map_location=torch.device("cuda" if self.gui.csp.gpu else "cpu"), weights_only=True)
             w2_data = state_dict.get('W2', None)
             if w2_data is None:
-                model_type = ModelType.CELLPOSE_CYTO
+                model_type = ModelType.CP_CYTO
             else:
-                model_type = ModelType.CELLPOSE_SAM
+                model_type = ModelType.CP_SAM
 
         # TODO EK: By splitting the directory into train and test, one can provide two distinct dirs to support test_dir
         # loads the mask files out of the directory to start training
-        if model_type == ModelType.CELLPOSE_CYTO or model_type == ModelType.CELLPOSE_NUCLEI:
+        if model_type == ModelType.CP_CYTO or model_type == ModelType.CP_NUCLEI:
             output = ioV3.load_train_test_data(
                 train_dir=str(self.gui.csp.working_directory),  # test_dir=None,
                 mask_filter=mask_filter,
                 look_one_level_down=False
             )
-        elif model_type == ModelType.CELLPOSE_SAM:
+        elif model_type == ModelType.CP_SAM:
             output = io.load_train_test_data(
                 train_dir=str(self.gui.csp.working_directory),  # test_dir=None,
                 mask_filter=mask_filter,
@@ -381,7 +381,7 @@ class Training(ft.Container):
             model_name = self.model_name
 
             match model_type:
-                case ModelType.CELLPOSE_SAM:
+                case ModelType.CP_SAM:
                     if self.re_train_model.value:
                         sgd_value = True
                         model_name = self.re_train_model_name
@@ -410,7 +410,7 @@ class Training(ft.Container):
                         save_path=os.path.dirname(self.model_directory)
                     )
 
-                case ModelType.CELLPOSE_CYTO | ModelType.CELLPOSE_NUCLEI:
+                case ModelType.CP_CYTO | ModelType.CP_NUCLEI:
                     if self.re_train_model.value:
                         sgd_value = True
                         model_name = self.re_train_model_name
@@ -419,9 +419,9 @@ class Training(ft.Container):
                             gpu=self.gui.csp.gpu
                         )
                     else:
-                        if model_type == ModelType.CELLPOSE_CYTO:
+                        if model_type == ModelType.CP_CYTO:
                             model = modelsV3.CellposeModel(model_type="cyto3", gpu=self.gui.csp.gpu)
-                        elif model_type == ModelType.CELLPOSE_NUCLEI:
+                        elif model_type == ModelType.CP_NUCLEI:
                             model = modelsV3.CellposeModel(model_type="nuclei", gpu=self.gui.csp.gpu)
 
                     # start the training epochs

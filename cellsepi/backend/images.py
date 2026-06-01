@@ -1,3 +1,4 @@
+import cv2
 import os
 import pathlib
 import shutil
@@ -199,12 +200,12 @@ class BatchImageSegmentation(Notifier):
                 self.segmentation_channel = self.gui.csp.config.get_bf_channel()
                 self.diameter = self.gui.csp.config.get_diameter()
                 self.suffix = self.gui.csp.current_mask_suffix
-                self.backup_masks()
+                #self.backup_masks()
             if self.cancel_now:
                 self.cancel_now = False
-                self.restore_backup()
+                #self.restore_backup()
                 self.num_seg_images = 0
-                self.cleanup_backups()
+                #self.cleanup_backups()
                 return
             elif self.pause_now:
                 self.pause_now = False
@@ -241,18 +242,18 @@ class BatchImageSegmentation(Notifier):
             if w2_data is None:
                 model = modelsV3.CellposeModel(pretrained_model=segmentation_model, gpu=self.GPU)
                 ioV3.logger_setup()
-                model_type = ModelType.CELLPOSE_CYTO
+                model_type = ModelType.CP_CYTO
             else:
                 model = models.CellposeModel(pretrained_model=segmentation_model, gpu=self.GPU)
                 io.logger_setup()
-                model_type = ModelType.CELLPOSE_SAM
-        elif model_type == ModelType.CELLPOSE_CYTO:
+                model_type = ModelType.CP_SAM
+        elif model_type == ModelType.CP_CYTO:
             model = modelsV3.CellposeModel(model_type="cyto3", gpu=self.GPU)
             ioV3.logger_setup()
-        elif model_type == ModelType.CELLPOSE_NUCLEI:
+        elif model_type == ModelType.CP_NUCLEI:
             model = modelsV3.CellposeModel(model_type="nuclei", gpu=self.GPU)
             ioV3.logger_setup()
-        elif model_type == ModelType.CELLPOSE_SAM:
+        elif model_type == ModelType.CP_SAM:
             model = models.CellposeModel(gpu=self.GPU)
             io.logger_setup()
 
@@ -270,14 +271,15 @@ class BatchImageSegmentation(Notifier):
 
         start_index = self.num_seg_images
         for iN, image_id in enumerate(list(image_paths)[start_index:], start=start_index):
+            diameter = self.diameter
             if (segmentation_channel in image_paths[image_id]
                     and os.path.isfile(image_paths[image_id][segmentation_channel])):
                 if event_manager is None:
                     if self.cancel_now:
                         self.cancel_now = False
-                        self.restore_backup()
+                        #self.restore_backup()
                         self.num_seg_images = 0
-                        self.cleanup_backups()
+                        #self.cleanup_backups()
                         return
                     elif self.pause_now:
                         self.pause_now = False
@@ -285,6 +287,11 @@ class BatchImageSegmentation(Notifier):
                     elif self.resume_now:
                         self.resume_now = False
                         self.segmentation.is_resuming()
+
+                if self.gui.csp.mask_paths and image_id in self.gui.csp.mask_paths:
+                    if self.gui.csp.mask_paths[image_id] is not None:
+                        print("skip image, mask already exists")
+                        continue
 
                 image_path = image_paths[image_id][segmentation_channel]
                 image = tifffile.imread(image_path)
@@ -305,7 +312,7 @@ class BatchImageSegmentation(Notifier):
                 # print(f"Rescaled Shape: {image.shape}")
 
                 # model evaluates image
-                if model_type == ModelType.CELLPOSE_NUCLEI or model_type == ModelType.CELLPOSE_CYTO:
+                if model_type == ModelType.CP_NUCLEI or model_type == ModelType.CP_CYTO:
                     if image.ndim == 3:  # z, y, x dimensions
                         res = model.eval(image, diameter=diameter, channels=[0, 0], z_axis=0, do_3D=False,
                                          stitch_threshold=0.5)
@@ -313,7 +320,7 @@ class BatchImageSegmentation(Notifier):
                         res = model.eval(image, diameter=diameter, channels=[0, 0])
                     mask, flow, style = res[:3]
 
-                elif model_type == ModelType.CELLPOSE_SAM:
+                elif model_type == ModelType.CP_SAM:
                     if image.ndim == 3:  # z, y, x dimensions
                         res = model.eval(image, diameter=diameter, z_axis=0, do_3D=False, stitch_threshold=0.5)
                     else:
@@ -347,13 +354,30 @@ class BatchImageSegmentation(Notifier):
                 # print(f"Original Mask Shape: {mask.shape}")
                 # Restore the original image shape and adapt the masks and flows accordingly
                 if mask is not None:
-                    mask = rescale_image(mask, target_shape=original_shape)
+                    mask = rescale_image(mask, target_shape=original_shape,interpolation=cv2.INTER_NEAREST)
                 if flow is not None:
-                    flow[0] = np.stack([rescale_image(flow[0][..., iD], target_shape=original_shape) for iD in
-                                        range(flow[0].shape[2])], axis=2)
-                    flow[1] = np.array([rescale_image(flow[1][iD], target_shape=original_shape) for iD in
-                                        range(flow[1].shape[0])])
-                    flow[2] = rescale_image(flow[2], target_shape=original_shape)
+                    fraction_y = original_shape[-2] / flow[0].shape[-3]
+                    fraction_x = original_shape[-1] / flow[0].shape[-2]
+
+                    flow[0] = np.stack(
+                        [rescale_image(flow[0][..., iD], target_shape=original_shape)
+                         for iD in range(flow[0].shape[-1])],
+                        axis=-1
+                    )
+
+                    flow[1] = np.stack(
+                        [rescale_image(flow[1][z], target_shape=original_shape)
+                         for z in range(flow[1].shape[0])],
+                        axis=0
+                    )
+                    flow[1][-2] = flow[1][-2] * fraction_y
+                    flow[1][-1] = flow[1][-1] * fraction_x
+
+                    flow[2] = rescale_image(
+                        flow[2],
+                        target_shape=original_shape,
+                        interpolation=cv2.INTER_NEAREST
+                    )
 
                 # print(f"Rescaled Mask Shape: {mask.shape}")
                 image = original_image
@@ -365,7 +389,7 @@ class BatchImageSegmentation(Notifier):
                 new_path = os.path.join(directory, new_filename)
 
                 default_suffix_path = os.path.splitext(image_path)[0] + '_seg.npy'
-
+                """
                 backup_path = None
                 if default_suffix_path != new_path:
                     if os.path.exists(default_suffix_path):
@@ -373,10 +397,11 @@ class BatchImageSegmentation(Notifier):
                         if os.path.exists(backup_path):
                             os.remove(backup_path)
                         os.rename(default_suffix_path, backup_path)
+                """
                 # Save the segmentation results directly with the default name first
-                if model_type == ModelType.CELLPOSE_NUCLEI or model_type == ModelType.CELLPOSE_CYTO:
+                if model_type == ModelType.CP_NUCLEI or model_type == ModelType.CP_CYTO:
                     ioV3.masks_flows_to_seg([image], [mask], [flow], [image_path])
-                elif model_type == ModelType.CELLPOSE_SAM:
+                elif model_type == ModelType.CP_SAM:
                     io.masks_flows_to_seg([image], [mask], [flow], [image_path])
                 else:
                     H, W = image.shape[:2]
@@ -391,9 +416,10 @@ class BatchImageSegmentation(Notifier):
                         if os.path.exists(new_path):
                             os.remove(new_path)
                         os.rename(default_suffix_path, new_path)
-                        if backup_path is not None:
-                            os.rename(backup_path, default_suffix_path)
+                        #if backup_path is not None:
+                         #   os.rename(backup_path, default_suffix_path)
                 if event_manager is None:
+                    print("mask paths", self.gui.csp.mask_paths)
                     if image_id not in self.gui.csp.mask_paths:
                         self.gui.csp.mask_paths[image_id] = {}
                 else:
