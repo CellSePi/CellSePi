@@ -1,0 +1,27 @@
+name: "${APP_NAME}"
+arch: "amd64"
+platform: "linux"
+version: "${APP_VERSION}"
+section: "science"
+maintainer: "${APP_COMPANY} Team <${APP_HOMEPAGE}>"
+description: "${APP_DESC}"
+vendor: "${APP_COMPANY}"
+homepage: "${APP_HOMEPAGE}"
+license: "${APP_LICENSE}"
+
+depends:
+  - libgtk-3-0
+  - zenity
+  - mpv
+
+contents:
+  - src: ./build/linux/
+    dst: /opt/cellsepi/
+    type: tree
+  - src: /opt/cellsepi/cellsepi
+    dst: /usr/bin/cellsepi
+    type: symlink
+  - src: ./cellsepi.desktop
+    dst: /usr/share/applications/cellsepi.desktop
+  - src: ./cellsepi/assets/icon.png
+    dst: /usr/share/pixmaps/cellsepi.png

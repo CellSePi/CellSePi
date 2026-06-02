@@ -82,6 +82,50 @@ jobs:
             poetry run flet build ${{ matrix.name }} --yes --verbose
           fi
 
+      - name: Build Linux Packages (.deb, Arch & .rpm)
+        if: matrix.name == 'linux'
+        shell: bash
+        run: |
+          eval $(python -c '
+          import tomllib
+          with open("pyproject.toml", "rb") as f:
+              data = tomllib.load(f)
+              poetry = data["tool"]["poetry"]
+              flet = data["tool"]["flet"]
+          
+          print(f"export APP_NAME=\"{poetry[\"name\"]}\"")
+          print(f"export APP_VERSION=\"{poetry[\"version\"]}\"")
+          print(f"export APP_DESC=\"{poetry[\"description\"]}\"")
+          print(f"export APP_LICENSE=\"{poetry[\"license\"]}\"")
+          print(f"export APP_HOMEPAGE=\"{poetry[\"homepage\"]}\"")
+          print(f"export APP_COMPANY=\"{flet[\"company\"]}\"")
+          print(f"export APP_PRODUCT_NAME=\"{flet[\"product_name\"]}\"")
+          ')
+          
+          cat <<EOF > cellsepi.desktop
+          [Desktop Entry]
+          Version=${APP_VERSION}
+          Type=Application
+          Name=${APP_PRODUCT_NAME}
+          Comment=${APP_DESC}
+          Exec=/usr/bin/${APP_NAME}
+          Icon=${APP_NAME}
+          Terminal=false
+          Categories=Science;
+          EOF
+          
+          wget -qO- https://github.com/goreleaser/nfpm/releases/download/v2.37.1/nfpm_2.37.1_Linux_x86_64.tar.gz | tar xz
+          
+          DEB_FILE="${APP_NAME}_${APP_VERSION}_amd64.deb"
+          ./nfpm pkg --config nfpm.yaml --target $DEB_FILE
+          
+          ARCH_FILE="${APP_NAME}_${APP_VERSION}_amd64.pkg.tar.zst"
+          ./nfpm pkg --config nfpm.yaml --target $ARCH_FILE -p archlinux
+          
+          RPM_FILE="${APP_NAME}_${APP_VERSION}_amd64.rpm"
+          ./nfpm pkg --config nfpm.yaml --target $RPM_FILE -p rpm
+          
+
       - name: Fix Windows Icon (rcedit)
         if: matrix.name == 'windows'
         shell: pwsh
@@ -147,7 +191,11 @@ jobs:
         uses: actions/upload-artifact@v5.0.0
         with:
           name: cellsepi-artifact-${{ matrix.name }}
-          path: cellsepi-*.*
+          path: |
+            cellsepi-*.*
+            *.deb
+            *.rpm
+            *.pkg.tar.zst
           if-no-files-found: error
           overwrite: false
           retention-days: 1
