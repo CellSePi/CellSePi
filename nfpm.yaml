@@ -9,10 +9,19 @@ vendor: "${APP_COMPANY}"
 homepage: "${APP_HOMEPAGE}"
 license: "${APP_LICENSE}"
 
-depends:
-  - libgtk-3-0
-  - zenity
-  - mpv
+overrides:
+  deb:
+    depends:
+      - libgtk-3-0
+      - zenity
+  rpm:
+    depends:
+      - gtk3
+      - zenity
+  archlinux:
+    depends:
+      - gtk3
+      - zenity
 
 contents:
   - src: ./build/linux/
