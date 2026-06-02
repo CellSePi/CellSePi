@@ -162,7 +162,7 @@ jobs:
           
           cat <<EOF > cellsepi.desktop
           [Desktop Entry]
-          Version=${APP_VERSION}
+          Version=1.1
           Type=Application
           Name=${APP_PRODUCT_NAME}
           Comment=${APP_DESC}
