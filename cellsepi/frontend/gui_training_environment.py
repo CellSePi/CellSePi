@@ -62,7 +62,7 @@ class Training(ft.Container):
             label="Model Type",
             value=ModelType.CP_SAM,
             options=[
-                ft.dropdown.Option(key=v, text=v.value)
+                ft.dropdown.Option(key=v, text=v.name)
                 for v in ModelType if v != ModelType.CUSTOM
             ], border_color=ft.Colors.BLUE_400,
             on_select=lambda e: self.changed_input("modeltype", e),
