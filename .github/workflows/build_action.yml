@@ -91,12 +91,20 @@ jobs:
           $exePath = Get-ChildItem -Path "${{ matrix.artifact_path }}" -Filter "*.exe" | Select-Object -First 1
           
           if ($exePath) {
-              Write-Host "Exe gefunden: $($exePath.FullName)"
+              Write-Host "Exe found: $($exePath.FullName)"
               
               $iconPath = "assets/icon.ico" 
               
-              .\rcedit.exe $exePath.FullName --set-icon $iconPath
-              Write-Host "Icon erfolgreich ausgetauscht!"
+              if (Test-Path $iconPath) {
+                  Write-Host "Icon-Data found: $iconPath"
+                  
+                  .\rcedit.exe $exePath.FullName --set-icon $iconPath
+                  Write-Host "Icon successfully switched!"
+              } else {
+                  Write-Error "Icon-Data was not found: $iconPath"
+                  Write-Host "--- Current Directory ---"
+                  Get-ChildItem | Select-Object Name
+              }
           } else {
               Write-Error "No .exe Data is found, in folder: ${{ matrix.artifact_path }}"
           }
