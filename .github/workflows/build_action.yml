@@ -26,21 +26,43 @@ jobs:
           # -------- Desktop --------
           - name: linux
             runner: ubuntu-latest
+            target: linux
             artifact_path: build/linux
             needs_linux_deps: true
             archive_type: xztar
+            accelerator: cpu
+
+          - name: linux-gpu
+            runner: ubuntu-latest
+            target: linux
+            artifact_path: build/linux
+            needs_linux_deps: true
+            archive_type: xztar
+            accelerator: gpu
 
           - name: macos
             runner: macos-latest
+            target: macos
             artifact_path: build/macos
             needs_linux_deps: false
             archive_type: gztar
+            accelerator: cpu
 
           - name: windows
             runner: windows-latest
+            target: windows
             artifact_path: build/windows
             needs_linux_deps: false
             archive_type: zip
+            accelerator: cpu
+
+          - name: windows-gpu
+            runner: windows-latest
+            target: windows
+            artifact_path: build/windows
+            needs_linux_deps: false
+            archive_type: zip
+            accelerator: gpu
 
     steps:
       - name: Checkout repository
@@ -72,20 +94,54 @@ jobs:
 
       - name: Install dependencies
         run: poetry install --only main
-
-      - name: Build app
-        env:
-          PIP_EXTRA_INDEX_URL: "https://download.pytorch.org/whl/cpu"
+      - name: Set Torch dependencies
         shell: bash
         run: |
-          if [ "${{ runner.os }}" == "macOS" ]; then
-            poetry run flet build ${{ matrix.name }} --arch arm64 --yes --verbose
+          poetry remove torch torchvision || true
+          
+          python -c '
+          import os
+          os_target = "${{ matrix.target }}"
+          accelerator = "${{ matrix.accelerator }}"
+          
+          if os_target == "macos":
+              suffix = ""
+          elif accelerator == "cpu":
+              suffix = "+cpu"
+          else:
+              suffix = "+cu124"
+              
+          toml_append = f"""
+          
+          [tool.flet.{os_target}]
+          dependencies = [
+              "torch==2.6.0{suffix}",
+              "torchvision==0.21.0{suffix}"
+          ]
+          """
+          with open("pyproject.toml", "a") as f:
+              f.write(toml_append)
+              
+          print(f"Set dependencies for {os_target} ({accelerator}):")
+          print(toml_append)
+          '
+
+      - name: Build app
+        shell: bash
+        run: |
+          if [ "${{ matrix.target }}" == "macos" ]; then
+            poetry run flet build ${{ matrix.target }} --arch arm64 --yes --verbose
           else
-            poetry run flet build ${{ matrix.name }} --yes --verbose
+            if [ "${{ matrix.accelerator }}" == "cpu" ]; then
+              export PIP_EXTRA_INDEX_URL="https://download.pytorch.org/whl/cpu"
+            else
+              export PIP_EXTRA_INDEX_URL="https://download.pytorch.org/whl/cu124"
+            fi
+            poetry run flet build ${{ matrix.target }} --yes --verbose
           fi
 
       - name: Build Linux Packages (.deb, Arch & .rpm)
-        if: matrix.name == 'linux'
+        if: matrix.target == 'linux' && matrix.accelerator == 'cpu'
         shell: bash
         run: |
           eval $(python -c '
@@ -129,7 +185,7 @@ jobs:
           
 
       - name: Fix Windows Icon (rcedit)
-        if: matrix.name == 'windows'
+        if: matrix.target == 'windows'
         shell: pwsh
         run: |
           Invoke-WebRequest -Uri "https://github.com/electron/rcedit/releases/download/v2.0.0/rcedit-x64.exe" -OutFile "rcedit.exe"
@@ -168,16 +224,16 @@ jobs:
           print("export APP_VERSION=\"{}\"".format(p["version"]))
           ')
           
+          OS_TARGET="${{ matrix.target }}"
+          ACCELERATOR="${{ matrix.accelerator }}"
           MATRIX_NAME="${{ matrix.name }}"
           BASE_PATH="${{ matrix.artifact_path }}"
           ARCHIVE_FORMAT="${{ matrix.archive_type }}"
           
-          if [ "$MATRIX_NAME" == "linux" ]; then
-            FINAL_NAME="${APP_NAME}_${APP_VERSION}_linux_portable"
-          elif [ "$MATRIX_NAME" == "macos" ]; then
+          if [ "$OS_TARGET" == "macos" ]; then
             FINAL_NAME="${APP_NAME}_${APP_VERSION}_macos_arm64"
           else
-            FINAL_NAME="${APP_NAME}_${APP_VERSION}_windows_amd64"
+            FINAL_NAME="${APP_NAME}_${APP_VERSION}_${OS_TARGET}_${ACCELERATOR}_amd64"
           fi
           
           python -c "import shutil; shutil.make_archive('$FINAL_NAME', '$ARCHIVE_FORMAT', '$BASE_PATH')"
