@@ -74,6 +74,8 @@ jobs:
         run: poetry install --only main
 
       - name: Build app
+        env:
+          PIP_EXTRA_INDEX_URL: "https://download.pytorch.org/whl/cpu"
         shell: bash
         run: |
           if [ "${{ runner.os }}" == "macOS" ]; then
