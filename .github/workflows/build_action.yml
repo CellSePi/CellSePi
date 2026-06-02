@@ -183,18 +183,26 @@ jobs:
       - name: Auto-Split if > 2GB
         shell: bash
         run: |
-          ARCHIVE_FILE=$(ls cellsepi_*.zip cellsepi_*.tar.gz cellsepi_*.tar.xz 2>/dev/null | head -n 1)
+          ARCHIVE_FILE=""
+          for f in cellsepi_*.zip cellsepi_*.tar.gz cellsepi_*.tar.xz; do
+            if [ -f "$f" ]; then
+              ARCHIVE_FILE="$f"
+              break
+            fi
+          done
           
           if [ -z "$ARCHIVE_FILE" ]; then
-            echo "No file found."
+            echo "No archive file found, skipping split."
             exit 0
           fi
           
-          FILE_SIZE=$(python3 -c "import os; print(os.path.getsize('$ARCHIVE_FILE'))")
+          echo "Found archive to check: $ARCHIVE_FILE"
           
+          FILE_SIZE=$(python3 -c "import os; print(os.path.getsize('$ARCHIVE_FILE'))")
           MAX_SIZE=1900000000 
 
           if [ $FILE_SIZE -gt $MAX_SIZE ]; then
+            echo "File is larger than 2GB, splitting now..."
             split -b 1500M "$ARCHIVE_FILE" "${ARCHIVE_FILE}.part"
             rm "$ARCHIVE_FILE"
           fi
