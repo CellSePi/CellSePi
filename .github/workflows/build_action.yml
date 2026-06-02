@@ -90,16 +90,16 @@ jobs:
           import tomllib
           with open("pyproject.toml", "rb") as f:
               data = tomllib.load(f)
-              poetry = data["tool"]["poetry"]
-              flet = data["tool"]["flet"]
+              p = data["tool"]["poetry"]
+              fl = data["tool"]["flet"]
           
-          print(f"export APP_NAME=\"{poetry[\"name\"]}\"")
-          print(f"export APP_VERSION=\"{poetry[\"version\"]}\"")
-          print(f"export APP_DESC=\"{poetry[\"description\"]}\"")
-          print(f"export APP_LICENSE=\"{poetry[\"license\"]}\"")
-          print(f"export APP_HOMEPAGE=\"{poetry[\"homepage\"]}\"")
-          print(f"export APP_COMPANY=\"{flet[\"company\"]}\"")
-          print(f"export APP_PRODUCT_NAME=\"{flet[\"product_name\"]}\"")
+          print("export APP_NAME=\"{}\"".format(p["name"]))
+          print("export APP_VERSION=\"{}\"".format(p["version"]))
+          print("export APP_DESC=\"{}\"".format(p["description"]))
+          print("export APP_LICENSE=\"{}\"".format(p["license"]))
+          print("export APP_HOMEPAGE=\"{}\"".format(p["homepage"]))
+          print("export APP_COMPANY=\"{}\"".format(fl["company"]))
+          print("export APP_PRODUCT_NAME=\"{}\"".format(fl["product_name"]))
           ')
           
           cat <<EOF > cellsepi.desktop
@@ -154,30 +154,42 @@ jobs:
           }
           
       - name: Archive build
-        shell: python
+        shell: bash
         run: |
-          import shutil
-          import os
-
-          matrix_name = "${{ matrix.name }}"
-          base_path = "${{ matrix.artifact_path }}"
-          archive_format = "${{ matrix.archive_type }}" 
+          eval $(python -c '
+          import tomllib
+          with open("pyproject.toml", "rb") as f:
+              data = tomllib.load(f)
+              p = data["tool"]["poetry"]
           
-          if "linux" in matrix_name:
-              os_name = "linux"
-          elif "macos" in matrix_name:
-              os_name = "macos"
-          else:
-              os_name = "windows"
+          print("export APP_NAME=\"{}\"".format(p["name"]))
+          print("export APP_VERSION=\"{}\"".format(p["version"]))
+          ')
           
-          final_name = f"cellsepi-{os_name}-build"
+          MATRIX_NAME="${{ matrix.name }}"
+          BASE_PATH="${{ matrix.artifact_path }}"
+          ARCHIVE_FORMAT="${{ matrix.archive_type }}"
           
-          shutil.make_archive(final_name, archive_format, base_path)
+          if [ "$MATRIX_NAME" == "linux" ]; then
+            FINAL_NAME="${APP_NAME}_${APP_VERSION}_linux_portable"
+          elif [ "$MATRIX_NAME" == "macos" ]; then
+            FINAL_NAME="${APP_NAME}_${APP_VERSION}_macos_arm64"
+          else
+            FINAL_NAME="${APP_NAME}_${APP_VERSION}_windows_amd64"
+          fi
+          
+          python -c "import shutil; shutil.make_archive('$FINAL_NAME', '$ARCHIVE_FORMAT', '$BASE_PATH')"
 
       - name: Auto-Split if > 2GB
         shell: bash
         run: |
-          ARCHIVE_FILE=$(ls cellsepi-*-build.*)
+          ARCHIVE_FILE=$(ls cellsepi_*.zip cellsepi_*.tar.gz cellsepi_*.tar.xz 2>/dev/null | head -n 1)
+          
+          if [ -z "$ARCHIVE_FILE" ]; then
+            echo "No file found."
+            exit 0
+          fi
+          
           FILE_SIZE=$(python3 -c "import os; print(os.path.getsize('$ARCHIVE_FILE'))")
           
           MAX_SIZE=1900000000 
@@ -192,7 +204,7 @@ jobs:
         with:
           name: cellsepi-artifact-${{ matrix.name }}
           path: |
-            cellsepi-*.*
+            cellsepi_*.*
             *.deb
             *.rpm
             *.pkg.tar.zst
