@@ -93,7 +93,7 @@ jobs:
           if ($exePath) {
               Write-Host "Exe found: $($exePath.FullName)"
               
-              $iconPath = "assets/icon.ico" 
+              $iconPath = "cellsepi/assets/icon_windows.ico" 
               
               if (Test-Path $iconPath) {
                   Write-Host "Icon-Data found: $iconPath"
@@ -101,9 +101,9 @@ jobs:
                   .\rcedit.exe $exePath.FullName --set-icon $iconPath
                   Write-Host "Icon successfully switched!"
               } else {
-                  Write-Error "Icon-Data was not found: $iconPath"
                   Write-Host "--- Current Directory ---"
                   Get-ChildItem | Select-Object Name
+                  Write-Error "Icon-Data was not found: $iconPath"
               }
           } else {
               Write-Error "No .exe Data is found, in folder: ${{ matrix.artifact_path }}"
