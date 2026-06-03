@@ -100,8 +100,8 @@ jobs:
           import tomllib
           with open("pyproject.toml", "rb") as f:
               data = tomllib.load(f)
-              print(f"APP_NAME={data[\"tool\"][\"poetry\"][\"name\"]}")
-              print(f"APP_VERSION={data[\"tool\"][\"poetry\"][\"version\"]}")
+              print("APP_NAME=" + data["tool"]["poetry"]["name"])
+              print("APP_VERSION=" + data["tool"]["poetry"]["version"])
           ' >> $GITHUB_ENV
 
       - name: Set up Python
