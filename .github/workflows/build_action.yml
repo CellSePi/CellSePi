@@ -19,6 +19,7 @@ jobs:
   build:
     name: Build ${{ matrix.name }}
     runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
@@ -71,6 +72,15 @@ jobs:
       - name: Setup uv
         uses: astral-sh/setup-uv@v6
 
+      - name: Disable Windows Defender (Performance Boost)
+        if: matrix.target == 'windows'
+        shell: pwsh
+        run: |
+          Set-MpPreference -DisableRealtimeMonitoring $true
+          Add-MpPreference -ExclusionPath "${{ github.workspace }}"
+          Add-MpPreference -ExclusionPath "$env:USERPROFILE\.cache"
+          Add-MpPreference -ExclusionPath "C:\hostedtoolcache"
+
       - name: Install Linux dependencies
         if: matrix.needs_linux_deps
         shell: bash
@@ -83,7 +93,17 @@ jobs:
               gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 \
               gstreamer1.0-qt5 gstreamer1.0-pulseaudio pkg-config libsecret-1-0 libsecret-1-dev
             sudo apt-get clean
-          
+      - name: Extract Global App Variables
+        shell: bash
+        run: |
+          python -c '
+          import tomllib
+          with open("pyproject.toml", "rb") as f:
+              data = tomllib.load(f)
+              print(f"APP_NAME={data[\"tool\"][\"poetry\"][\"name\"]}")
+              print(f"APP_VERSION={data[\"tool\"][\"poetry\"][\"version\"]}")
+          ' >> $GITHUB_ENV
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -141,10 +161,12 @@ jobs:
             poetry run flet build ${{ matrix.target }} --yes --verbose
           fi
 
-      - name: Setup Icon and install script for portable Linux
+      - name: Setup Icon and install script for portable Linux archive
         if: matrix.target == 'linux'
         shell: bash
         run: |
+          cp cellsepi/assets/icon.png ${{ matrix.artifact_path }}/icon.png
+          
           eval $(python -c '
           import tomllib
           with open("pyproject.toml", "rb") as f:
@@ -152,12 +174,7 @@ jobs:
               p = data["tool"]["poetry"]
               fl = data["tool"]["flet"]
           
-          print("export APP_NAME=\"{}\"".format(p["name"]))
-          print("export APP_VERSION=\"{}\"".format(p["version"]))
           print("export APP_DESC=\"{}\"".format(p["description"]))
-          print("export APP_LICENSE=\"{}\"".format(p["license"]))
-          print("export APP_HOMEPAGE=\"{}\"".format(p["homepage"]))
-          print("export APP_COMPANY=\"{}\"".format(fl["company"]))
           print("export APP_PRODUCT_NAME=\"{}\"".format(fl["product_name"]))
           ')
           
@@ -168,7 +185,7 @@ jobs:
           Name=${APP_PRODUCT_NAME}
           Comment=${APP_DESC}
           Exec=./${APP_NAME}
-          Icon=./assets/icon.png
+          Icon=./icon.png
           Terminal=false
           Categories=Science;
           EOF
@@ -197,12 +214,7 @@ jobs:
               p = data["tool"]["poetry"]
               fl = data["tool"]["flet"]
           
-          print("export APP_NAME=\"{}\"".format(p["name"]))
-          print("export APP_VERSION=\"{}\"".format(p["version"]))
           print("export APP_DESC=\"{}\"".format(p["description"]))
-          print("export APP_LICENSE=\"{}\"".format(p["license"]))
-          print("export APP_HOMEPAGE=\"{}\"".format(p["homepage"]))
-          print("export APP_COMPANY=\"{}\"".format(fl["company"]))
           print("export APP_PRODUCT_NAME=\"{}\"".format(fl["product_name"]))
           ')
           
@@ -260,16 +272,6 @@ jobs:
       - name: Archive build
         shell: bash
         run: |
-          eval $(python -c '
-          import tomllib
-          with open("pyproject.toml", "rb") as f:
-              data = tomllib.load(f)
-              p = data["tool"]["poetry"]
-          
-          print("export APP_NAME=\"{}\"".format(p["name"]))
-          print("export APP_VERSION=\"{}\"".format(p["version"]))
-          ')
-          
           OS_TARGET="${{ matrix.target }}"
           ACCELERATOR="${{ matrix.accelerator }}"
           MATRIX_NAME="${{ matrix.name }}"
@@ -288,7 +290,7 @@ jobs:
         shell: bash
         run: |
           ARCHIVE_FILE=""
-          for f in cellsepi_*.zip cellsepi_*.tar.gz cellsepi_*.tar.xz; do
+          for f in ${{ env.APP_NAME }}_*.zip ${{ env.APP_NAME }}_*.tar.gz ${{ env.APP_NAME }}_*.tar.xz; do
             if [ -f "$f" ]; then
               ARCHIVE_FILE="$f"
               break
@@ -314,9 +316,9 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v5.0.0
         with:
-          name: cellsepi-artifact-${{ matrix.name }}
+          name: ${{ env.APP_NAME }}-artifact-${{ matrix.name }}
           path: |
-            cellsepi_*.*
+            ${{ env.APP_NAME }}_*.*
             *.deb
             *.rpm
             *.pkg.tar.zst
@@ -325,23 +327,23 @@ jobs:
           retention-days: 1
           
   release:
-      name: Publish GitHub Release
-      runs-on: ubuntu-latest
-      needs: build
-      if: startsWith(github.ref, 'refs/tags/')
+    name: Publish GitHub Release
+    runs-on: ubuntu-latest
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
 
-      steps:
-        - name: Download all build artifacts
-          uses: actions/download-artifact@v5.0.0
-          with:
-            pattern: cellsepi-artifact-*
-            path: dist
-            merge-multiple: true
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v5.0.0
+        with:
+          pattern: '*-artifact-*'
+          path: dist
+          merge-multiple: true
 
-        - name: Create GitHub Release
-          uses: softprops/action-gh-release@v2
-          with:
-            name: ${{ github.ref_name }}
-            tag_name: ${{ github.ref_name }}
-            files: dist/*
-            generate_release_notes: true
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          files: dist/*
+          generate_release_notes: true
