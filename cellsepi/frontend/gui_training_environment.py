@@ -60,9 +60,9 @@ class Training(ft.Container):
         # Changed from TextField to Dropdown for model type selection
         self.model_dropdown = ft.Dropdown(
             label="Model Type",
-            value=ModelType.CP_SAM,
+            value=ModelType.CP_SAM.name,
             options=[
-                ft.dropdown.Option(key=v, text=v.name)
+                ft.dropdown.Option(key=v.value.name, text=v.value.name)
                 for v in ModelType if v != ModelType.CUSTOM
             ], border_color=ft.Colors.BLUE_400,
             on_select=lambda e: self.changed_input("modeltype", e),
