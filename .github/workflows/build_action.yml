@@ -94,6 +94,7 @@ jobs:
 
       - name: Install dependencies
         run: poetry install --only main
+
       - name: Set Torch dependencies
         shell: bash
         run: |
@@ -140,6 +141,51 @@ jobs:
             poetry run flet build ${{ matrix.target }} --yes --verbose
           fi
 
+      - name: Setup Icon and install script for portable Linux
+        if: matrix.target == 'linux'
+        shell: bash
+        run: |
+          eval $(python -c '
+          import tomllib
+          with open("pyproject.toml", "rb") as f:
+              data = tomllib.load(f)
+              p = data["tool"]["poetry"]
+              fl = data["tool"]["flet"]
+          
+          print("export APP_NAME=\"{}\"".format(p["name"]))
+          print("export APP_VERSION=\"{}\"".format(p["version"]))
+          print("export APP_DESC=\"{}\"".format(p["description"]))
+          print("export APP_LICENSE=\"{}\"".format(p["license"]))
+          print("export APP_HOMEPAGE=\"{}\"".format(p["homepage"]))
+          print("export APP_COMPANY=\"{}\"".format(fl["company"]))
+          print("export APP_PRODUCT_NAME=\"{}\"".format(fl["product_name"]))
+          ')
+          
+          cat <<EOF > ${{ matrix.artifact_path }}/${APP_NAME}.desktop
+          [Desktop Entry]
+          Version=1.1
+          Type=Application
+          Name=${APP_PRODUCT_NAME}
+          Comment=${APP_DESC}
+          Exec=./${APP_NAME}
+          Icon=./assets/icon.png
+          Terminal=false
+          Categories=Science;
+          EOF
+          
+          cat <<EOF > ${{ matrix.artifact_path }}/install_desktop_icon.sh
+          #!/bin/bash
+          INSTALL_DIR="\$(cd "\$(dirname "\$0")" && pwd)"
+          TARGET_DIR="\$HOME/.local/share/applications"
+          mkdir -p "\$TARGET_DIR"
+          
+          sed "s|Exec=./|Exec=\$INSTALL_DIR/|g; s|Icon=./|Icon=\$INSTALL_DIR/|g" "\$INSTALL_DIR/${APP_NAME}.desktop" > "\$TARGET_DIR/${APP_NAME}.desktop"
+          
+          update-desktop-database "\$TARGET_DIR"
+          echo "Successfully installed! The Icon is now available."
+          EOF
+          chmod +x ${{ matrix.artifact_path }}/install_desktop_icon.sh
+
       - name: Build Linux Packages (.deb, Arch & .rpm)
         if: matrix.target == 'linux' && matrix.accelerator == 'cpu'
         shell: bash
@@ -160,7 +206,7 @@ jobs:
           print("export APP_PRODUCT_NAME=\"{}\"".format(fl["product_name"]))
           ')
           
-          cat <<EOF > cellsepi.desktop
+          cat <<EOF > ${APP_NAME}.desktop
           [Desktop Entry]
           Version=1.1
           Type=Application
