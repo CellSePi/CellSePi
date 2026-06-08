@@ -288,8 +288,8 @@ class Training(ft.Container):
         # ToDo EK: Check here whether all prerequisites are met
         model_type = self.model_dropdown.value
         try:
-            model_type = ModelType(model_type)
-        except ValueError:
+            model_type = [elem for elem in ModelType if elem.value.name == model_type][0]
+        except IndexError:
             self.page.show_dialog(
                 ft.SnackBar(
                     ft.Text(f"Model type {model_type} not supported!")
