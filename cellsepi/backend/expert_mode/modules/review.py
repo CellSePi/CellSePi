@@ -48,7 +48,7 @@ class Review(Module, ABC):
                 value=self.user_segmentation_channel,
                 on_blur=lambda e: self.on_change_sc(e),
                 tooltip="Segmentation channel",
-                height=30, width=70, content_padding=ft.padding.symmetric(0, 5),
+                height=30, width=70, content_padding=ft.Padding.symmetric(vertical=0, horizontal=5),
                 fill_color=ft.Colors.WHITE38,
                 filled=True,
                 text_align=ft.TextAlign.CENTER,
@@ -63,7 +63,7 @@ class Review(Module, ABC):
                 value=self.user_mask_suffix,
                 on_blur=lambda e: self.on_change_ms(e),
                 tooltip="Mask suffix",
-                height=30, width=70, content_padding=ft.padding.symmetric(0, 5),
+                height=30, width=70, content_padding=ft.Padding.symmetric(vertical=0, horizontal=5),
                 fill_color=ft.Colors.WHITE38,
                 filled=True,
                 text_align=ft.TextAlign.CENTER,
@@ -78,7 +78,7 @@ class Review(Module, ABC):
                 [self._text_field_segmentation_channel,
                  self._text_field_mask_suffix,
                  ], spacing=2, alignment=ft.MainAxisAlignment.CENTER,
-            ), bgcolor=ft.Colors.BLUE_ACCENT, expand=True, border_radius=ft.border_radius.vertical(top=0, bottom=12),
+            ), bgcolor=ft.Colors.BLUE_ACCENT, expand=True, border_radius=ft.BorderRadius.vertical(top=0, bottom=12),
                 height=38,
             )
             )
