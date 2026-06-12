@@ -159,7 +159,7 @@ class GUISettings:
                         ft.Text(field_name.title(), weight=ft.FontWeight.W_600, size=14),
                         ft.Container(
                             content=self._generate_fields_for_model(value),
-                            padding=ft.padding.only(left=15)  # Indent nested settings
+                            padding=ft.Padding.only(left=15)  # Indent nested settings
                         )
                     ]
                 )

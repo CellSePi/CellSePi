@@ -448,7 +448,7 @@ class DirectoryCard(ft.Card):
                 self.selected_images_visualise[image_id][channel_id] = ft.Container(
                     width=154,
                     height=154,
-                    border=ft.border.all(4, ft.Colors.ORANGE_700),
+                    border=ft.Border.all(4, ft.Colors.ORANGE_700),
                     alignment=ft.Alignment.CENTER,
                     visible=False,
                     padding=5

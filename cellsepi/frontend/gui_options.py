@@ -29,7 +29,7 @@ class Options(ft.Container):
             thumb_color=ft.Colors.BLUE_400,
             disabled=True if not torch.cuda.is_available() else False,
             on_change=self.gpu_slider_change,
-            padding=ft.padding.symmetric(0, 0),
+            padding=ft.Padding.symmetric(vertical=0,horizontal=0),
             controls=[
                 ft.Text("CPU"),
                 ft.Text("GPU")

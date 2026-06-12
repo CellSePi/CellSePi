@@ -161,7 +161,7 @@ class PipelineGUI(ft.Stack):
         self.page_stack = page_stack
         x = SPACING_X + SHOWROOM_PADDING_X / 2
         y = SPACING_Y
-        self.show_room_container = ft.Container(top=y - SPACING_Y / 2, left=SPACING_X, width=MODULE_WIDTH + SHOWROOM_PADDING_X, height=(self.show_room_size * MODULE_HEIGHT) + (self.show_room_size * SPACING_Y), bgcolor=MENU_COLOR, border_radius=ft.border_radius.all(10),blur=10)
+        self.show_room_container = ft.Container(top=y - SPACING_Y / 2, left=SPACING_X, width=MODULE_WIDTH + SHOWROOM_PADDING_X, height=(self.show_room_size * MODULE_HEIGHT) + (self.show_room_size * SPACING_Y), bgcolor=MENU_COLOR, border_radius=ft.BorderRadius.all(10),blur=10)
         self.page_stack.controls.insert(1,self.show_room_container)
         self.show_room_max_page_number = math.ceil(len(MODULE_REGISTRY) / SHOWROOM_MODULE_COUNT)
         for i,module_type in enumerate(MODULE_REGISTRY.values()):
