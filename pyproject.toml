@@ -1,5 +1,6 @@
 [tool.flet.app]
 path = "cellsepi"
+hide_window_on_start = true
 
 [tool.flet]
 product_name = "CellSePi"
