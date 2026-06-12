@@ -55,12 +55,6 @@ class GUI:
         self.training_event = threading.Event()
         self.expert_running_event = threading.Event()
         self.readout_event = threading.Event()
-        self.page.window.prevent_close = True
-        self.page.window.on_event = lambda e: self.page.run_task(self.handle_closing_event, e)
-        self.page.window.width = 1440
-        self.page.window.height = 800
-        self.page.run_task(self.page.window.center)
-        self.page.title = "CellSePi"
         self.canvas = ImageEditingView(
             on_mask_change=self._mask_update_async)
         self.canvas.mask_color = self.csp.config.get_mask_color()
@@ -129,8 +123,6 @@ class GUI:
         self.builder_environment.pipeline_gui.pipeline.event_manager.subscribe(listener=pipeline_state_listener)
         self.ref_builder_environment = ft.Ref[ft.Column]()
         self.ref_gallery_environment = ft.Ref[ft.Column]()
-        if self.csp.config.get_auto_button():
-            self.page.run_task(self.auto_image_tuning.pressed)
 
         def close_banner(e):
             e.control.page.pop_dialog()
@@ -279,6 +271,9 @@ class GUI:
                 )
             )
             self.page.update()
+
+        if self.csp.config.get_auto_button():
+            self.page.run_task(self.auto_image_tuning.pressed)
 
         if not check_for_file_picker_support() and not self.csp.config.get_ignore_warning():
             self.page.show_dialog(self.zenity_warning)
