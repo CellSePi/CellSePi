@@ -4,6 +4,7 @@ from frontend.gui import GUI
 
 
 def async_main(page: ft.Page):
+    page.window.visible = True
     def window_event(e: ft.WindowEvent):
         if e.type == ft.WindowEventType.CLOSE:
             page.show_dialog(ft.Text("Are you sure you want to exit?"),
@@ -34,6 +35,7 @@ def async_main(page: ft.Page):
 
     gui = GUI(page)
     gui.build()
+    page.update()
 
 
 def main():

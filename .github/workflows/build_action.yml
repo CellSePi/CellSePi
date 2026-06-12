@@ -158,7 +158,7 @@ jobs:
             else
               export PIP_EXTRA_INDEX_URL="https://download.pytorch.org/whl/cu124"
             fi
-            poetry run flet build ${{ matrix.target }} --yes --verbose
+            poetry run flet build ${{ matrix.target }} --template https://github.com/CellSePi/CellSePiTemplate --yes --verbose
           fi
 
       - name: Setup Icon and install script for portable Linux archive
