@@ -645,8 +645,8 @@ class Builder:
             Called when the resize-event is triggered.
             Updates all relevant GUI elements.
             """
-            self.help_text.height = self.page.window.height
-            self.help_text.width = self.page.window.width
+            self.help_text.width = e.width
+            self.help_text.height = e.height
             self.help_text.update()
 
         self.page.on_resize = on_resize
