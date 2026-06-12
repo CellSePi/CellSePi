@@ -10,7 +10,7 @@ def async_main(page: ft.Page):
     page.update()
 
 def main():
-    ft.run(main=async_main, view=ft.AppView.FLET_APP)
+    ft.run(main=async_main, view=ft.AppView.FLET_APP_HIDDEN)
 
 
 if __name__ == "__main__":
