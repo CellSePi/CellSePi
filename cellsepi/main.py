@@ -1,10 +1,19 @@
+import asyncio
+
 import flet as ft
 
 from frontend.gui import GUI
 
 
-def async_main(page: ft.Page):
+async def async_main(page: ft.Page):
+    page.window.prevent_close = True
     gui = GUI(page)
+    page.title = "CellSePi"
+    page.window.width = 1440
+    page.window.height = 800
+    page.window.on_event = lambda e: page.run_task(gui.handle_closing_event, e)
+    page.update()
+    await page.window.center()
     gui.build()
     page.window.visible = True
     page.update()
