@@ -105,7 +105,7 @@ class Builder:
                     self.load_button, self.save_as_button,self.save_button,self.run_menu_button,self.delete_button,self.port_button
                 ], tight=True,spacing=2
             ), bgcolor=MENU_COLOR, expand=True
-            ),bgcolor=ft.Colors.TRANSPARENT,border_radius=ft.border_radius.all(10),
+            ),bgcolor=ft.Colors.TRANSPARENT,border_radius=ft.BorderRadius.all(10),
             bottom=BOTTOM_SPACING,left=SPACING_X,width=40,blur=10)
 
 
@@ -166,7 +166,7 @@ class Builder:
                 self.zoom_menu_button,
             ], tight=True, spacing=2
         ), bgcolor=MENU_COLOR, expand=True
-        ), bgcolor=ft.Colors.TRANSPARENT, border_radius=ft.border_radius.all(10),
+        ), bgcolor=ft.Colors.TRANSPARENT, border_radius=ft.BorderRadius.all(10),
             bottom=BOTTOM_SPACING, right=SPACING_X+10, width=40, blur=10)
 
         self.interactive_view = None
@@ -184,7 +184,7 @@ class Builder:
                               on_click=self.reset_view, tooltip="Reset view\n[Ctrl + -]", hover_color=ft.Colors.WHITE12),
             ], spacing=2
         ), bgcolor=MENU_COLOR, expand=True
-        ), bgcolor=ft.Colors.TRANSPARENT, border_radius=ft.border_radius.all(10),
+        ), bgcolor=ft.Colors.TRANSPARENT, border_radius=ft.BorderRadius.all(10),
             bottom=BOTTOM_SPACING, right=cast(float, self.right_tools.right) + cast(float, self.right_tools.width) + 5, blur=10, opacity=0,
             animate_opacity=ft.Animation(duration=300, curve=ft.AnimationCurve.LINEAR_TO_EASE_OUT),
             animate=ft.Animation(duration=300, curve=ft.AnimationCurve.LINEAR_TO_EASE_OUT),
@@ -195,7 +195,7 @@ class Builder:
                 ft.Container(self.left_run_menu,padding=10),ft.VerticalDivider(), ft.Column([ft.Row([ft.Container(self.progress_and_start,padding=10)],alignment=ft.MainAxisAlignment.CENTER)],alignment=ft.MainAxisAlignment.CENTER),
             ], spacing=2
         ), bgcolor=MENU_COLOR, expand=True, padding=10
-        ), bgcolor=ft.Colors.TRANSPARENT, border_radius=ft.border_radius.all(10),width=0,height=150,
+        ), bgcolor=ft.Colors.TRANSPARENT, border_radius=ft.BorderRadius.all(10),width=0,height=150,
             bottom=BOTTOM_SPACING, left=cast(float, self.left_tools.left) + cast(float, self.left_tools.width) + 5,blur=10,opacity=0,
             animate_opacity=ft.Animation(duration=300, curve=ft.AnimationCurve.LINEAR_TO_EASE_OUT),
             animate=ft.Animation(duration=300, curve=ft.AnimationCurve.LINEAR_TO_EASE_OUT),
@@ -218,7 +218,7 @@ class Builder:
                         self.page_backward, self.page_forward,
                     ], tight=True,spacing=2
                 ), bgcolor=MENU_COLOR, expand=True, height=40
-                ), bgcolor=ft.Colors.TRANSPARENT, border_radius=ft.border_radius.all(10),
+                ), bgcolor=ft.Colors.TRANSPARENT, border_radius=ft.BorderRadius.all(10),
                     top=self.pipeline_gui.show_room_container.top + self.pipeline_gui.show_room_container.height + 5,
                     left=self.pipeline_gui.show_room_container.left,blur=10,visible=True if self.pipeline_gui.show_room_max_page_number > 1 else False)
         self.builder_page_stack.controls.insert(1, self.switch_pages)
