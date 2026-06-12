@@ -291,6 +291,15 @@ class BatchImageSegmentation(Notifier):
                 if self.gui.csp.mask_paths and image_id in self.gui.csp.mask_paths:
                     if self.gui.csp.mask_paths[image_id] is not None:
                         print("skip image, mask already exists")
+                        percent = round((iN + 1) / n_images * 100)
+                        progress = str(percent) + " %"
+                        if event_manager is None:
+                            current_image = {"image_id": image_id, "path": None}
+                            self._call_update_listeners(progress, current_image)
+                        else:
+                            event_manager.notify(ProgressEvent(percent=percent,
+                                                               process=f"Segmenting Images: {iN + 1}/{n_images} (Latest Image: {image_id})"))
+                        self.num_seg_images = self.num_seg_images + 1
                         continue
 
                 image_path = image_paths[image_id][segmentation_channel]

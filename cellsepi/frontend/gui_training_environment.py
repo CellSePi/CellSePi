@@ -60,9 +60,9 @@ class Training(ft.Container):
         # Changed from TextField to Dropdown for model type selection
         self.model_dropdown = ft.Dropdown(
             label="Model Type",
-            value=ModelType.CP_SAM,
+            value=ModelType.CP_SAM.name,
             options=[
-                ft.dropdown.Option(key=v, text=v.value)
+                ft.dropdown.Option(key=v.value.name, text=v.value.name)
                 for v in ModelType if v != ModelType.CUSTOM
             ], border_color=ft.Colors.BLUE_400,
             on_select=lambda e: self.changed_input("modeltype", e),
@@ -288,8 +288,8 @@ class Training(ft.Container):
         # ToDo EK: Check here whether all prerequisites are met
         model_type = self.model_dropdown.value
         try:
-            model_type = ModelType(model_type)
-        except ValueError:
+            model_type = [elem for elem in ModelType if elem.value.name == model_type][0]
+        except IndexError:
             self.page.show_dialog(
                 ft.SnackBar(
                     ft.Text(f"Model type {model_type} not supported!")

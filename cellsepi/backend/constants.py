@@ -22,10 +22,10 @@ class SourceType(Enum):
 
 
 class ModelType(Enum):
-    CP_SAM = auto()
-    CP_CYTO = auto()
-    CP_NUCLEI = auto()
-    CUSTOM = auto()
+    CP_SAM = SimpleNamespace(name= "CP Sam")
+    CP_CYTO = SimpleNamespace(name= "CP Cyto")
+    CP_NUCLEI = SimpleNamespace(name= "CP Nuclei")
+    CUSTOM = SimpleNamespace(name= "Custom")
 
 
 
