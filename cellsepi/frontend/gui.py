@@ -59,6 +59,7 @@ class GUI:
         self.page.window.on_event = lambda e: self.page.run_task(self.handle_closing_event, e)
         self.page.window.width = 1440
         self.page.window.height = 800
+        self.page.run_task(self.page.window.center)
         self.page.title = "CellSePi"
         self.canvas = ImageEditingView(
             on_mask_change=self._mask_update_async)
