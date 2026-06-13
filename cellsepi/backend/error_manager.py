@@ -30,6 +30,17 @@ class ErrorManager:
             file_handler.setFormatter(formatter)
             self.logger.addHandler(file_handler)
 
+    def show(self,user_message: str):
+        if self.page is not None:
+            self.page.show_dialog(
+                ft.SnackBar(
+                    content=ft.Text(user_message, color=ft.Colors.WHITE),
+                    bgcolor=ft.Colors.RED,
+                    action=SnackBarAction(text_color=ft.Colors.WHITE, label="Open logs", on_click=self.open_log_file),
+                )
+            )
+            self.page.update()
+
     def log_and_show(self, user_message: str, ex: Exception):
         if self.page is None:
             self.log(ex)
