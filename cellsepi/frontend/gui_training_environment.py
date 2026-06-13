@@ -292,11 +292,7 @@ class Training(ft.Container):
         try:
             model_type = [elem for elem in ModelType if elem.value.name == model_type][0]
         except IndexError:
-            self.page.show_dialog(
-                ft.SnackBar(
-                    ft.Text(f"Model type {model_type} not supported!")
-                )
-            )
+            self.gui.error_manager.show_without_button(f"Model type {model_type} not supported!")
             return
 
         self.start_button.disabled = True
@@ -443,10 +439,8 @@ class Training(ft.Container):
                     )
             self.progress_bar_text.value = "Finished Training"
 
-        except Exception as e:
-            self.page.show_dialog(ft.SnackBar(
-                ft.Text(f"Something went wrong while training: {str(e)}", color=ft.Colors.WHITE),
-                bgcolor=ft.Colors.RED))
+        except Exception as ex:
+            self.gui.error_manager.log_and_show(f"Something went wrong while training.",ex)
             self.progress_bar_text.value = ""
             self.page.update()
 

@@ -41,6 +41,16 @@ class ErrorManager:
             )
             self.page.update()
 
+    def show_without_button(self,user_message: str):
+        if self.page is not None:
+            self.page.show_dialog(
+                ft.SnackBar(
+                    content=ft.Text(user_message, color=ft.Colors.WHITE),
+                    bgcolor=ft.Colors.RED,
+                )
+            )
+            self.page.update()
+
     def log_and_show(self, user_message: str, ex: Exception):
         if self.page is None:
             self.log(ex)
