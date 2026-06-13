@@ -1,5 +1,4 @@
-import gc
-
+import datetime
 import os
 import hashlib
 
@@ -232,7 +231,8 @@ def copy_files_between_directories(source_dir, target_dir, file_types=None, even
                                                process=f"Readout Images: {iN + 1}/{n_files} (Latest Image: {src_path.name})"))
 
 
-def write_image(target_path, image_data):
+def write_image_with_preprocessing(target_path, image_data):
+    # TODO:PREPROCESSING (resize,dark corners,etc...)
     clean_data = np.squeeze(image_data)
     tifffile.imwrite(target_path, clean_data)
 
@@ -275,13 +275,14 @@ class CellSePiImage:
             # raise TypeError(
             #    f"Could not infer bit depth. Defaulting to container bit depth (FileType: {self.file_type}).")
 
-        if exception_occured or len(bit_depths) != len(self._img.scenes):
+        if exception_occured or len(bit_depths) != len(self._img.scenes) or any([elem is None for elem in bit_depths]):
+            bit_depths = []
             for scene in self._img.scenes:
                 self._img.set_scene(scene)
                 bit_depth = np.iinfo(self._img.data.dtype).bits
                 bit_depths.append(bit_depth)
             print(
-                f"Could not infer bit depth. Defaulting to container bit depth(FileType: {self.file_type}). ({bit_depths})")
+                f"Could not infer bit depth. Defaulting to container bit depth (FileType: {self.file_type}). ({bit_depths})")
 
         bit_depths = np.array(bit_depths)
         assert np.all(bit_depths <= BIT_DEPTH), f"Bit depths must be <= {BIT_DEPTH} (found {np.max(bit_depths)})"
@@ -452,7 +453,7 @@ def extract_from_file(
             target_path = target_dir / file_name
 
             # Store 3D data to disk
-            write_image(target_path, image_data)
+            write_image_with_preprocessing(target_path, image_data)
 
         if event_manager is not None:
             event_manager.notify(event=ProgressEvent(int((index + 1) / total_scenes * 100),
@@ -490,44 +491,34 @@ def extract_from_directory(
     # and bioio returns a T x C x Z x Y x X image with T=1 and C=1
     channels_in_individual_files = all([channel_prefix in str(ipath) for ipath in image_paths])
 
+    smallest_channel_id = 1
+    if channels_in_individual_files:
+        channel_ids = [int(fpath.stem.split(channel_prefix)[1]) for fpath in image_paths]
+        smallest_channel_id = min(channel_ids)
+
     scenes = defaultdict(list)
     scenes_masks = defaultdict(list)
-
     for ipath in image_paths:
         stem = ipath.stem
+        scene = stem
+        channel = smallest_channel_id
         if channels_in_individual_files:
-            scene, channel_str = stem.rsplit(channel_prefix, 1)
-        else:
-            scene = stem
-            channel_str = stem
-
-        scenes[scene].append((channel_str, ipath))
-
-    for mpath in mask_paths:
-        stem = mpath.stem
-
-        if stem.endswith(mask_suffix):
-            base_stem = stem[:-len(mask_suffix)]
-        else:
-            continue
-
-        if channels_in_individual_files:
-            if channel_prefix in base_stem:
-                scene_mask, channel_str = base_stem.rsplit(channel_prefix, 1)
-            else:
+            scene, channel = stem.split(channel_prefix)
+        channel_id = int(channel) - smallest_channel_id + 1
+        scenes[scene].append((channel_id, ipath))
+        # cur_mask_paths = [mpath for mpath in mask_paths if mpath.stem.split(channel_prefix)[0] == scene]
+        for mpath in mask_paths:
+            stem = mpath.stem
+            scene_mask, channel_mask = stem.split(channel_prefix)
+            # channel_id_mask = int(channel_mask)
+            if scene_mask != scene:  # Make sure that scene matches
                 continue
-        else:
-            scene_mask = base_stem
-            channel_str = base_stem
+            if str(channel_id) not in channel_mask:  # Make sure that channel matches
+                continue
+            scenes_masks[scene].append((channel_id, mpath))
 
-        scenes_masks[scene_mask].append((channel_str, mpath))
-
+    # scenes = bio_image.scenes
     total_scenes = len(scenes)
-    if total_scenes == 0:
-        if event_manager is not None:
-            event_manager.notify(event=ProgressEvent(100, process="No images found. Extraction finished!"))
-        return
-
     if event_manager is not None:
         event_manager.notify(
             event=ProgressEvent(0, process=f"Extracting Directory: {0}/{total_scenes}"))
@@ -535,45 +526,41 @@ def extract_from_directory(
     # Create the target directory if it doesn't exist
     target_dir.mkdir(parents=True, exist_ok=True)
 
-    def natural_sort_key(elem):
-        val = elem[0]
-        return (0, int(val)) if val.isdigit() else (1, val)
-
     for iX, scene in enumerate(scenes):
-        channel_mapping = defaultdict(list)
 
         if channels_in_individual_files:
             raw_data = []
-            sorted_scene_images = sorted(scenes[scene], key=natural_sort_key)
-            for new_idx, (orig_channel_str, fpath) in enumerate(sorted_scene_images):
+            for channel_id, fpath in sorted(scenes[scene], key=lambda elem: elem[1]):
                 # TCZXY 5D array
                 bio_image = CellSePiImage(file_type, fpath)
                 c_raw_data = bio_image.data
                 raw_data.append(c_raw_data)
-                channel_mapping[orig_channel_str].append(new_idx)
             raw_data = np.concat(raw_data, axis=1)
         else:
-            orig_channel_str, fpath = scenes[scene][0]
+            channel_id, fpath = scenes[scene][0]
             bio_image = CellSePiImage(file_type, fpath)
             raw_data = bio_image.data
-            for i in range(raw_data.shape[1]):
-                channel_mapping[orig_channel_str].append(i)
+
+        if raw_data.shape[0] != 1:
+            raise ValueError(f"CellSePi can't handle time series currently")
 
         n_channels = raw_data.shape[1]
-        for new_idx in range(n_channels):
-            image_data = raw_data[0, new_idx]
+        for channel_id in range(n_channels):
+            image_data = raw_data[0, channel_id]
 
-            file_name = f"{scene}{CSP_CHANNEL_PREFIX}{new_idx+1}.tif"
+            # Construct file name and path
+            file_name = f"{scene}{CSP_CHANNEL_PREFIX}{channel_id}.tiff"
             target_path = target_dir / file_name
 
-            write_image(target_path, image_data)
+            # Store 3D data to disk
+            write_image_with_preprocessing(target_path, image_data)
 
-        for orig_channel_str, mpath in scenes_masks[scene]:
-            if orig_channel_str in channel_mapping and len(channel_mapping[orig_channel_str]) > 0:
-                new_idx = channel_mapping[orig_channel_str].pop(0)
-
-                target_path = target_dir / f"{scene}{CSP_CHANNEL_PREFIX}{new_idx+1}{mask_suffix}.npy"
-                shutil.copy(str(mpath), str(target_path))
+        for channel_id, mpath in scenes_masks[scene]:
+            # Copy all associated mask information
+            channel_id = channel_id - smallest_channel_id
+            src_path = mpath
+            target_path = target_dir / f"{scene}{CSP_CHANNEL_PREFIX}{channel_id}{mask_suffix}.npy"
+            shutil.copy(str(src_path), str(target_path))
 
         if event_manager is not None:
             event_manager.notify(event=ProgressEvent(int((iX + 1) / total_scenes * 100),
@@ -626,34 +613,30 @@ def remove_gradient(img):
 
 def process_channel(channel_id, channel_path):
     image = tifffile.imread(channel_path)
-    try:
-        if SettingsManager().settings.image.normalize_gallery:
-            image = image.astype(np.float32)
-            image = normalize_image(image)
-            np.multiply(image, 255.0, out=image)
-            np.clip(image, 0.0, 255.0, out=image)
-            image = image.astype(np.uint8)
-        else:
-            image = cv2.convertScaleAbs(image, alpha=1 / 256.0)
 
-        if image.ndim == 3:
-            image = np.max(image, axis=0)
+    if image.ndim == 3:
+        image = np.max(image, axis=0)
 
-        h, w = image.shape[:2]
-        max_size = 150
-        scale = max_size / max(h, w)
-        new_w, new_h = int(w * scale), int(h * scale)
+    if SettingsManager().settings.image.normalize_gallery:
+        image = image.astype(np.float32)
+        image = normalize_image(image)
+        image = (image * 65535).clip(0, 65535).astype(np.uint16)
 
-        down_scaled_image = cv2.resize(image, (new_w, new_h), interpolation=cv2.INTER_AREA)
-        _, buffer = cv2.imencode('.png', down_scaled_image, [cv2.IMWRITE_PNG_COMPRESSION, 0])
-        return channel_id, base64.b64encode(buffer).decode('utf-8')
-    finally:
-        del image
+    h, w = image.shape[:2]
+
+    max_size = 150
+    scale = max_size / max(h, w)
+    new_w, new_h = int(w * scale), int(h * scale)
+    down_scaled_image = cv2.resize(image, (new_w, new_h), interpolation=cv2.INTER_AREA)
+    image_8bit = cv2.convertScaleAbs(down_scaled_image, alpha=1 / 256.0)
+    _, buffer = cv2.imencode('.png', image_8bit, [cv2.IMWRITE_PNG_COMPRESSION, 0])
+
+    return channel_id, base64.b64encode(buffer).decode('utf-8')
+
 
 def convert_series_parallel(image_id, cur_image_paths):
     png_images = {image_id: {}}
-    optimal_workers = min(4, (os.cpu_count() or 1))
-    with ThreadPoolExecutor(max_workers=optimal_workers) as executor:
+    with ThreadPoolExecutor() as executor:
         futures = {
             executor.submit(process_channel, channel_id, cur_image_paths[channel_id]): channel_id
             for channel_id in cur_image_paths
@@ -822,7 +805,7 @@ def export_dataframe_to_pdf(df: pd.DataFrame, output_path: str):
             data_matrix = [sub_cols] + sub_df.round(2).values.tolist()
 
             # Create the sub-table
-            pdf_table = Table(data_matrix)#, colWidths=col_width_allocation)
+            pdf_table = Table(data_matrix)  # , colWidths=col_width_allocation)
 
             # Apply clean aesthetic theme
             pdf_table.setStyle(TableStyle([
@@ -858,6 +841,11 @@ def load_image_to_numpy(path):
     return array
 
 
+def get_timestamp() -> str:
+    """Timestamp YYYY-MM-DD HH:MM:SS"""
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
 class DirectoryManager:
     """
     Manages project directories and intermediate file storage.
@@ -874,6 +862,9 @@ class DirectoryManager:
             app_dir = APP_DIR
         self._base_path = Path(app_dir)
         self._cache_path: Optional[Path] = None
+        self._working_directory: Optional[Path] = None
+
+        # self._timestamp = get_timestamp()
 
     @property
     def base_directory(self) -> Path:
@@ -890,20 +881,39 @@ class DirectoryManager:
 
         return self._cache_path
 
-    def get_cache_file_path(self, filename: str) -> Path:
-        """
-        Returns a full path for a file within the intermediate directory.
-        """
-        # Accessing the property ensures the directory is created
-        dir_path = Path(self.cache_directory.path)
-        return dir_path / filename
+    @property
+    def working_directory(self) -> Path:
+        # if self._working_directory is None:
+        #    raise ValueError("Working directory not initialized. Call initialize_working_directory first.")
+        return self._working_directory
 
-    def get_cache_dir_path(self, dirname: str, makedir=True) -> Path:
-        dirpath = self.cache_directory / dirname
+    def init_working_directory(self, subdir: str):
+        self._working_directory = self.cache_directory / subdir
+        self._working_directory.mkdir(parents=True, exist_ok=True)
+        return self._working_directory
 
-        if makedir:
-            os.makedirs(dirpath, exist_ok=True)
-        return dirpath
+    @property
+    def modules_working_directory(self) -> Path:
+        mwd = self.cache_directory / "modules"
+        mwd.mkdir(parents=True, exist_ok=True)
+        return mwd
+
+    # def get_cache_file_path(self, filename: str) -> Path:
+    #     """
+    #     Returns a full path for a file within the intermediate directory.
+    #     """
+    #     # Accessing the property ensures the directory is created
+    #     dir_path = Path(self.cache_directory.path)
+    #     return dir_path / filename
+
+    # def get_cache_dir_path(self, dirname: str, makedir=True) -> Path:
+    #     dirpath = self.cache_directory / dirname
+    #
+    #     if makedir:
+    #         os.makedirs(dirpath, exist_ok=True)
+    #
+    #     self.current_cache_dir = dirpath
+    #     return dirpath
 
     def streamline_cache(self):
         """
