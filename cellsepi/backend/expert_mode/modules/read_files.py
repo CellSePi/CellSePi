@@ -9,8 +9,11 @@ FileSourceFileType = create_enum_subset(
     lambda m: m.value.source == SourceType.FILE,
     fields_to_copy=["name", "extensions"]
 )
-class ReadFiles(Module,ABC):
-    _gui_config = ModuleGuiConfig("ReadFiles",Categories.INPUTS,"This module handles the read in of different files.")
+
+
+class ReadFiles(Module, ABC):
+    _gui_config = ModuleGuiConfig("ReadFiles", Categories.INPUTS, "This module handles the read in of different files.")
+
     def __init__(self, module_id: str = None) -> None:
         super().__init__(module_id)
         self.outputs = {
@@ -35,6 +38,17 @@ class ReadFiles(Module,ABC):
 
     def run(self):
         overwrite = True if self.user_over_write == OverWrite.ALWAYS else False
-        working_directory = DirectoryCard().select_directory(self.user_file_path.path, self.user_file_type.value.ref,
-                                                             self.user_channel_prefix, self.event_manager,overwrite)
-        self.outputs["image_paths"].data= load_directory(directory=working_directory, mask_suffix=self.user_mask_suffix,return_type=ReturnTypePath.IMAGE_PATHS,event_manager= self.event_manager)
+        working_directory = DirectoryCard().select_directory(
+            self.user_file_path.path,
+            self.user_file_type.value.ref,
+            self.user_channel_prefix,
+            self.user_mask_suffix,
+            self.event_manager,
+            overwrite
+        )
+        self.outputs["image_paths"].data = load_directory(
+            directory=working_directory,
+            mask_suffix=self.user_mask_suffix,
+            return_type=ReturnTypePath.IMAGE_PATHS,
+            event_manager=self.event_manager
+        )

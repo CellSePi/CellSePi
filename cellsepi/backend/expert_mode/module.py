@@ -5,6 +5,8 @@ from typing import Dict, List
 
 import flet as ft
 
+from backend.constants import APP_DIR
+from backend.data_util import DirectoryManager
 from backend.expert_mode.event_manager import EventManager
 
 
@@ -166,6 +168,7 @@ class Module(ABC):
         self.outputs: Dict[str, OutputPort] = {}
         self._settings: ft.Stack | None = None
         self._on_settings_dismiss: Callable[[], None] | None = lambda: None
+
         """
         User-defined attributes convention:        
         - Add custom attributes by prefixing them with 'user_'.
@@ -306,3 +309,14 @@ class Module(ABC):
 
     def __str__(self):
         return f"module_id: '{self.module_id}', category: '{self.gui_config().category}', module_name: {self.gui_config().name}, inputs: {self.inputs}, outputs: {self.outputs}, user_attributes: {self.get_user_attributes}"
+
+    def get_working_directory(self):
+        wd = DirectoryManager(APP_DIR).modules_working_directory
+        if wd is not None:
+            wd = wd / f"{self.gui_config().name}_{self.module_id}"
+            wd.mkdir(parents=True, exist_ok=True)
+
+        assert wd is not None, f"Working directory for module {self.module_id} not found!"
+        # if wd is None:
+        #     wd = APP_DIR / "modules" / self.module_id
+        return wd

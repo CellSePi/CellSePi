@@ -1,3 +1,4 @@
+import datetime
 import os
 import hashlib
 
@@ -274,13 +275,14 @@ class CellSePiImage:
             # raise TypeError(
             #    f"Could not infer bit depth. Defaulting to container bit depth (FileType: {self.file_type}).")
 
-        if exception_occured or len(bit_depths) != len(self._img.scenes):
+        if exception_occured or len(bit_depths) != len(self._img.scenes) or any([elem is None for elem in bit_depths]):
+            bit_depths = []
             for scene in self._img.scenes:
                 self._img.set_scene(scene)
                 bit_depth = np.iinfo(self._img.data.dtype).bits
                 bit_depths.append(bit_depth)
             print(
-                f"Could not infer bit depth. Defaulting to container bit depth(FileType: {self.file_type}). ({bit_depths})")
+                f"Could not infer bit depth. Defaulting to container bit depth (FileType: {self.file_type}). ({bit_depths})")
 
         bit_depths = np.array(bit_depths)
         assert np.all(bit_depths <= BIT_DEPTH), f"Bit depths must be <= {BIT_DEPTH} (found {np.max(bit_depths)})"
@@ -803,7 +805,7 @@ def export_dataframe_to_pdf(df: pd.DataFrame, output_path: str):
             data_matrix = [sub_cols] + sub_df.round(2).values.tolist()
 
             # Create the sub-table
-            pdf_table = Table(data_matrix)#, colWidths=col_width_allocation)
+            pdf_table = Table(data_matrix)  # , colWidths=col_width_allocation)
 
             # Apply clean aesthetic theme
             pdf_table.setStyle(TableStyle([
@@ -839,6 +841,11 @@ def load_image_to_numpy(path):
     return array
 
 
+def get_timestamp() -> str:
+    """Timestamp YYYY-MM-DD HH:MM:SS"""
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
 class DirectoryManager:
     """
     Manages project directories and intermediate file storage.
@@ -855,6 +862,9 @@ class DirectoryManager:
             app_dir = APP_DIR
         self._base_path = Path(app_dir)
         self._cache_path: Optional[Path] = None
+        self._working_directory: Optional[Path] = None
+
+        # self._timestamp = get_timestamp()
 
     @property
     def base_directory(self) -> Path:
@@ -871,20 +881,39 @@ class DirectoryManager:
 
         return self._cache_path
 
-    def get_cache_file_path(self, filename: str) -> Path:
-        """
-        Returns a full path for a file within the intermediate directory.
-        """
-        # Accessing the property ensures the directory is created
-        dir_path = Path(self.cache_directory.path)
-        return dir_path / filename
+    @property
+    def working_directory(self) -> Path:
+        # if self._working_directory is None:
+        #    raise ValueError("Working directory not initialized. Call initialize_working_directory first.")
+        return self._working_directory
 
-    def get_cache_dir_path(self, dirname: str, makedir=True) -> Path:
-        dirpath = self.cache_directory / dirname
+    def init_working_directory(self, subdir: str):
+        self._working_directory = self.cache_directory / subdir
+        self._working_directory.mkdir(parents=True, exist_ok=True)
+        return self._working_directory
 
-        if makedir:
-            os.makedirs(dirpath, exist_ok=True)
-        return dirpath
+    @property
+    def modules_working_directory(self) -> Path:
+        mwd = self.cache_directory / "modules"
+        mwd.mkdir(parents=True, exist_ok=True)
+        return mwd
+
+    # def get_cache_file_path(self, filename: str) -> Path:
+    #     """
+    #     Returns a full path for a file within the intermediate directory.
+    #     """
+    #     # Accessing the property ensures the directory is created
+    #     dir_path = Path(self.cache_directory.path)
+    #     return dir_path / filename
+
+    # def get_cache_dir_path(self, dirname: str, makedir=True) -> Path:
+    #     dirpath = self.cache_directory / dirname
+    #
+    #     if makedir:
+    #         os.makedirs(dirpath, exist_ok=True)
+    #
+    #     self.current_cache_dir = dirpath
+    #     return dirpath
 
     def streamline_cache(self):
         """

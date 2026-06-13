@@ -245,7 +245,8 @@ class DirectoryCard(ft.Card):
     def select_dir_and_update(self, path):
         if path:
             self.directory_path.value = path
-            self.select_directory(path, self.file_type, self.gui.csp.config.get_channel_prefix(), self.gui.csp.config.get_mask_suffix())
+            self.select_directory(path, self.file_type, self.gui.csp.config.get_channel_prefix(),
+                                  self.gui.csp.config.get_mask_suffix())
             self.load_images()
         else:
             self.image_gallery.controls.clear()
@@ -289,8 +290,8 @@ class DirectoryCard(ft.Card):
 
         image_source_identifier = consistent_hash(str(path.absolute()))
 
-        working_directory = (DirectoryManager(APP_DIR)
-                             .get_cache_dir_path(f"tmp_{file_type.name}_{image_source_identifier}/", makedir=False))
+
+        working_directory = DirectoryManager(APP_DIR).init_working_directory(f"tmp_{file_type.name}_{image_source_identifier}/")
 
         # case empty folder
         if file_type.value.source == SourceType.DIRECTORY:
