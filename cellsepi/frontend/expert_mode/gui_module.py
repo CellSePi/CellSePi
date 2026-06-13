@@ -64,9 +64,7 @@ class ModuleGUI(ft.GestureDetector):
                                             border_radius=ft.BorderRadius.all(10))
         self.click_container = ft.Container(on_click=self.add_connection,
                                             height=MODULE_HEIGHT, width=MODULE_WIDTH,
-                                            visible=False if not show_mode else True,
                                             bgcolor=ft.Colors.TRANSPARENT,
-                                            disabled=True if not show_mode else False,
                                             border_radius=ft.BorderRadius.all(10))
         self.click_gesture = ft.GestureDetector(hover_interval=25, visible=False, disabled=True,
                                                 content=self.click_container, on_enter=self.on_enter_click_module,
@@ -541,8 +539,7 @@ class ModuleGUI(ft.GestureDetector):
             self.click_gesture.disabled = True
             self.click_gesture.visible = False
             self.click_gesture.update()
-            if (
-                    self.module_id not in self.pipeline_gui.pipeline.run_order and not self.pipeline_gui.pipeline.executing == self.module_id) or not self.pipeline_gui.pipeline.running:
+            if (self.module_id not in self.pipeline_gui.pipeline.run_order and not self.pipeline_gui.pipeline.executing == self.module_id) or not self.pipeline_gui.pipeline.running:
                 self.delete_button.visible = True
                 self.delete_button.update()
             self.connection_ports.visible = False
