@@ -1,3 +1,5 @@
+import pickle
+
 import os
 import pathlib
 import platform
@@ -162,55 +164,9 @@ class GUISegmentation:
             # visibility of buttons before start of segmentation (needed in case of error)
             state_fl_control = FluorescenceReadoutControl().visible
             state_open_button = self.gui.open_button.visible
-            try:
-                start_button.visible = False
-                pause_button.visible = True
-                cancel_button.visible = True
-                model_title.disabled = True
-                model_chooser.disabled = True
-                FluorescenceReadoutControl().visible = False
-                cancel_button.color = ft.Colors.RED
-                cancel_button.icon_color = ft.Colors.RED
-                self.gui.open_button.visible = False
-                self.gui.training_environment.disable_switch_environment()
-                self.gui.directory.disable_path_choosing()
 
-                self.gui.page.update()
-
-                async def flow():
-                    print("mask paths:",self.gui.csp.mask_paths)
-                    if self.gui.csp.mask_paths:
-
-                        dialog = ChoiceDialog(
-                            page=self.gui.page,
-                            title="Images previously segmented",
-                            text="Do you want to delete all pre-existing mask data?\nThis will re-segment all images instead of processing only images with missing masks.",
-                            option_1="Delete",
-                            option_2="Continue",
-                        )
-
-                        result = await dialog.show()
-                        delete = (result == 0)
-
-                        if delete:
-                            for img in self.gui.csp.mask_paths:
-                                for seg_channel in self.gui.csp.mask_paths[img]:
-                                    path = self.gui.csp.mask_paths[img][seg_channel]
-                                    if os.path.exists(path):
-                                        os.remove(path)
-
-                            self.gui.csp.mask_paths = {}
-                            self.gui.directory.update_all_masks_check()
-                            self.gui.page.update()
-
-                    self.gui.page.run_thread(self.segmentation.run)
-
-                self.gui.page.run_task(flow)
-
-            except:
-                self.gui.page.show_dialog(
-                    ft.SnackBar(ft.Text("You have selected an incompatible file for the segmentation model.",
-                                        color=ft.Colors.WHITE), bgcolor=ft.Colors.RED))
+            def reset_gui_on_error(ex, user_message: str):
+                self.gui.error_manager.log_and_show(user_message,ex)
                 self.gui.training_environment.enable_switch_environment()
                 start_button.visible = True
                 start_button.disabled = True
@@ -226,6 +182,66 @@ class GUISegmentation:
                 self.progress_bar_text.value = "Select new Model"
                 self.gui.csp.model_path = None
                 self.gui.page.update()
+
+            start_button.visible = False
+            pause_button.visible = True
+            cancel_button.visible = True
+            model_title.disabled = True
+            model_chooser.disabled = True
+            FluorescenceReadoutControl().visible = False
+            cancel_button.color = ft.Colors.RED
+            cancel_button.icon_color = ft.Colors.RED
+            self.gui.open_button.visible = False
+            self.gui.training_environment.disable_switch_environment()
+            self.gui.directory.disable_path_choosing()
+
+            self.gui.page.update()
+
+            async def flow():
+                print("mask paths:",self.gui.csp.mask_paths)
+                if self.gui.csp.mask_paths:
+
+                    dialog = ChoiceDialog(
+                        page=self.gui.page,
+                        title="Images previously segmented",
+                        text="Do you want to delete all pre-existing mask data?\nThis will re-segment all images instead of processing only images with missing masks.",
+                        option_1="Delete",
+                        option_2="Continue",
+                    )
+
+                    result = await dialog.show()
+                    delete = (result == 0)
+
+                    if delete:
+                        for img in self.gui.csp.mask_paths:
+                            for seg_channel in self.gui.csp.mask_paths[img]:
+                                path = self.gui.csp.mask_paths[img][seg_channel]
+                                if os.path.exists(path):
+                                    os.remove(path)
+
+                        self.gui.csp.mask_paths = {}
+                        self.gui.directory.update_all_masks_check()
+                        self.gui.page.update()
+
+                def threaded_segmentation_runner():
+                    try:
+                        self.segmentation.run()
+                    except pickle.UnpicklingError as ex:
+                        reset_gui_on_error(
+                            ex,
+                            user_message="Invalid or corrupted file. Please select a valid model."
+                        )
+
+                    except Exception as ex:
+                        reset_gui_on_error(
+                            ex,
+                            user_message="An unexpected error occurred during segmentation."
+                        )
+
+                self.gui.page.run_thread(threaded_segmentation_runner)
+
+            self.gui.page.run_task(flow)
+
 
         def cancel_segmentation():  # called when the cancel button is clicked
             """

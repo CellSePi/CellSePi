@@ -12,6 +12,7 @@ import inspect
 import pathlib
 
 from backend.data_util import DirectoryManager
+from backend.error_manager import ErrorManager
 from backend.expert_mode.module import Module
 from image_editing_view import ImageEditingView
 from backend.avg_diameter import AverageDiameter
@@ -48,6 +49,7 @@ class GUI:
         self.csp: CellSePi = CellSePi()
         self.error_loading_plugin = self.load_plugins(self.csp.plugins_dir)
         self.page = page
+        self.error_manager = ErrorManager(page)
         self.directory = DirectoryCard(self)
         self.average_diameter = AverageDiameter(self)
         self.cancel_event = threading.Event()
