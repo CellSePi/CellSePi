@@ -189,6 +189,7 @@ class DirectoryCard(ft.Card):
         if self.source_type == SourceType.FILE:
             allowed_extensions = self.file_type.value.extensions
             files = await ft.FilePicker().pick_files(
+                dialog_title="Pick file",
                 initial_directory=str(previous_directory),
                 allow_multiple=False,
                 file_type=ft.FilePickerFileType.CUSTOM,
@@ -196,6 +197,7 @@ class DirectoryCard(ft.Card):
             )
         elif self.source_type == SourceType.DIRECTORY:
             files = await ft.FilePicker().get_directory_path(
+                dialog_title="Open directory",
                 initial_directory=str(previous_directory),
             )
         else:

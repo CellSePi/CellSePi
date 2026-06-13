@@ -30,9 +30,10 @@ class ModuleStartedEvent(Event):
         self.module_id = module_id
 
 class ErrorEvent(Event):
-    def __init__(self,error_name: str, error_msg: str):
+    def __init__(self,error_name: str, error_msg: str, error: Exception) -> None:
         self.error_name = error_name
         self.error_msg = error_msg
+        self.error = error
 
     def __str__(self):
         return f"Error_name: {self.error_name} Error_msg: {self.error_msg}"
@@ -59,9 +60,10 @@ class PipelineCancelEvent(Event):
         self.module_id = module_id
 
 class PipelineErrorEvent(Event):
-    def __init__(self,error_name: str,error_msg:str):
+    def __init__(self,error_name: str,error_msg:str,error: Exception) -> None:
         self.error_name = error_name
         self.error_msg = error_msg
+        self.error = error
 
 class EventListener(ABC):
     """

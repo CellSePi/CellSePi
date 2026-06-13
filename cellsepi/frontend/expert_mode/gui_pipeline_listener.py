@@ -1,6 +1,8 @@
 import textwrap
 from typing import Type
 import flet as ft
+
+from backend.error_manager import ErrorManager
 from backend.expert_mode.listener import EventListener, OnPipelineChangeEvent, Event, \
     ModuleExecutedEvent, ProgressEvent, ErrorEvent, ModuleStartedEvent, DragAndDropEvent, PipelinePauseEvent, \
     PipelineCancelEvent, PipelineErrorEvent
@@ -259,6 +261,7 @@ class ModuleErrorListener(EventListener):
         self.builder.page.run_task(self._update,event)
 
     async def _update(self, event: ErrorEvent) -> None:
+            ErrorManager().log(event.error)
             self.builder.cancel_button.visible = False
             self.builder.cancel_button.disabled = False
             self.builder.cancel_button.color = ft.Colors.RED
@@ -269,7 +272,7 @@ class ModuleErrorListener(EventListener):
             self.builder.pipeline_gui.modules[self.builder.pipeline_gui.pipeline.executing].error_icon.tooltip = f"An error occurred while executing!\nError: {wrapped_text}"
             self.builder.pipeline_gui.modules[self.builder.pipeline_gui.pipeline.executing].error_icon.update()
             self.builder.pipeline_gui.modules[
-                self.builder.pipeline_gui.pipeline.executing].module_container.border = ft.border.all(4,
+                self.builder.pipeline_gui.pipeline.executing].module_container.border = ft.Border.all(4,
                                                                                                       ft.Colors.RED)
             self.builder.pipeline_gui.modules[self.builder.pipeline_gui.pipeline.executing].module_container.update()
             self.builder.pipeline_gui.enables_all_stuck_in_running()

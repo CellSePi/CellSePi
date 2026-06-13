@@ -12,6 +12,7 @@ import inspect
 import pathlib
 
 from backend.data_util import DirectoryManager
+from backend.error_manager import ErrorManager
 from backend.expert_mode.module import Module
 from image_editing_view import ImageEditingView
 from backend.avg_diameter import AverageDiameter
@@ -46,8 +47,9 @@ class GUI:
 
     def __init__(self, page: ft.Page):
         self.csp: CellSePi = CellSePi()
-        self.error_loading_plugin = self.load_plugins(self.csp.plugins_dir)
         self.page = page
+        self.error_manager = ErrorManager(page)
+        self.error_loading_plugin = self.load_plugins(self.csp.plugins_dir)
         self.directory = DirectoryCard(self)
         self.average_diameter = AverageDiameter(self)
         self.cancel_event = threading.Event()
@@ -261,16 +263,7 @@ class GUI:
         MODULE_REGISTRY["REVIEW"].update_class(mask_color=self.csp.config.get_mask_color(),
                                                outline_color=self.csp.config.get_outline_color())
         if self.error_loading_plugin:
-            self.page.show_dialog(
-                ft.SnackBar(
-                    ft.Text(
-                        "Some plugins couldn't be loaded. Check 'plugin_errors.txt' in the plugins folder for details.",
-                        color=ft.Colors.WHITE
-                    ),
-                    bgcolor=ft.Colors.RED
-                )
-            )
-            self.page.update()
+            self.error_manager.show("Some plugins couldn't be loaded. Check the logs for details.")
 
         if self.csp.config.get_auto_button():
             self.page.run_task(self.auto_image_tuning.pressed)
@@ -359,8 +352,6 @@ class GUI:
             self.csp.image_paths[self.csp.image_id][self.csp.channel_id])
 
     def load_plugins(self, directory):
-        plugin_dir = pathlib.Path(directory)
-        error_log_path = plugin_dir / "plugin_errors.txt"
         errors_found = False
 
         # collect gui names of the modules
@@ -380,11 +371,7 @@ class GUI:
                 spec.loader.exec_module(module)
             except Exception as e:
                 errors_found = True
-                with open(error_log_path, "a", encoding="utf-8") as f:
-                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    f.write(f"[{timestamp}] Error loading '{path.name}':\n")
-                    f.write(traceback.format_exc())
-                    f.write("-" * 50 + "\n")
+                self.error_manager.logger.error(f"Error loading plugin '{path.name}':", exc_info=e)
                 continue
 
             for name, obj in inspect.getmembers(module, inspect.isclass):
@@ -397,11 +384,9 @@ class GUI:
 
                     if gui_name in used_gui_names:  # check if the new modules gui names are duplicates of already registered ones
                         errors_found = True
-                        with open(error_log_path, "a", encoding="utf-8") as f:
-                            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                            f.write(
-                                f"[{timestamp}] Error: Duplicate GUI name '{gui_name}' found in '{path.name}' (Class: {obj.__name__}). Module skipped.\n")
-                            f.write("-" * 50 + "\n")
+                        self.error_manager.logger.error(
+                            f"Duplicate GUI name '{gui_name}' found in '{path.name}' (Class: {obj.__name__}). Module skipped."
+                        )
                         continue
 
                     used_gui_names.add(gui_name)

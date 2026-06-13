@@ -1,3 +1,5 @@
+import pickle
+
 from backend.expert_mode.pipeline_manager import PipelineRunningException
 from backend.segmentation import BatchImageSegmentation
 from backend.expert_mode.module import *
@@ -45,8 +47,8 @@ class ImageSegmentationModule(Module, ABC):
             self.inputs["mask_paths"].data = {}
         try:
             BatchImageSegmentation(segmentation_channel=self.user_segmentation_channel,diameter=self.user_diameter,suffix=self.user_mask_suffix).run(self.event_manager,self.inputs["image_paths"].data,self.inputs["mask_paths"].data,self.user_model_path.path,model_type=self.user_model_type)
-        except:
-            raise PipelineRunningException("Segmentation Error", "Incompatible file for the segmentation model.")
+        except pickle.UnpicklingError as ex:
+            raise PipelineRunningException("Segmentation Error", "Invalid or corrupted file. Please select a valid model.")
 
         self.outputs["mask_paths"].data = self.inputs["mask_paths"].data
 

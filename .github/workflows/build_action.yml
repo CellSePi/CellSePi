@@ -151,7 +151,7 @@ jobs:
         shell: bash
         run: |
           if [ "${{ matrix.target }}" == "macos" ]; then
-            poetry run flet build ${{ matrix.target }} --arch arm64 --yes --verbose
+            poetry run flet build ${{ matrix.target }} --arch arm64 --template https://github.com/CellSePi/CellSePiTemplate --yes --verbose
           else
             if [ "${{ matrix.accelerator }}" == "cpu" ]; then
               export PIP_EXTRA_INDEX_URL="https://download.pytorch.org/whl/cpu"
