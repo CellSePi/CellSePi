@@ -218,9 +218,9 @@ class BatchImageSegmentation(Notifier):
             self._call_start_listeners()
         if event_manager is None:
             image_paths = self.gui.csp.image_paths
+            mask_paths = self.gui.csp.mask_paths
 
         segmentation_channel = self.segmentation_channel
-        diameter = self.diameter
         suffix = self.suffix
 
         n_images = len(image_paths)
@@ -288,8 +288,8 @@ class BatchImageSegmentation(Notifier):
                         self.resume_now = False
                         self.segmentation.is_resuming()
 
-                if image_paths and image_id in mask_paths:
-                    if mask_paths[image_id] is not None:
+                if mask_paths and image_id in mask_paths and mask_paths[image_id] is not None and segmentation_channel in mask_paths[image_id]:
+                    if mask_paths[image_id][segmentation_channel] is not None:
                         print("skip image, mask already exists")
                         percent = round((iN + 1) / n_images * 100)
                         progress = str(percent) + " %"
@@ -428,7 +428,6 @@ class BatchImageSegmentation(Notifier):
                         #if backup_path is not None:
                          #   os.rename(backup_path, default_suffix_path)
                 if event_manager is None:
-                    print("mask paths", self.gui.csp.mask_paths)
                     if image_id not in self.gui.csp.mask_paths:
                         self.gui.csp.mask_paths[image_id] = {}
                 else:
