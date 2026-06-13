@@ -85,7 +85,7 @@ class Builder:
                                          style=ft.ButtonStyle(
                                              shape=ft.RoundedRectangleBorder(radius=12), ),
                                          tooltip="Save pipeline\n[Ctrl + S]", hover_color=ft.Colors.WHITE12)
-        self.run_menu_button = ft.IconButton(icon=ft.Icons.PLAY_ARROW, on_click=lambda e: self.run_menu_click(),
+        self.run_menu_button = ft.IconButton(icon=ft.Icons.PLAY_ARROW, on_click=self.run_menu_click,
                                              icon_color=MAIN_ACTIVE_COLOR,
                                              style=ft.ButtonStyle(
                                              shape=ft.RoundedRectangleBorder(radius=12), ),
@@ -197,8 +197,6 @@ class Builder:
         ), bgcolor=MENU_COLOR, expand=True, padding=10
         ), bgcolor=ft.Colors.TRANSPARENT, border_radius=ft.BorderRadius.all(10),width=0,height=150,
             bottom=BOTTOM_SPACING, left=cast(float, self.left_tools.left) + cast(float, self.left_tools.width) + 5,blur=10,opacity=0,
-            animate_opacity=ft.Animation(duration=300, curve=ft.AnimationCurve.LINEAR_TO_EASE_OUT),
-            animate=ft.Animation(duration=300, curve=ft.AnimationCurve.LINEAR_TO_EASE_OUT),
             )
         self.setup()
         self.page_forward = ft.IconButton(icon=ft.Icons.CHEVRON_RIGHT_SHARP, on_click=lambda e: self.press_page_forward(),
@@ -353,7 +351,7 @@ class Builder:
             if not self.load_button.disabled:
                 asyncio.create_task(self.click_load_file())
         if e.ctrl and e.key == "R" and not e.alt and not e.shift and not e.meta:
-            self.run_menu_click()
+            self.page.run_task(self.run_menu_click)
         if e.ctrl and e.key == "D" and not e.alt and not e.shift and not e.meta:
             self.delete_button_click()
         if e.ctrl and e.key == "P" and not e.alt and not e.shift and not e.meta:
@@ -552,24 +550,36 @@ class Builder:
             self.page_forward.disabled = False
             self.page_forward.update()
 
-    def run_menu_click(self):
+    async def run_menu_click(self):
         """
         Called when the run menu button got clicked.
         """
         if self.run_menu.opacity==1:
+            self.run_menu.animate = ft.Animation(duration=300, curve=ft.AnimationCurve.LINEAR_TO_EASE_OUT)
+            self.run_menu.animate_opacity = ft.Animation(duration=300, curve=ft.AnimationCurve.LINEAR_TO_EASE_OUT)
+            self.run_menu.update()
+            await asyncio.sleep(0.05)
             self.run_menu_button.icon_color = MAIN_ACTIVE_COLOR
             self.run_menu_button.tooltip = f"Show run menu\n[Ctrl + R]"
             self.run_menu_button.update()
             self.run_menu.width = 0
             self.run_menu.opacity = 0
             self.run_menu.update()
+            self.run_menu.animate = None
+            self.run_menu.animate_opacity = None
         else:
+            self.run_menu.animate = ft.Animation(duration=300, curve=ft.AnimationCurve.LINEAR_TO_EASE_OUT)
+            self.run_menu.animate_opacity = ft.Animation(duration=300, curve=ft.AnimationCurve.LINEAR_TO_EASE_OUT)
+            self.run_menu.update()
+            await asyncio.sleep(0.05)
             self.run_menu_button.icon_color = ft.Colors.BLUE_400
             self.run_menu_button.tooltip = f"Hide run menu\n[Ctrl + R]"
             self.run_menu_button.update()
             self.run_menu.width = 470
             self.run_menu.opacity = 1
             self.run_menu.update()
+            self.run_menu.animate = None
+            self.run_menu.animate_opacity = None
 
     def zoom_menu_click(self):
         """
@@ -658,5 +668,4 @@ class Builder:
                 self.zoom_menu,
              ],expand=True
             )
-
 

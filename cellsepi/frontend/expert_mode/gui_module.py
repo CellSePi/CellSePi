@@ -56,14 +56,19 @@ class ModuleGUI(ft.GestureDetector):
         self.color = self.module.gui_config().category.value
         self.valid = False
         self.wrapped_description = "\n".join(textwrap.wrap(self.module.gui_config().description, width=40))
-        self.click_container = ft.Container(on_click=self.add_connection,
-                                            tooltip=self.wrapped_description if self.show_mode else None,
+        self.block_container = ft.Container(tooltip=self.wrapped_description if self.show_mode else None,
                                             height=MODULE_HEIGHT, width=MODULE_WIDTH,
                                             visible=False if not show_mode else True,
                                             bgcolor=INVALID_COLOR if not show_mode else ft.Colors.TRANSPARENT,
                                             disabled=True if not show_mode else False,
                                             border_radius=ft.BorderRadius.all(10))
-        self.click_gesture = ft.GestureDetector(hover_interval=25, visible=True, disabled=False,
+        self.click_container = ft.Container(on_click=self.add_connection,
+                                            height=MODULE_HEIGHT, width=MODULE_WIDTH,
+                                            visible=False if not show_mode else True,
+                                            bgcolor=ft.Colors.TRANSPARENT,
+                                            disabled=True if not show_mode else False,
+                                            border_radius=ft.BorderRadius.all(10))
+        self.click_gesture = ft.GestureDetector(hover_interval=25, visible=False, disabled=True,
                                                 content=self.click_container, on_enter=self.on_enter_click_module,
                                                 on_exit=self.on_exit_click_module)
 
@@ -256,6 +261,7 @@ class ModuleGUI(ft.GestureDetector):
                 self.paused_button,
                 self.warning_satisfied,
                 self.error_stack,
+                self.block_container,
                 self.click_gesture,
             ]
             ),
@@ -323,16 +329,16 @@ class ModuleGUI(ft.GestureDetector):
         Handles if the mouse enters hovering over the module to connect.
         """
         if self.valid:
-            self.click_container.bgcolor = VALID_COLOR
-            self.click_container.update()
+            self.block_container.bgcolor = VALID_COLOR
+            self.block_container.update()
 
     def on_exit_click_module(self):
         """
         Handles if the mouse exits hovering over the module to connect.
         """
         if self.valid:
-            self.click_container.bgcolor = ft.Colors.TRANSPARENT
-            self.click_container.update()
+            self.block_container.bgcolor = ft.Colors.TRANSPARENT
+            self.block_container.update()
 
     def update_port_icons(self):
         """
@@ -454,22 +460,22 @@ class ModuleGUI(ft.GestureDetector):
         Sets a module valid to connect.
         """
         self.valid = True
-        self.click_container.bgcolor = ft.Colors.TRANSPARENT
+        self.block_container.bgcolor = ft.Colors.TRANSPARENT
         self.module_container.border = ft.Border.all(4, ft.Colors.WHITE38)
         self.module_container.update()
-        self.click_container.update()
+        self.block_container.update()
 
     def set_invalid(self):
         """
         Sets a module to invalid to connect.
         """
         self.valid = False
-        self.click_container.bgcolor = INVALID_COLOR
+        self.block_container.bgcolor = INVALID_COLOR
         self.module_container.border = ft.Border.all(4,
                                                      ft.Colors.RED if not self.pipeline_gui.pipeline.check_module_satisfied(
                                                          self.module_id) or self.error_stack.visible else ft.Colors.BLACK12)
         self.module_container.update()
-        self.click_container.update()
+        self.block_container.update()
 
     def set_running(self):
         """
@@ -516,10 +522,10 @@ class ModuleGUI(ft.GestureDetector):
         """
         if self.detection:
             self.detection = False
-            self.click_container.disabled = False
-            self.click_container.visible = True
-            self.click_container.ignore_interactions = False
-            self.click_container.update()
+            self.block_container.disabled = False
+            self.block_container.visible = True
+            self.block_container.ignore_interactions = False
+            self.block_container.update()
             self.click_gesture.disabled = False
             self.click_gesture.visible = True
             self.click_gesture.update()
@@ -528,10 +534,10 @@ class ModuleGUI(ft.GestureDetector):
         else:
             self.detection = True
             self.set_invalid()
-            self.click_container.disabled = True
-            self.click_container.visible = False
-            self.click_container.ignore_interactions = True
-            self.click_container.update()
+            self.block_container.disabled = True
+            self.block_container.visible = False
+            self.block_container.ignore_interactions = True
+            self.block_container.update()
             self.click_gesture.disabled = True
             self.click_gesture.visible = False
             self.click_gesture.update()
@@ -602,7 +608,7 @@ class ModuleGUI(ft.GestureDetector):
         Handles the drag event.
         """
         if self.show_mode:
-            self.click_container.tooltip = None
+            self.block_container.tooltip = None
             overlap_show_room = not (
                     self.left + MODULE_WIDTH < self.pipeline_gui.show_room_container.left or
                     self.left > self.pipeline_gui.show_room_container.left + self.pipeline_gui.show_room_container.width or
@@ -677,11 +683,11 @@ class ModuleGUI(ft.GestureDetector):
             self.left = min(max(0, cast(int, check_left)), CANVAS_WIDTH - MODULE_WIDTH)
             self.top = min(max(0, cast(int, check_top)), CANVAS_HEIGHT - MODULE_HEIGHT)
             self.pipeline_gui.controls.append(self)
-            self.click_container.disabled = True
-            self.click_container.ignore_interactions = True
-            self.click_container.bgcolor = INVALID_COLOR
-            self.click_container.visible = False
-            self.click_container.tooltip = None
+            self.block_container.disabled = True
+            self.block_container.ignore_interactions = True
+            self.block_container.bgcolor = INVALID_COLOR
+            self.block_container.visible = False
+            self.block_container.tooltip = None
             self.click_gesture.disabled = True
             self.click_gesture.visible = False
             self.delete_button.visible = True
@@ -691,7 +697,7 @@ class ModuleGUI(ft.GestureDetector):
             self.pipeline_gui.update()
 
         if self.show_mode:
-            self.click_container.tooltip = self.wrapped_description
+            self.block_container.tooltip = self.wrapped_description
             self.pipeline_gui.pipeline.event_manager.notify(DragAndDropEvent(False))
 
         self.update()
