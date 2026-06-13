@@ -5,6 +5,7 @@ import sys
 import flet as ft
 import torch
 
+from backend.error_manager import ErrorManager
 from frontend.gui_colors import ColorSelection, ColorOpacity
 from frontend.gui_page_overlay import PageOverlay
 
@@ -63,6 +64,9 @@ class Options(ft.Container):
                 control.color = None
         self.plugin_folder_icon_button = ft.Icon(
             icon=ft.Icons.FOLDER_OPEN,
+        )
+        self.log_icon_button = ft.Icon(
+            icon=ft.Icons.INSERT_DRIVE_FILE_OUTLINED,
         )
         self.menu_button = ft.PopupMenuButton(
             items=self.create_appbar_items(),
@@ -136,6 +140,11 @@ class Options(ft.Container):
                 content=ft.Container(
                     ft.Row([self.plugin_folder_icon_button, ft.Text("Plugins")], alignment=ft.MainAxisAlignment.START)),
                 on_click=self.open_plugin_folder
+            ),
+            ft.PopupMenuItem(
+                content=ft.Container(
+                    ft.Row([self.log_icon_button, ft.Text("Error Log")], alignment=ft.MainAxisAlignment.START)),
+                on_click=ErrorManager().open_log_file
             ),
             ft.PopupMenuItem(
                 content=ft.Row([self.color_selection.color_icon_mask, ft.Text("Mask Color")],

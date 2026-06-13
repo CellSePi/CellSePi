@@ -1,3 +1,5 @@
+from concurrent.futures import ThreadPoolExecutor
+
 import threading
 
 from collections import deque
@@ -10,6 +12,14 @@ from backend.expert_mode.listener import ErrorEvent, OnPipelineChangeEvent, Modu
 from backend.expert_mode.module import Module
 from backend.expert_mode.pipe import Pipe
 from typing import List, Dict, Type
+
+
+def run_module(m):
+    try:
+        res = m.run()
+        return {"status": "success", "pause": res}
+    except Exception as exc:
+        return {"status": "error", "error": exc}
 
 
 class PipelineManager:
@@ -243,50 +253,60 @@ class PipelineManager:
         self._continue_event.clear()
         try:
             self.run_order = self.get_run_order()
-        except RuntimeError as e:
-            self.event_manager.notify(PipelineErrorEvent("Cycle in pipeline",e.args[0]))
+        except RuntimeError as ex:
+            self.event_manager.notify(PipelineErrorEvent("Cycle in pipeline",ex.args[0],ex))
             return
-        while self.run_order:
-            self.running = True
-            self.event_manager.notify(PipelineStateChangeEvent(PipelineStates.RUNNING))
-            module_name = self.run_order.popleft()
-            if ignore_modules is not None and module_name in ignore_modules:
-                continue
-            module = self.module_map[module_name]
-            module_pipes = self.pipes_in[module.module_id]
-            for pipe in module_pipes:
-                pipe.run()
-            if self.check_module_runnable(module_name):
-                try:
-                    self.executing = module_name
-                    self.event_manager.notify(ModuleStartedEvent(module_name))
-                    pause = module.run() #if the run of a module returns True, the module wants to stop the pipeline.
-                    if pause and not self._cancel_event.is_set():
-                        self.event_manager.notify(PipelinePauseEvent(module_name))
-                        self._continue_event.wait()
-                        self.event_manager.notify(PipelinePauseEvent(module_name,True))
-                        self._continue_event.clear()
-                    module.finished()
-                    self.executing = ""
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            while self.run_order:
+                self.running = True
+                self.event_manager.notify(PipelineStateChangeEvent(PipelineStates.RUNNING))
+                module_name = self.run_order.popleft()
+                if ignore_modules is not None and module_name in ignore_modules:
+                    continue
+                module = self.module_map[module_name]
+                module_pipes = self.pipes_in[module.module_id]
+                for pipe in module_pipes:
+                    pipe.run()
+                if self.check_module_runnable(module_name):
+                        self.executing = module_name
+                        self.event_manager.notify(ModuleStartedEvent(module_name))
+                        future = executor.submit(run_module,module) #if the run of a module returns True, the module wants to stop the pipeline.
+                        result = future.result()
+                        if self._cancel_event.is_set():
+                            executor.shutdown(wait=False, cancel_futures=True)
+                            self.running = False
+                            self.event_manager.notify(PipelineStateChangeEvent(PipelineStates.IDLE))
+                            self.event_manager.notify(PipelineCancelEvent(self.executing))
+                            self._cancel_event.clear()
+                            return
+                        if result["status"] == "error":
+                            error = result["error"]
+                            e_type = getattr(error, 'error_type', 'System Error')
+                            e_desc = getattr(error, 'description', str(error))
+                            self.running = False
+                            self.event_manager.notify(PipelineStateChangeEvent(PipelineStates.IDLE))
+                            self.event_manager.notify(ErrorEvent(e_type, e_desc, error))
+                            self._cancel_event.clear()
+                            return
+                        if result["pause"] and not self._cancel_event.is_set():
+                            self.event_manager.notify(PipelinePauseEvent(module_name))
+                            self._continue_event.wait()
+                            self.event_manager.notify(PipelinePauseEvent(module_name,True))
+                            self._continue_event.clear()
+                        module.finished()
+                        self.executing = ""
+                        self.modules_executed += 1
+                        self.event_manager.notify(ModuleExecutedEvent(module_name))
+                        if self._cancel_event.is_set():
+                            self.running = False
+                            self.event_manager.notify(PipelineStateChangeEvent(PipelineStates.IDLE))
+                            self.event_manager.notify(PipelineCancelEvent(self.executing))
+                            self._cancel_event.clear()
+                            return
+                else:
                     self.modules_executed += 1
                     self.event_manager.notify(ModuleExecutedEvent(module_name))
-                    if self._cancel_event.is_set():
-                        self.running = False
-                        self.event_manager.notify(PipelineStateChangeEvent(PipelineStates.IDLE))
-                        self.event_manager.notify(PipelineCancelEvent(self.executing))
-                        self._cancel_event.clear()
-                        return
-
-                except PipelineRunningException as e:
-                    self.running = False
-                    self.event_manager.notify(PipelineStateChangeEvent(PipelineStates.IDLE))
-                    self.event_manager.notify(ErrorEvent(e.error_type,e.description))
-                    self._cancel_event.clear()
-                    return
-            else:
-                self.modules_executed += 1
-                self.event_manager.notify(ModuleExecutedEvent(module_name))
-                continue
+                    continue
         self.running = False
         self.event_manager.notify(PipelineStateChangeEvent(PipelineStates.IDLE))
 

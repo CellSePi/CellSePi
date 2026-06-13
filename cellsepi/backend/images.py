@@ -288,8 +288,8 @@ class BatchImageSegmentation(Notifier):
                         self.resume_now = False
                         self.segmentation.is_resuming()
 
-                if self.gui.csp.mask_paths and image_id in self.gui.csp.mask_paths:
-                    if self.gui.csp.mask_paths[image_id] is not None:
+                if image_paths and image_id in mask_paths:
+                    if mask_paths[image_id] is not None:
                         print("skip image, mask already exists")
                         percent = round((iN + 1) / n_images * 100)
                         progress = str(percent) + " %"

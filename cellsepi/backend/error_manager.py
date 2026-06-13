@@ -18,6 +18,7 @@ class ErrorManager:
 
         self.logger = logging.getLogger("cellsepi")
         self.logger.setLevel(logging.ERROR)
+        self.logger.propagate = False
 
         if not self.logger.handlers:
             file_handler = logging.FileHandler(self.log_path)

@@ -36,5 +36,5 @@ class ReadFiles(Module,ABC):
     def run(self):
         overwrite = True if self.user_over_write == OverWrite.ALWAYS else False
         working_directory = DirectoryCard().select_directory(self.user_file_path.path, self.user_file_type.value.ref,
-                                                             self.user_channel_prefix, self.event_manager,overwrite)
+                                                             self.user_channel_prefix,self.user_mask_suffix, self.event_manager,overwrite)
         self.outputs["image_paths"].data= load_directory(directory=working_directory, mask_suffix=self.user_mask_suffix,return_type=ReturnTypePath.IMAGE_PATHS,event_manager= self.event_manager)
