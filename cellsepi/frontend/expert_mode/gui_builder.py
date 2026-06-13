@@ -4,6 +4,7 @@ from typing import cast
 
 from flet_extended_interactive_viewer import FletExtendedInteractiveViewer
 
+from backend.error_manager import ErrorManager
 from frontend.expert_mode.gui_pipeline import PipelineGUI
 from frontend.expert_mode.gui_pipeline_listener import PipelineChangeListener, ModuleExecutedListener, ModuleStartedListener, \
     ModuleProgressListener, ModuleErrorListener, DragAndDropListener, PipelinePauseListener, PipelineCancelListener, PipelineErrorListener
@@ -221,6 +222,7 @@ class Builder:
                     left=self.pipeline_gui.show_room_container.left,blur=10,visible=True if self.pipeline_gui.show_room_max_page_number > 1 else False)
         self.builder_page_stack.controls.insert(1, self.switch_pages)
         self.add_all_listeners()
+        self.error_manager = ErrorManager(self.page)
 
     def cancel(self):
         """
@@ -446,13 +448,9 @@ class Builder:
                         self.pipeline_storage.load_pipeline(files[0].path)
                         self.pipeline_gui.reset()
                         await self.pipeline_gui.load_pipeline()
-                    except Exception as exception2:
-                        self.pipeline_gui.page.show_dialog(
-                            ft.SnackBar(
-                                ft.Text(f"Failed to load pipeline: {exception2}",
-                                        color=ft.Colors.WHITE),
-                                bgcolor=ft.Colors.RED))
-                        self.pipeline_gui.page.update()
+                    except Exception as ex:
+                        self.error_manager.log_and_show(f"Failed to load pipeline: {ex}",ex)
+
 
                 cupertino_alert_dialog = ft.CupertinoAlertDialog(
                     title=ft.Text("Unsaved Changes"),
@@ -482,12 +480,7 @@ class Builder:
                     self.pipeline_gui.reset()
                     await self.pipeline_gui.load_pipeline()
                 except Exception as exception1:
-                    self.pipeline_gui.page.show_dialog(
-                        ft.SnackBar(
-                            ft.Text(f"Failed to load pipeline: {exception1}",
-                                    color=ft.Colors.WHITE),
-                            bgcolor=ft.Colors.RED))
-                    self.pipeline_gui.page.update()
+                    self.error_manager.log_and_show(f"Failed to load pipeline: {exception1}",exception1)
 
         self.load_button.icon_color = MAIN_ACTIVE_COLOR
         self.load_button.update()
