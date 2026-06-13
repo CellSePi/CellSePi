@@ -82,7 +82,9 @@ class Training(ft.Container):
             Arguments:
                 e (ft.FilePicker): pseudo Event, indicating the event structure
             """
-            files = await ft.FilePicker().pick_files(allow_multiple=False,
+            files = await ft.FilePicker().pick_files(
+                                                     dialog_title="Select model",
+                                                     allow_multiple=False,
                                                      initial_directory=str(pathlib.Path(self.model_directory))
                                                      )
 
@@ -98,7 +100,7 @@ class Training(ft.Container):
 
         self.re_train_model_chooser = ft.IconButton(
             icon=ft.Icons.UPLOAD_FILE,
-            tooltip="Choose model to retrain",
+            tooltip="Select model to retrain",
             on_click=lambda e: e.page.run_task(pick_model_result, e),
             disabled=True
         )

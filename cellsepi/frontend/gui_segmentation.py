@@ -100,9 +100,11 @@ class GUISegmentation:
                 e (ft.Event): pseudo Event, when button pressed
             """
             model_directory = pathlib.Path(self.gui.csp.models_dir)
-            files = await ft.FilePicker().pick_files(allow_multiple=False,
-                                                     initial_directory=str(model_directory)
-                                                     )
+            files = await ft.FilePicker().pick_files(
+                                                    dialog_title="Select model",
+                                                    allow_multiple=False,
+                                                    initial_directory=str(model_directory)
+                                                    )
             if files is None or len(files) == 0:
                 # case: no model selected
                 pass
