@@ -612,7 +612,7 @@ def remove_gradient(img):
 
 
 def process_channel(channel_id, channel_path):
-    image = tifffile.memmap(channel_path, mode='r')
+    image = tifffile.imread(channel_path)
     try:
         if SettingsManager().settings.image.normalize_gallery:
             image = image.astype(np.float32)
@@ -623,14 +623,12 @@ def process_channel(channel_id, channel_path):
             image = np.max(image, axis=0)
 
         h, w = image.shape[:2]
-
         max_size = 150
         scale = max_size / max(h, w)
         new_w, new_h = int(w * scale), int(h * scale)
         down_scaled_image = cv2.resize(image, (new_w, new_h), interpolation=cv2.INTER_AREA)
         image_8bit = cv2.convertScaleAbs(down_scaled_image, alpha=1 / 256.0)
         _, buffer = cv2.imencode('.png', image_8bit, [cv2.IMWRITE_PNG_COMPRESSION, 0])
-
         return channel_id, base64.b64encode(buffer).decode('utf-8')
     finally:
         del image
