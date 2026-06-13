@@ -1,5 +1,7 @@
 import cv2
 import numpy as np
+
+from image_editing_view import normalize_image as fast_normalize_image
 from backend.settings import SettingsManager, DownscaleMode
 
 
@@ -10,23 +12,12 @@ def normalize_image(image: np.ndarray, ) -> np.ndarray:
     """
     settings = SettingsManager().settings.image
 
-    shape = np.array(image.shape)
-
-    offset = shape * settings.margin
-    offset = offset.astype(int)
-
-    cropped_image = image[..., offset[-2]: -offset[-2], offset[-1]: -offset[-1]]
-
-    min_val, max_val = np.quantile(cropped_image, [settings.lower_quantile, settings.upper_quantile])
-
-    if (max_val - min_val) > 0:
-        image = (image - min_val) / (max_val - min_val)
-    else:
-        image = np.zeros_like(image)
-
-    np.clip(image, 0.0, 1.0, out=image)
-
-    return image
+    return fast_normalize_image(
+        image,
+        margin=settings.margin,
+        lower_quantile=settings.lower_quantile,
+        upper_quantile=settings.upper_quantile
+    )
 
 
 def rescale_image(image, target_shape=None, rescale_settings=None, interpolation=None):
