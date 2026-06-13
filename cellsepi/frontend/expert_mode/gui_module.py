@@ -63,7 +63,7 @@ class ModuleGUI(ft.GestureDetector):
                                             bgcolor=INVALID_COLOR if not show_mode else ft.Colors.TRANSPARENT,
                                             disabled=True if not show_mode else False,
                                             border_radius=ft.BorderRadius.all(10))
-        self.click_gesture = ft.GestureDetector(hover_interval=25, visible=False, disabled=True,
+        self.click_gesture = ft.GestureDetector(hover_interval=25, visible=True, disabled=False,
                                                 content=self.click_container, on_enter=self.on_enter_click_module,
                                                 on_exit=self.on_exit_click_module)
 
@@ -245,7 +245,6 @@ class ModuleGUI(ft.GestureDetector):
             animate_opacity=ft.Animation(duration=300, curve=ft.AnimationCurve.LINEAR_TO_EASE_OUT),
             animate=ft.Animation(duration=300, curve=ft.AnimationCurve.LINEAR_TO_EASE_OUT),
         )
-        self.ignore_interactions_container = ft.Container(self.click_gesture)
         self.content = ft.Stack([
             self.ports_container,
             ft.Column([ft.Stack([
@@ -257,7 +256,7 @@ class ModuleGUI(ft.GestureDetector):
                 self.paused_button,
                 self.warning_satisfied,
                 self.error_stack,
-                self.ignore_interactions_container,
+                self.click_gesture,
             ]
             ),
                 self.connection_ports,
@@ -519,8 +518,7 @@ class ModuleGUI(ft.GestureDetector):
             self.detection = False
             self.click_container.disabled = False
             self.click_container.visible = True
-            self.ignore_interactions_container.ignore_interactions = False
-            self.ignore_interactions_container.update()
+            self.click_container.ignore_interactions = False
             self.click_container.update()
             self.click_gesture.disabled = False
             self.click_gesture.visible = True
@@ -532,8 +530,7 @@ class ModuleGUI(ft.GestureDetector):
             self.set_invalid()
             self.click_container.disabled = True
             self.click_container.visible = False
-            self.ignore_interactions_container.ignore_interactions = True
-            self.ignore_interactions_container.update()
+            self.click_container.ignore_interactions = True
             self.click_container.update()
             self.click_gesture.disabled = True
             self.click_gesture.visible = False
@@ -681,7 +678,7 @@ class ModuleGUI(ft.GestureDetector):
             self.top = min(max(0, cast(int, check_top)), CANVAS_HEIGHT - MODULE_HEIGHT)
             self.pipeline_gui.controls.append(self)
             self.click_container.disabled = True
-            self.ignore_interactions_container.ignore_interactions = True
+            self.click_container.ignore_interactions = True
             self.click_container.bgcolor = INVALID_COLOR
             self.click_container.visible = False
             self.click_container.tooltip = None
