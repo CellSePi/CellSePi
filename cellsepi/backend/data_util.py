@@ -617,7 +617,11 @@ def process_channel(channel_id, channel_path):
         if SettingsManager().settings.image.normalize_gallery:
             image = image.astype(np.float32)
             image = normalize_image(image)
-            image = (image * 65535).clip(0, 65535).astype(np.uint16)
+            np.multiply(image, 255.0, out=image)
+            np.clip(image, 0.0, 255.0, out=image)
+            image = image.astype(np.uint8)
+        else:
+            image = cv2.convertScaleAbs(image, alpha=1 / 256.0)
 
         if image.ndim == 3:
             image = np.max(image, axis=0)
@@ -626,17 +630,17 @@ def process_channel(channel_id, channel_path):
         max_size = 150
         scale = max_size / max(h, w)
         new_w, new_h = int(w * scale), int(h * scale)
+
         down_scaled_image = cv2.resize(image, (new_w, new_h), interpolation=cv2.INTER_AREA)
-        image_8bit = cv2.convertScaleAbs(down_scaled_image, alpha=1 / 256.0)
-        _, buffer = cv2.imencode('.png', image_8bit, [cv2.IMWRITE_PNG_COMPRESSION, 0])
+        _, buffer = cv2.imencode('.png', down_scaled_image, [cv2.IMWRITE_PNG_COMPRESSION, 0])
         return channel_id, base64.b64encode(buffer).decode('utf-8')
     finally:
         del image
-        gc.collect()
 
 def convert_series_parallel(image_id, cur_image_paths):
     png_images = {image_id: {}}
-    with ThreadPoolExecutor() as executor:
+    optimal_workers = min(4, (os.cpu_count() or 1))
+    with ThreadPoolExecutor(max_workers=optimal_workers) as executor:
         futures = {
             executor.submit(process_channel, channel_id, cur_image_paths[channel_id]): channel_id
             for channel_id in cur_image_paths
