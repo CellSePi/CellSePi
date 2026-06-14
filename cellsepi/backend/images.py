@@ -388,10 +388,7 @@ class BatchImageSegmentation(Notifier):
                         interpolation=cv2.INTER_NEAREST
                     )
 
-                # print(f"Rescaled Mask Shape: {mask.shape}")
-
                 # delete small masks below user defined diameter
-
                 if self.gui.gui_settings.settings_manager.settings.segmentation.delete_small_masks and mask is not None:
 
                     threshold = self.gui.gui_settings.settings_manager.settings.segmentation.mask_deletion_diameter
@@ -409,9 +406,7 @@ class BatchImageSegmentation(Notifier):
                         else:
                             # equivalent circle diameter
                             diameter = 2 * np.sqrt(size / np.pi)
-                        print("diamter:", diameter)
                         if diameter < threshold:
-                            print("deleted:", diameter)
                             mask[mask == cell_id] = 0
 
                 image = original_image
