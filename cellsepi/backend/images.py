@@ -389,6 +389,36 @@ class BatchImageSegmentation(Notifier):
                     )
 
                 # print(f"Rescaled Mask Shape: {mask.shape}")
+
+                # delete small masks below user defined diameter
+                amount_of_deleted_masks = 0
+                all_masks_deleted = False
+
+                if self.gui.gui_settings.settings_manager.segmentation.delete_small_masks and mask is not None :
+
+                    threshold = self.gui.gui_settings.settings_manager.segmentation.mask_deletion_diameter
+
+                    counts = np.bincount(mask.ravel())
+
+                    for cell_id, size in enumerate(counts[1:], start=1):
+
+                        if size == 0:
+                            continue
+
+                        if mask.ndim == 3:
+                            # equivalent sphere diameter
+                            diameter = 2 * ((3 * size) / (4 * np.pi)) ** (1 / 3)
+                        else:
+                            # equivalent circle diameter
+                            diameter = 2 * np.sqrt(size / np.pi)
+                        print("diamter:", diameter)
+                        if diameter < threshold:
+                            print("deleted:", diameter)
+                            mask[mask == cell_id] = 0
+                            amount_of_deleted_masks += 1
+
+                    all_masks_deleted = amount_of_deleted_masks == np.count_nonzero(counts[1:])
+
                 image = original_image
 
                 # Generate the output filename directly using the suffix attribute

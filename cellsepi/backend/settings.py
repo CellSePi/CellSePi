@@ -91,6 +91,7 @@ class SegmentationConfig(BaseModel):
     max_fraction: float = 0.25
 
 
+
 class VisualizationConfig(BaseModel):
     mode: DownscaleMode = DownscaleMode.PIXELS
     max_pixels: int = 1024
@@ -100,6 +101,11 @@ class VisualizationConfig(BaseModel):
 class PerformanceConfig(BaseModel):
     segmentation_downscaling: SegmentationConfig = Field(default_factory=SegmentationConfig)
     visualization_downscaling: VisualizationConfig = Field(default_factory=VisualizationConfig)
+
+class SegmentationRunConfig(BaseModel):
+    delete_small_masks: bool = False
+    mask_deletion_diameter: int = 0 #segmented mask smaller than this diameter deletes the mask
+
 
 
 class ImageNormalizationConfig(BaseModel):
@@ -116,6 +122,7 @@ class AppSettings(BaseModel):
     cache: DataPersistenceConfig = Field(default_factory=DataPersistenceConfig)
     performance: PerformanceConfig = Field(default_factory=PerformanceConfig)
     image: ImageNormalizationConfig = Field(default_factory=ImageNormalizationConfig)
+    segmentation: SegmentationRunConfig = Field(default_factory=SegmentationRunConfig)
 
 
 # Manage the File I/O wrapping the schema
