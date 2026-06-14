@@ -391,12 +391,10 @@ class BatchImageSegmentation(Notifier):
                 # print(f"Rescaled Mask Shape: {mask.shape}")
 
                 # delete small masks below user defined diameter
-                amount_of_deleted_masks = 0
-                all_masks_deleted = False
 
-                if self.gui.gui_settings.settings_manager.segmentation.delete_small_masks and mask is not None :
+                if self.gui.gui_settings.settings_manager.settings.segmentation.delete_small_masks and mask is not None:
 
-                    threshold = self.gui.gui_settings.settings_manager.segmentation.mask_deletion_diameter
+                    threshold = self.gui.gui_settings.settings_manager.settings.segmentation.mask_deletion_diameter
 
                     counts = np.bincount(mask.ravel())
 
@@ -415,9 +413,6 @@ class BatchImageSegmentation(Notifier):
                         if diameter < threshold:
                             print("deleted:", diameter)
                             mask[mask == cell_id] = 0
-                            amount_of_deleted_masks += 1
-
-                    all_masks_deleted = amount_of_deleted_masks == np.count_nonzero(counts[1:])
 
                 image = original_image
 
