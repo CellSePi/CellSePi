@@ -232,8 +232,7 @@ def copy_files_between_directories(source_dir, target_dir, file_types=None, even
                                                process=f"Readout Images: {iN + 1}/{n_files} (Latest Image: {src_path.name})"))
 
 
-def write_image_with_preprocessing(target_path, image_data):
-    # TODO:PREPROCESSING (resize,dark corners,etc...)
+def write_image(target_path, image_data):
     clean_data = np.squeeze(image_data)
     tifffile.imwrite(target_path, clean_data)
 
@@ -453,7 +452,7 @@ def extract_from_file(
             target_path = target_dir / file_name
 
             # Store 3D data to disk
-            write_image_with_preprocessing(target_path, image_data)
+            write_image(target_path, image_data)
 
         if event_manager is not None:
             event_manager.notify(event=ProgressEvent(int((index + 1) / total_scenes * 100),
@@ -500,7 +499,7 @@ def extract_from_directory(
             scene, channel_str = stem.rsplit(channel_prefix, 1)
         else:
             scene = stem
-            channel_str = "0"
+            channel_str = stem
 
         scenes[scene].append((channel_str, ipath))
 
@@ -510,7 +509,7 @@ def extract_from_directory(
         if stem.endswith(mask_suffix):
             base_stem = stem[:-len(mask_suffix)]
         else:
-            base_stem = stem
+            continue
 
         if channels_in_individual_files:
             if channel_prefix in base_stem:
@@ -519,11 +518,16 @@ def extract_from_directory(
                 continue
         else:
             scene_mask = base_stem
-            channel_str = "0"
+            channel_str = base_stem
 
         scenes_masks[scene_mask].append((channel_str, mpath))
 
     total_scenes = len(scenes)
+    if total_scenes == 0:
+        if event_manager is not None:
+            event_manager.notify(event=ProgressEvent(100, process="No images found. Extraction finished!"))
+        return
+
     if event_manager is not None:
         event_manager.notify(
             event=ProgressEvent(0, process=f"Extracting Directory: {0}/{total_scenes}"))
@@ -536,7 +540,7 @@ def extract_from_directory(
         return (0, int(val)) if val.isdigit() else (1, val)
 
     for iX, scene in enumerate(scenes):
-        channel_mapping = {}
+        channel_mapping = defaultdict(list)
 
         if channels_in_individual_files:
             raw_data = []
@@ -546,14 +550,14 @@ def extract_from_directory(
                 bio_image = CellSePiImage(file_type, fpath)
                 c_raw_data = bio_image.data
                 raw_data.append(c_raw_data)
-                channel_mapping[orig_channel_str] = new_idx
+                channel_mapping[orig_channel_str].append(new_idx)
             raw_data = np.concat(raw_data, axis=1)
         else:
             orig_channel_str, fpath = scenes[scene][0]
             bio_image = CellSePiImage(file_type, fpath)
             raw_data = bio_image.data
             for i in range(raw_data.shape[1]):
-                channel_mapping[f"{i}"] = i
+                channel_mapping[orig_channel_str].append(i)
 
         n_channels = raw_data.shape[1]
         for new_idx in range(n_channels):
@@ -562,11 +566,11 @@ def extract_from_directory(
             file_name = f"{scene}{CSP_CHANNEL_PREFIX}{new_idx+1}.tif"
             target_path = target_dir / file_name
 
-            write_image_with_preprocessing(target_path, image_data)
+            write_image(target_path, image_data)
 
         for orig_channel_str, mpath in scenes_masks[scene]:
-            if orig_channel_str in channel_mapping:
-                new_idx = channel_mapping[orig_channel_str]
+            if orig_channel_str in channel_mapping and len(channel_mapping[orig_channel_str]) > 0:
+                new_idx = channel_mapping[orig_channel_str].pop(0)
 
                 target_path = target_dir / f"{scene}{CSP_CHANNEL_PREFIX}{new_idx+1}{mask_suffix}.npy"
                 shutil.copy(str(mpath), str(target_path))
