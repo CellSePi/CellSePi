@@ -205,6 +205,30 @@ class Training(ft.Container):
                 self.field_custom_model.visible = True
             else:
                 self.field_custom_model.visible = False
+            if updated_value == "CP Cyto" or updated_value == "CP Nuclei":
+                self.batch_size = 100
+                self.field_batch.value = 100
+                self.epochs = 100
+                self.field_epoch.value = 100
+                self.learning_rate = 0.001
+                self.field_lr.value = 0.001
+                self.diameter = 0.0
+                self.diameter_default = False
+                self.field_diameter.value = 0.0
+                self.weight = 1e-4
+                self.field_weights.value = 1e-4
+            elif updated_value == "CP Sam":
+                self.batch_size = 1
+                self.field_batch.value = 1
+                self.epochs = 100
+                self.field_epoch.value = 100
+                self.learning_rate = 0.00001
+                self.field_lr.value = 0.00001
+                self.diameter = 0.0
+                self.diameter_default = False
+                self.field_diameter.value = 0.0
+                self.weight = 0.1
+                self.field_weights.value = 0.1
         elif field == "custom_model":
             self.model = updated_value
             self.field_custom_model.value = updated_value
@@ -405,6 +429,7 @@ class Training(ft.Container):
                         learning_rate=self.learning_rate,
                         n_epochs=self.epochs,
                         model_name=model_name,
+                        min_train_masks=1,
                         save_path=os.path.dirname(self.model_directory)
                     )
 
@@ -435,6 +460,7 @@ class Training(ft.Container):
                         learning_rate=self.learning_rate,
                         n_epochs=self.epochs,
                         model_name=model_name,
+                        min_train_masks=1,
                         save_path=os.path.dirname(self.model_directory)
                     )
             self.progress_bar_text.value = "Finished Training"
