@@ -241,6 +241,7 @@ class GUISettings:
                         ),
                         ft.TextField(
                             label=label_text,
+                            border_color=ft.Colors.BLUE_ACCENT,
                             value=str(value),
                             input_filter=ft.InputFilter(allow=True, regex_string=FILTER_INT, replacement_string=""),
                             on_blur=lambda e, m=model, f=field_name, t=field_type,mi=min_val, ma=max_val: self._on_change_handler(e, m, f, t, mi, ma)
@@ -270,6 +271,7 @@ class GUISettings:
                         ),
                         ft.TextField(
                             label=label_text,
+                            border_color=ft.Colors.BLUE_ACCENT,
                             value=str(value),
                             input_filter=ft.InputFilter(allow=True, regex_string=current_regex, replacement_string=""),
                             on_blur=lambda e, m=model, f=field_name, t=field_type,mi=min_val, ma=max_val: self._on_change_handler(e, m, f, t, mi, ma)
@@ -289,6 +291,7 @@ class GUISettings:
                         ),
                         ft.TextField(
                             label=label_text,
+                            border_color=ft.Colors.BLUE_ACCENT,
                             value=str(value),
                             on_blur=lambda e, m=model, f=field_name: self._on_change_handler(e, m, f, str)
                         ),
