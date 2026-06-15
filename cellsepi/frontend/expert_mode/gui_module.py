@@ -4,6 +4,7 @@ import textwrap
 import flet as ft
 from typing import List, Any, Dict, cast
 
+from backend.constants import FILTER_INT, FILTER_FLOAT, FILTER_SCIENTIFIC_FLOAT
 from backend.expert_mode.listener import DragAndDropEvent, OnPipelineChangeEvent
 from backend.expert_mode.module import FilePath, DirectoryPath
 from frontend.gui_directory import format_directory_path
@@ -752,7 +753,7 @@ class ModuleGUI(ft.GestureDetector):
         for attribute_name in attributes:
             value = getattr(self.module, attribute_name)
             typ = type(value)
-            if typ in (int, float, str):
+            if typ == str:
                 ref = ft.Ref[ft.Text]()
                 setattr(self.module, "ref_" + attribute_name, ref)
                 items.append(
@@ -765,6 +766,40 @@ class ModuleGUI(ft.GestureDetector):
                         self.on_change(e,
                                        attr_name,
                                        reference,
+                                       type_atr),
+                        height=60,
+                    )
+                )
+            elif typ == int:
+                ref = ft.Ref[ft.Text]()
+                setattr(self.module, "ref_" + attribute_name, ref)
+                items.append(
+                    ft.TextField(
+                        label=attribute_name.removeprefix("user_"),
+                        border_color=ft.Colors.BLUE_ACCENT,
+                        value=str(value),
+                        ref=ref,
+                        input_filter=ft.InputFilter(allow=True, regex_string=FILTER_INT, replacement_string=""),
+                        on_blur=lambda e, attr_name=attribute_name, type_atr=typ:
+                        self.on_change(e,
+                                       attr_name,
+                                       type_atr),
+                        height=60,
+                    )
+                )
+            elif typ == float:
+                ref = ft.Ref[ft.Text]()
+                setattr(self.module, "ref_" + attribute_name, ref)
+                items.append(
+                    ft.TextField(
+                        label=attribute_name.removeprefix("user_"),
+                        border_color=ft.Colors.BLUE_ACCENT,
+                        value=str(value),
+                        ref=ref,
+                        input_filter=ft.InputFilter(allow=True, regex_string=FILTER_SCIENTIFIC_FLOAT, replacement_string=""),
+                        on_blur=lambda e, attr_name=attribute_name, type_atr=typ:
+                        self.on_change(e,
+                                       attr_name,
                                        type_atr),
                         height=60,
                     )
@@ -907,12 +942,13 @@ class ModuleGUI(ft.GestureDetector):
             text.update()
             self.pipeline_gui.pipeline.event_manager.notify(OnPipelineChangeEvent("user_attr_change"))
 
-    def on_change(self, e, attr_name, reference, typ: type):
+    def on_change(self, e, attr_name, typ: type):
         """
         Handles changes to the attribute for different types.
         """
         attribute_name_without_prefix = attr_name.removeprefix("user_")
-        if str(e.control.value) == "":
+        val = e.control.value
+        if val is None or val == "":
             self.pipeline_gui.page.show_dialog(
                 ft.SnackBar(
                     ft.Text(f"{attribute_name_without_prefix} must not be empty!",
@@ -921,6 +957,18 @@ class ModuleGUI(ft.GestureDetector):
             e.control.value = str(getattr(self.module, attr_name))
             e.control.update()
             return
+
+        if typ is float:
+            if val in (".", "-", "e", "E", "1e", "1e-", "-e"):
+                self.pipeline_gui.page.show_dialog(
+                    ft.SnackBar(
+                        ft.Text(f"{attribute_name_without_prefix} contains an incomplete number!",
+                                color=ft.Colors.WHITE),
+                        bgcolor=ft.Colors.RED))
+                e.control.value = str(getattr(self.module, attr_name))
+                e.control.update()
+                return
+
         try:
             setattr(self.module, attr_name, typ(e.control.value))
             self.pipeline_gui.pipeline.event_manager.notify(OnPipelineChangeEvent("user_attr_change"))
@@ -928,8 +976,8 @@ class ModuleGUI(ft.GestureDetector):
             self.pipeline_gui.page.show_dialog(ft.SnackBar(
                 ft.Text(f"{attribute_name_without_prefix} only allows {typ.__name__}'s.", color=ft.Colors.WHITE),
                 bgcolor=ft.Colors.RED))
-            reference.current.value = str(getattr(self.module, attr_name))
-            reference.current.update()
+            e.control.value = str(getattr(self.module, attr_name))
+            e.control.update()
 
     def update_bool(self, e, attr_name):
         """

@@ -1,4 +1,6 @@
 import flet as ft
+
+from backend.constants import FILTER_FLOAT
 from frontend.gui_canvas import update_main_image
 from backend.config_file import ConfigFile, create_default_config
 from frontend.gui_page_overlay import PageOverlay
@@ -347,6 +349,7 @@ class GUIConfig:
             self.config_class.update_profile(self.config_class.get_selected_profile_name(),
                                              bf_channel=e.control.value)
             self.txt_bf_ref.current.color = None
+            self.txt_bf_ref.current.text_style = None
             self.gui.directory.update_all_masks_check()
             self.gui.page.run_task(self.gui.average_diameter.get_avg_diameter)
             self.page.update()
@@ -358,6 +361,7 @@ class GUIConfig:
             self.page.show_dialog(ft.SnackBar(ft.Text("Segmentation channel must be not empty!", color=ft.Colors.WHITE),
                                               bgcolor=ft.Colors.RED))
             self.txt_bf_ref.current.color = ft.Colors.RED
+            self.txt_bf_ref.current.text_style = ft.TextStyle(weight=ft.FontWeight.BOLD)
             self.page.update()
 
     def ms_updater(self, e):
@@ -375,11 +379,13 @@ class GUIConfig:
             self.config_class.update_profile(self.config_class.get_selected_profile_name(), mask_suffix=e.control.value)
             self.gui.canvas.mask_suffix = e.control.value
             self.txt_ms_ref.current.color = None
+            self.txt_ms_ref.current.text_style = None
             self.page.update()
         else:
             self.page.show_dialog(
                 ft.SnackBar(ft.Text("Mask suffix must be not empty!", color=ft.Colors.WHITE), bgcolor=ft.Colors.RED))
             self.txt_ms_ref.current.color = ft.Colors.RED
+            self.txt_ms_ref.current.text_style = ft.TextStyle(weight=ft.FontWeight.BOLD)
             self.page.update()
 
     def cp_updater(self, e):
@@ -397,11 +403,13 @@ class GUIConfig:
             self.config_class.update_profile(self.config_class.get_selected_profile_name(),
                                              channel_prefix=e.control.value)
             self.txt_cp_ref.current.color = None
+            self.txt_cp_ref.current.text_style = None
             self.page.update()
         else:
             self.page.show_dialog(
                 ft.SnackBar(ft.Text("Channel prefix must be not empty!", color=ft.Colors.WHITE), bgcolor=ft.Colors.RED))
             self.txt_cp_ref.current.color = ft.Colors.RED
+            self.txt_cp_ref.current.text_style = ft.TextStyle(weight=ft.FontWeight.BOLD)
             self.page.update()
 
     def d_updater(self, e):
@@ -419,12 +427,14 @@ class GUIConfig:
             self.config_class.update_profile(self.config_class.get_selected_profile_name(),
                                              diameter=float(e.control.value))
             self.txt_d_ref.current.color = None
+            self.txt_d_ref.current.text_style = None
             self.page.update()
         except ValueError:
             self.page.show_dialog(
                 ft.SnackBar(ft.Text("Diameter only allows decimals numbers, greater than 0!", color=ft.Colors.WHITE),
                             bgcolor=ft.Colors.RED))
             self.txt_d_ref.current.color = ft.Colors.RED
+            self.txt_d_ref.current.text_style = ft.TextStyle(weight=ft.FontWeight.BOLD)
             self.page.update()
 
     def create_profile_container(self):
@@ -481,6 +491,7 @@ class GUIConfig:
             border_color=ft.Colors.BLUE_ACCENT,
             value=self.config_class.get_diameter(),
             ref=self.txt_d_ref,
+            input_filter=ft.InputFilter(allow=True, regex_string=FILTER_FLOAT, replacement_string=""),
             on_blur=lambda e: self.d_updater(e),
             width=200,
             height=60,

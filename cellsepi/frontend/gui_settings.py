@@ -3,6 +3,8 @@ from enum import Enum
 import flet as ft
 from pydantic import BaseModel
 
+from backend.constants import FILTER_INT, FILTER_FLOAT_0_TO_1, FILTER_FLOAT
+from backend.error_manager import ErrorManager
 from backend.settings import SettingsManager
 from frontend.gui_page_overlay import PageOverlay
 from image_editing_view import ImageEditingView
@@ -224,7 +226,12 @@ class GUISettings:
                 )
 
             # Handle Numeric Inputs (int/float -> Flet TextField with numeric filters)
-            elif field_type in (int, float):
+            elif field_type == int:
+                min_val = None
+                max_val = None
+                for meta in field_info.metadata:
+                    if hasattr(meta, 'ge'): min_val = meta.ge
+                    if hasattr(meta, 'le'): max_val = meta.le
                 control = ft.Row(
                     controls=[
                         ft.Text(
@@ -235,8 +242,37 @@ class GUISettings:
                         ft.TextField(
                             label=label_text,
                             value=str(value),
-                            input_filter=ft.InputFilter(allow=True, regex_string=r"^[0-9.]*$", replacement_string=""),
-                            on_change=lambda e, m=model, f=field_name, t=field_type: self._on_change_handler(e, m, f, t)
+                            input_filter=ft.InputFilter(allow=True, regex_string=FILTER_INT, replacement_string=""),
+                            on_blur=lambda e, m=model, f=field_name, t=field_type,mi=min_val, ma=max_val: self._on_change_handler(e, m, f, t, mi, ma)
+                        ),
+                    ],
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                )
+
+            elif field_type == float:
+                min_val = None
+                max_val = None
+                for meta in field_info.metadata:
+                    if hasattr(meta, 'ge'): min_val = meta.ge
+                    if hasattr(meta, 'le'): max_val = meta.le
+
+                if min_val == 0.0 and max_val == 1.0:
+                    current_regex = FILTER_FLOAT_0_TO_1
+                else:
+                    current_regex = FILTER_FLOAT
+
+                control = ft.Row(
+                    controls=[
+                        ft.Text(
+                            label_text,
+                            weight=ft.FontWeight.W_600,
+                            size=14
+                        ),
+                        ft.TextField(
+                            label=label_text,
+                            value=str(value),
+                            input_filter=ft.InputFilter(allow=True, regex_string=current_regex, replacement_string=""),
+                            on_blur=lambda e, m=model, f=field_name, t=field_type,mi=min_val, ma=max_val: self._on_change_handler(e, m, f, t, mi, ma)
                         ),
                     ],
                     alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
@@ -254,7 +290,7 @@ class GUISettings:
                         ft.TextField(
                             label=label_text,
                             value=str(value),
-                            on_change=lambda e, m=model, f=field_name: self._on_change_handler(e, m, f, str)
+                            on_blur=lambda e, m=model, f=field_name: self._on_change_handler(e, m, f, str)
                         ),
                     ],
                     alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
@@ -264,7 +300,7 @@ class GUISettings:
 
         return ft.Column(controls=controls, spacing=10)
 
-    def _on_change_handler(self, e, model: BaseModel, field_name: str, target_type: type):
+    def _on_change_handler(self, e, model: BaseModel, field_name: str, target_type: type, min_value=None, max_value=None):
         """
         Event handler that extracts input UI data, safely casts it,
         and mutates the internal configuration object state.
@@ -284,8 +320,24 @@ class GUISettings:
             else:
                 casted_value = target_type(raw_value)
 
+            if target_type in (int, float):
+                if min_value is not None and casted_value < min_value:
+                    raise ValueError(f"Value for {field_name.replace('_', ' ')} must be at least {min_value}!")
+                if max_value is not None and casted_value > max_value:
+                    raise ValueError(f"Value for {field_name.replace('_', ' ')} cannot exceed {max_value}!")
+
             # Update the setting attribute dynamically
             setattr(model, field_name, casted_value)
 
-        except ValueError:
-            pass  # Suppress temporary typing validation errors (e.g. trailing decimal points)
+            e.control.color = None
+            e.control.text_style = None
+            e.control.update()
+
+        except ValueError as err:
+            e.control.color = ft.Colors.RED
+            e.control.text_style = ft.TextStyle(weight=ft.FontWeight.BOLD)
+            e.control.update()
+
+            error_msg = str(err) if "Value for" in str(err) else f"Invalid input!"
+            self.gui.error_manager.show_without_button(error_msg)
+

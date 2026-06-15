@@ -6,7 +6,8 @@ from cellpose import models, train, io
 import os
 
 from backend.CellposeV3 import ioV3, modelsV3, trainV3
-from backend.constants import ModelType
+from backend.constants import ModelType, FILTER_INT, FILTER_FLOAT_0_TO_1, FILTER_FLOAT, FILTER_SCIENTIFIC_FLOAT
+from backend.error_manager import ErrorManager
 from frontend.gui_directory import format_directory_path, copy_to_clipboard
 
 
@@ -105,24 +106,34 @@ class Training(ft.Container):
             disabled=True
         )
         self.field_model_name = ft.TextField(label="Model Name", value=self.model_name, border_color=self.color,
-                                             on_change=lambda e: self.changed_input("model_name", e))
+                                             on_blur=lambda e: self.changed_input("model_name", e))
         self.model_stack = ft.Stack([self.field_model_name, self.re_train_model_chooser],
                                     alignment=ft.Alignment.TOP_RIGHT)
         self.field_model = ft.Row([self.model_dropdown, self.model_stack])
         # New field for custom model input, visible only if "custom" is selected
         self.field_custom_model = ft.TextField(label="Custom Model", value="", border_color=self.color, visible=False,
-                                               on_change=lambda e: self.changed_input("custom_model", e))
+                                               on_blur=lambda e: self.changed_input("custom_model", e))
 
         self.field_batch = ft.TextField(label="Batch Size", value=self.batch_size, border_color=self.color,
-                                        on_change=lambda e: self.changed_input("batch_size", e), expand=True)
+                                        input_filter=ft.InputFilter(allow=True, regex_string=FILTER_INT,
+                                                                    replacement_string=""),
+                                        on_blur=lambda e: self.changed_input("batch_size", e), expand=True)
         self.field_epoch = ft.TextField(label="Epochs", value=self.epochs, border_color=self.color,
-                                        on_change=lambda e: self.changed_input("epochs", e), expand=True)
+                                        input_filter=ft.InputFilter(allow=True, regex_string=FILTER_INT,
+                                                                    replacement_string=""),
+                                        on_blur=lambda e: self.changed_input("epochs", e), expand=True)
         self.field_lr = ft.TextField(label="Learning Rate", value=self.learning_rate, border_color=self.color,
-                                     on_change=lambda e: self.changed_input("learning_rate", e), expand=True)
+                                     input_filter=ft.InputFilter(allow=True, regex_string=FILTER_SCIENTIFIC_FLOAT,
+                                                                 replacement_string=""),
+                                     on_blur=lambda e: self.changed_input("learning_rate", e), expand=True)
         self.field_diameter = ft.TextField(label="Diameter", value=self.diameter, border_color=self.color,
-                                           on_change=lambda e: self.changed_input("diameter", e), expand=True)
+                                           input_filter=ft.InputFilter(allow=True, regex_string=FILTER_FLOAT,
+                                                                       replacement_string=""),
+                                           on_blur=lambda e: self.changed_input("diameter", e), expand=True)
         self.field_weights = ft.TextField(label="Weight Decay", value=self.weight, border_color=self.color,
-                                          on_change=lambda e: self.changed_input("weight", e), expand=True)
+                                          input_filter=ft.InputFilter(allow=True, regex_string=FILTER_SCIENTIFIC_FLOAT,
+                                                                      replacement_string=""),
+                                          on_blur=lambda e: self.changed_input("weight", e), expand=True)
         self.field_directory = ft.TextField(label="Directory",
                                             value=format_directory_path(str(self.model_directory), max_length=60),
                                             border_color=self.color,
@@ -198,63 +209,91 @@ class Training(ft.Container):
         """
         updated_value = e.control.value
 
-        if field == "modeltype":
-            self.model = updated_value
-            self.field_model.value = updated_value
-            if updated_value == "custom":
-                self.field_custom_model.visible = True
-            else:
-                self.field_custom_model.visible = False
-            if updated_value == "CP Cyto" or updated_value == "CP Nuclei":
-                self.batch_size = 100
-                self.field_batch.value = 100
-                self.epochs = 100
-                self.field_epoch.value = 100
-                self.learning_rate = 0.001
-                self.field_lr.value = 0.001
-                self.diameter = 0.0
-                self.diameter_default = False
-                self.field_diameter.value = 0.0
-                self.weight = 1e-4
-                self.field_weights.value = 1e-4
-            elif updated_value == "CP Sam":
-                self.batch_size = 1
-                self.field_batch.value = 1
-                self.epochs = 100
-                self.field_epoch.value = 100
-                self.learning_rate = 0.00001
-                self.field_lr.value = 0.00001
-                self.diameter = 0.0
-                self.diameter_default = False
-                self.field_diameter.value = 0.0
-                self.weight = 0.1
-                self.field_weights.value = 0.1
-        elif field == "custom_model":
-            self.model = updated_value
-            self.field_custom_model.value = updated_value
-        elif field == "batch_size":
-            self.batch_size = int(updated_value)
-            self.field_batch.value = updated_value
-        elif field == "epochs":
-            self.epochs = int(updated_value)
-            self.field_epoch.value = updated_value
-        elif field == "learning_rate":
-            self.learning_rate = float(updated_value)
-            self.field_lr.value = updated_value
-        elif field == "pre_trained":
-            self.pre_trained = updated_value
-            self.field_trained.value = updated_value
-        elif field == "weight":
-            self.weight = float(updated_value)
-            self.field_weights.value = updated_value
-        elif field == "model_name":
-            self.model_name = updated_value
-        else:
-            self.diameter_default = False
-            self.diameter = float(updated_value)
-            self.field_diameter.value = updated_value
+        try:
+            if updated_value in ("", ".", "-", "e", "E", "1e", "1e-"):
+                raise ValueError("Field cannot be empty or incomplete.")
 
-        self.gui.page.update()
+            if field == "modeltype":
+                self.model = updated_value
+                self.field_model.value = updated_value
+                if updated_value == "custom":
+                    self.field_custom_model.visible = True
+                else:
+                    self.field_custom_model.visible = False
+                if updated_value == "CP Cyto" or updated_value == "CP Nuclei":
+                    self.batch_size = 100
+                    self.field_batch.value = 100
+                    self.epochs = 100
+                    self.field_epoch.value = 100
+                    self.learning_rate = 0.001
+                    self.field_lr.value = 0.001
+                    self.weight = 1e-4
+                    self.field_weights.value = 1e-4
+                elif updated_value == "CP Sam":
+                    self.batch_size = 1
+                    self.field_batch.value = 1
+                    self.epochs = 100
+                    self.field_epoch.value = 100
+                    self.learning_rate = 0.00001
+                    self.field_lr.value = 0.00001
+                    self.weight = 0.1
+                    self.field_weights.value = 0.1
+            elif field == "custom_model":
+                self.model = updated_value
+                self.field_custom_model.value = updated_value
+            elif field == "batch_size":
+                val = int(updated_value)
+                if val <= 0:
+                    raise ValueError("Batch size must be greater than 0.")
+                self.batch_size = val
+                self.field_batch.value = str(val)
+            elif field == "epochs":
+                val = int(updated_value)
+                if val <= 0:
+                    raise ValueError("Epochs must be greater than 0.")
+                self.epochs = val
+                self.field_epoch.value = str(val)
+            elif field == "learning_rate":
+                val = float(updated_value)
+                if val <= 0 or val > 1:
+                    raise ValueError("Must be between 0 and 1.")
+                self.learning_rate = val
+                self.field_lr.value = str(val)
+            elif field == "pre_trained":
+                self.pre_trained = updated_value
+                self.field_trained.value = updated_value
+            elif field == "weight":
+                val = float(updated_value)
+                if val < 0 or val > 1:
+                    raise ValueError("Must be between 0 and 1.")
+                self.weight = val
+                self.field_weights.value = str(val)
+            elif field == "model_name":
+                self.model_name = updated_value
+            elif field == "diameter":
+                self.diameter_default = False
+                if not self.field_diameter.disabled:
+                    val = float(updated_value)
+                    if val < 0:
+                        raise ValueError("Diameter cannot be negative.")
+                    self.diameter = val
+                    self.field_diameter.value = str(val)
+                else:
+                    self.field_diameter.value = None
+
+            else:
+                return
+
+            e.control.color = None
+            e.control.text_style = None
+            self.gui.page.update()
+        except ValueError as err:
+            e.control.color = ft.Colors.RED
+            e.control.text_style = ft.TextStyle(weight=ft.FontWeight.BOLD)
+            e.control.update()
+
+            error_msg = f"Invalid input for {field.replace('_', ' ').title()}! {err}"
+            self.gui.error_manager.show_without_button(error_msg)
 
     def change_environment(self, e):
         if self.text.value == "Go To Training":
