@@ -270,6 +270,7 @@ class BatchImageSegmentation(Notifier):
             model.eval()"""
 
         start_index = self.num_seg_images
+        settings_manager = SettingsManager()
         for iN, image_id in enumerate(list(image_paths)[start_index:], start=start_index):
             diameter = self.diameter
             if (segmentation_channel in image_paths[image_id]
@@ -314,7 +315,7 @@ class BatchImageSegmentation(Notifier):
                 image = normalize_image(image)
 
                 # Rescaling
-                rescale_settings = SettingsManager().settings.performance.segmentation_downscaling
+                rescale_settings = settings_manager.settings.performance.segmentation_downscaling
                 image = rescale_image(image, rescale_settings=rescale_settings)
                 factor = np.max(image.shape[-2:]) / np.max(original_shape[-2:])
                 diameter = diameter * factor
@@ -389,9 +390,9 @@ class BatchImageSegmentation(Notifier):
                     )
 
                 # delete small masks below user defined diameter
-                if self.gui.gui_settings.settings_manager.settings.segmentation.delete_small_masks and mask is not None:
+                if settings_manager.settings.segmentation.delete_small_masks and mask is not None:
 
-                    threshold = self.gui.gui_settings.settings_manager.settings.segmentation.mask_deletion_diameter
+                    threshold = settings_manager.settings.segmentation.mask_deletion_diameter
 
                     counts = np.bincount(mask.ravel())
 
