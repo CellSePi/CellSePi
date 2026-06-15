@@ -762,10 +762,9 @@ class ModuleGUI(ft.GestureDetector):
                         border_color=ft.Colors.BLUE_ACCENT,
                         value=str(value),
                         ref=ref,
-                        on_blur=lambda e, attr_name=attribute_name, reference=ref, type_atr=typ:
+                        on_blur=lambda e, attr_name=attribute_name, type_atr=typ:
                         self.on_change(e,
                                        attr_name,
-                                       reference,
                                        type_atr),
                         height=60,
                     )
