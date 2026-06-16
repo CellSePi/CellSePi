@@ -10,7 +10,7 @@ from backend.constants import DownscaleMode
 
 # Setup individual settings
 class DataPersistenceConfig(BaseModel):
-    cutoff: int = 3
+    cutoff: int = Field(default=3, ge=0)
 
 
 @dataclass
