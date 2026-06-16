@@ -9,11 +9,20 @@ from backend.CellposeV3 import modelsV3, trainV3
 from backend.constants import ModelType
 
 
+def _last_logged_epoch(n):
+    for i in range(n - 1, -1, -1):
+        if i == 5 or i % 10 == 0:
+            return i
+    return 0
+
 class QueueLogHandler(logging.Handler):
+
     def __init__(self, q, total_epochs):
         super().__init__()
         self.q = q
         self.total_epochs = total_epochs
+        self.last_possible = _last_logged_epoch(total_epochs)
+        self.last_epoch_logged = False
 
     def emit(self, record):
         log_msg = self.format(record)
@@ -23,6 +32,11 @@ class QueueLogHandler(logging.Handler):
             percent = current_epoch / self.total_epochs
             log_msg = f"epochs {current_epoch}/{self.total_epochs}, {parts[1]}"
             self.q.put({"type": "epoch", "text": log_msg, "percent": percent})
+            if current_epoch >= self.last_possible:
+                self.last_epoch_logged = True
+        elif "saving network parameters" in log_msg and self.last_epoch_logged:
+            self.q.put({"type": "epoch", "text": f"epochs {self.total_epochs}/{self.total_epochs}, {log_msg}",
+                        "percent": 1.0})
         else:
             self.q.put({"type": "log", "text": log_msg})
 
@@ -91,7 +105,6 @@ def run_cellpose_training(q, model_type, images, labels, test_images, test_label
                               learning_rate=learning_rate, n_epochs=epochs, model_name=model_name,
                               save_path=save_path,)
 
-        q.put({"type": "epoch", "text": f"epochs {epochs}/{epochs}, Training complete", "percent": 1.0})
         q.put({"type": "finished", "text": "Finished Training"})
 
     except Exception as e:
