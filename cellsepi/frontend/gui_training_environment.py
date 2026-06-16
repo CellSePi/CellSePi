@@ -436,6 +436,8 @@ class Training(ft.Container):
         self.progress_ring.visible = True
         self.progress_bar_text.value = ""
         self.terminal_list.controls.clear()
+        self.epoch_bar_control = None
+        self.last_tqdm_control = None
         self.disable_switch_environment()
         self.gui.page.update()
 
@@ -632,6 +634,8 @@ class Training(ft.Container):
 
             self.cancel_button.disabled = True
             self.cancel_button.update()
+            self.epoch_bar_control = None
+            self.last_tqdm_control = None
 
     def training_finished_terminal(self):
             self.terminal_list.controls.append(
