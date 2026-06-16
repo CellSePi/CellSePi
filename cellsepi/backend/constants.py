@@ -28,10 +28,10 @@ class ModelType(Enum):
     CUSTOM = SimpleNamespace(name= "Custom")
 
 
-FILTER_FLOAT=r"^[0-9]*(\.[0-9]*)?$"
-FILTER_INT=r"^[0-9]*$"
-FILTER_SCIENTIFIC_FLOAT = r"^[0-9]*\.?[0-9]*([eE][-+]?[0-9]*)?$"
-FILTER_FLOAT_0_TO_1=r"^(0(\.[0-9]*)?|1(\.0*)?|\.[0-9]*|)$"
+FILTER_FLOAT = r"^[0-9]*([.,][0-9]*)?$"
+FILTER_INT = r"^[0-9]*$"
+FILTER_SCIENTIFIC_FLOAT= r"^[0-9]*[.,]?[0-9]*([eE][-+]?[0-9]*)?$"
+FILTER_FLOAT_0_TO_1 = r"^(0([.,][0-9]*)?|1([.,]0*)?|[.,][0-9]*|)$"
 
 class FileType(Enum):
     LIF = SimpleNamespace(name="Lif", extensions=["lif"], source=SourceType.FILE)
