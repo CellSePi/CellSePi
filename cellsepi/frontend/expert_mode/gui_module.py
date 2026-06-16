@@ -4,7 +4,8 @@ import textwrap
 import flet as ft
 from typing import List, Any, Dict, cast
 
-from backend.constants import FILTER_INT, FILTER_FLOAT, FILTER_SCIENTIFIC_FLOAT
+from backend.constants import FILTER_INT, FILTER_FLOAT, FILTER_SCIENTIFIC_FLOAT, FILTER_INT_SIGNED, \
+    FILTER_SCIENTIFIC_FLOAT_SIGNED
 from backend.expert_mode.listener import DragAndDropEvent, OnPipelineChangeEvent
 from backend.expert_mode.module import FilePath, DirectoryPath
 from frontend.gui_directory import format_directory_path
@@ -778,7 +779,7 @@ class ModuleGUI(ft.GestureDetector):
                         border_color=ft.Colors.BLUE_ACCENT,
                         value=str(value),
                         ref=ref,
-                        input_filter=ft.InputFilter(allow=True, regex_string=FILTER_INT, replacement_string=""),
+                        input_filter=ft.InputFilter(allow=True, regex_string=FILTER_INT_SIGNED, replacement_string=""),
                         on_blur=lambda e, attr_name=attribute_name, type_atr=typ:
                         self.on_change(e,
                                        attr_name,
@@ -795,7 +796,7 @@ class ModuleGUI(ft.GestureDetector):
                         border_color=ft.Colors.BLUE_ACCENT,
                         value=str(value),
                         ref=ref,
-                        input_filter=ft.InputFilter(allow=True, regex_string=FILTER_SCIENTIFIC_FLOAT, replacement_string=""),
+                        input_filter=ft.InputFilter(allow=True, regex_string=FILTER_SCIENTIFIC_FLOAT_SIGNED, replacement_string=""),
                         on_blur=lambda e, attr_name=attribute_name, type_atr=typ:
                         self.on_change(e,
                                        attr_name,

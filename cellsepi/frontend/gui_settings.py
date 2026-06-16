@@ -3,7 +3,7 @@ from enum import Enum
 import flet as ft
 from pydantic import BaseModel
 
-from backend.constants import FILTER_INT, FILTER_FLOAT_0_TO_1, FILTER_FLOAT
+from backend.constants import FILTER_INT, FILTER_FLOAT_0_TO_1, FILTER_FLOAT, FILTER_INT_SIGNED, FILTER_FLOAT_SIGNED
 from backend.error_manager import ErrorManager
 from backend.settings import SettingsManager
 from frontend.gui_page_overlay import PageOverlay
@@ -232,6 +232,12 @@ class GUISettings:
                 for meta in field_info.metadata:
                     if hasattr(meta, 'ge'): min_val = meta.ge
                     if hasattr(meta, 'le'): max_val = meta.le
+
+                if min_val is not None and min_val >= 0:
+                    current_regex = FILTER_INT
+                else:
+                    current_regex = FILTER_INT_SIGNED
+
                 control = ft.Row(
                     controls=[
                         ft.Text(
@@ -243,7 +249,7 @@ class GUISettings:
                             label=label_text,
                             border_color=ft.Colors.BLUE_ACCENT,
                             value=str(value),
-                            input_filter=ft.InputFilter(allow=True, regex_string=FILTER_INT, replacement_string=""),
+                            input_filter=ft.InputFilter(allow=True, regex_string=current_regex, replacement_string=""),
                             on_blur=lambda e, m=model, f=field_name, t=field_type,mi=min_val, ma=max_val: self._on_change_handler(e, m, f, t, mi, ma)
                         ),
                     ],
@@ -259,8 +265,10 @@ class GUISettings:
 
                 if min_val == 0.0 and max_val == 1.0:
                     current_regex = FILTER_FLOAT_0_TO_1
-                else:
+                elif min_val is not None and min_val >= 0.0:
                     current_regex = FILTER_FLOAT
+                else:
+                    current_regex = FILTER_FLOAT_SIGNED
 
                 control = ft.Row(
                     controls=[
