@@ -32,15 +32,15 @@ class SpotDetectionModule(Module, ABC):
         self.user_segmentation_channel: str = "2"
         self.user_mask_suffix: str = "_sdm"  # spot detection mask
         self.user_mask_spot_radius_pixels: float = 3.0
-        self.limit_mask_spot_radius_pixels: Limit = Limit(min_val=0.00)
+        self.limit_user_mask_spot_radius_pixels: Limit = Limit(min_val=0.00)
         self.user_threshold: float = 355.0
-        self.limit_threshold = Limit(min_val=0.0)
+        self.limit_user_threshold = Limit(min_val=0.0)
         self.user_log_kernel_x_pixels: float = 1.456
         self.user_log_kernel_y_pixels: float = 1.456
         self.user_log_kernel_z_pixels: float = 1.167
-        self.limit_log_kernel_x_pixels = Limit(min_val=0.001)
-        self.limit_log_kernel_y_pixels = Limit(min_val=0.001)
-        self.limit_log_kernel_z_pixels = Limit(min_val=0.001)
+        self.limit_user_log_kernel_x_pixels = Limit(min_val=0.001)
+        self.limit_user_log_kernel_y_pixels = Limit(min_val=0.001)
+        self.limit_user_log_kernel_z_pixels = Limit(min_val=0.001)
         self.user_minimum_distance_x_pixels: float = 1.456
         self.user_minimum_distance_y_pixels: float = 1.456
         self.user_minimum_distance_z_pixels: float = 1.167
@@ -50,15 +50,15 @@ class SpotDetectionModule(Module, ABC):
         self.user_voxel_size_x_nm: float = 103.0
         self.user_voxel_size_y_nm: float = 103.0
         self.user_voxel_size_z_nm: float = 300.0
-        self.limit_voxel_size_x_nm = Limit(min_val=1.0)
-        self.limit_voxel_size_y_nm = Limit(min_val=1.0)
-        self.limit_voxel_size_z_nm = Limit(min_val=1.0)
+        self.limit_user_voxel_size_x_nm = Limit(min_val=1.0)
+        self.limit_user_voxel_size_y_nm = Limit(min_val=1.0)
+        self.limit_user_voxel_size_z_nm = Limit(min_val=1.0)
         self.user_spot_radius_x_nm: float = 150.0
         self.user_spot_radius_y_nm: float = 150.0
         self.user_spot_radius_z_nm: float = 350.0
-        self.limit_spot_radius_x_nm = Limit(min_val=1.0)
-        self.limit_spot_radius_y_nm = Limit(min_val=1.0)
-        self.limit_spot_radius_z_nm = Limit(min_val=1.0)
+        self.limit_user_spot_radius_x_nm = Limit(min_val=1.0)
+        self.limit_user_spot_radius_y_nm = Limit(min_val=1.0)
+        self.limit_user_spot_radius_z_nm = Limit(min_val=1.0)
 
     @property
     def settings(self) -> ft.Stack | None:

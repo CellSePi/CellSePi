@@ -5,7 +5,9 @@ import flet as ft
 from typing import List, Any, Dict, cast
 
 from backend.constants import FILTER_INT, FILTER_FLOAT, FILTER_SCIENTIFIC_FLOAT, FILTER_INT_SIGNED, \
-    FILTER_SCIENTIFIC_FLOAT_SIGNED
+    FILTER_SCIENTIFIC_FLOAT_SIGNED, FILTER_FLOAT_0_TO_1
+from backend.error_manager import ErrorManager
+from backend.expert_mode.limits import Limit
 from backend.expert_mode.listener import DragAndDropEvent, OnPipelineChangeEvent
 from backend.expert_mode.module import FilePath, DirectoryPath
 from frontend.gui_directory import format_directory_path
@@ -771,6 +773,18 @@ class ModuleGUI(ft.GestureDetector):
                     )
                 )
             elif typ == int:
+                min_val, max_val = None, None
+
+                limit = getattr(self.module, f"limit_{attribute_name}", None)
+                if limit and isinstance(limit, Limit):
+                    min_val = limit.min_val
+                    max_val = limit.max_val
+
+                if min_val is not None and min_val >= 0:
+                    current_regex = FILTER_INT
+                else:
+                    current_regex = FILTER_INT_SIGNED
+
                 ref = ft.Ref[ft.Text]()
                 setattr(self.module, "ref_" + attribute_name, ref)
                 items.append(
@@ -779,15 +793,30 @@ class ModuleGUI(ft.GestureDetector):
                         border_color=ft.Colors.BLUE_ACCENT,
                         value=str(value),
                         ref=ref,
-                        input_filter=ft.InputFilter(allow=True, regex_string=FILTER_INT_SIGNED, replacement_string=""),
-                        on_blur=lambda e, attr_name=attribute_name, type_atr=typ:
+                        input_filter=ft.InputFilter(allow=True, regex_string=current_regex, replacement_string=""),
+                        on_blur=lambda e, attr_name=attribute_name, type_atr=typ,mi=min_val, ma=max_val:
                         self.on_change(e,
                                        attr_name,
-                                       type_atr),
+                                       type_atr,
+                                       mi,
+                                       ma),
                         height=60,
                     )
                 )
             elif typ == float:
+                min_val, max_val = None, None
+
+                limit = getattr(self.module, f"limit_{attribute_name}", None)
+                if limit and isinstance(limit, Limit):
+                    min_val = limit.min_val
+                    max_val = limit.max_val
+                if min_val == 0.0 and max_val == 1.0:
+                    current_regex = FILTER_FLOAT_0_TO_1
+                elif min_val is not None and min_val >= 0.0:
+                    current_regex = FILTER_SCIENTIFIC_FLOAT
+                else:
+                    current_regex = FILTER_SCIENTIFIC_FLOAT_SIGNED
+
                 ref = ft.Ref[ft.Text]()
                 setattr(self.module, "ref_" + attribute_name, ref)
                 items.append(
@@ -796,11 +825,13 @@ class ModuleGUI(ft.GestureDetector):
                         border_color=ft.Colors.BLUE_ACCENT,
                         value=str(value),
                         ref=ref,
-                        input_filter=ft.InputFilter(allow=True, regex_string=FILTER_SCIENTIFIC_FLOAT_SIGNED, replacement_string=""),
-                        on_blur=lambda e, attr_name=attribute_name, type_atr=typ:
+                        input_filter=ft.InputFilter(allow=True, regex_string=current_regex, replacement_string=""),
+                        on_blur=lambda e, attr_name=attribute_name, type_atr=typ, mi=min_val, ma=max_val:
                         self.on_change(e,
                                        attr_name,
-                                       type_atr),
+                                       type_atr,
+                                       mi,
+                                       ma),
                         height=60,
                     )
                 )
@@ -942,7 +973,7 @@ class ModuleGUI(ft.GestureDetector):
             text.update()
             self.pipeline_gui.pipeline.event_manager.notify(OnPipelineChangeEvent("user_attr_change"))
 
-    def on_change(self, e, attr_name, typ: type):
+    def on_change(self, e, attr_name, typ: type, min_value = None, max_value = None):
         """
         Handles changes to the attribute for different types.
         """
@@ -970,14 +1001,25 @@ class ModuleGUI(ft.GestureDetector):
                 return
 
         try:
+            casted_value = typ(val)
+            if typ in (int, float):
+                if min_value is not None and casted_value < min_value:
+                    raise ValueError(
+                        f"Value for {attribute_name_without_prefix} must be at least {min_value}!")
+                if max_value is not None and casted_value > max_value:
+                    raise ValueError(
+                        f"Value for {attribute_name_without_prefix} cannot exceed {max_value}!")
+
             setattr(self.module, attr_name, typ(e.control.value))
             self.pipeline_gui.pipeline.event_manager.notify(OnPipelineChangeEvent("user_attr_change"))
-        except ValueError:
+        except ValueError as err:
+            error_msg = str(err) if "Value for" in str(err) else f"{attribute_name_without_prefix} only allows {typ.__name__}'s."
             self.pipeline_gui.page.show_dialog(ft.SnackBar(
-                ft.Text(f"{attribute_name_without_prefix} only allows {typ.__name__}'s.", color=ft.Colors.WHITE),
+                ft.Text(error_msg, color=ft.Colors.WHITE),
                 bgcolor=ft.Colors.RED))
             e.control.value = str(getattr(self.module, attr_name))
             e.control.update()
+
 
     def update_bool(self, e, attr_name):
         """
@@ -1062,14 +1104,38 @@ class ModuleGUI(ft.GestureDetector):
         """
         Update user_attributes with a module dict.
         """
+        has_load_errors = False
+        error_manager = ErrorManager(self.pipeline_gui.page)
         for attr in module_dict.get("user_attributes", []):
             user_attributes = self.module.get_user_attributes
-            if attr["name"] in user_attributes:
-                current_value = getattr(self.module, attr["name"])
-                if attr["attr_type"] == FilePath.__name__ or attr["attr_type"] == DirectoryPath.__name__:
-                    current_value.path = attr["value"]
-                elif isinstance(current_value, enum.Enum):
-                    enum_class = type(current_value)
-                    setattr(self.module, attr["name"], enum_class[attr["value"]])
-                else:
-                    setattr(self.module, attr["name"], attr["value"])
+            attr_name = attr["name"]
+            if attr_name in user_attributes:
+                current_value = getattr(self.module, attr_name)
+                try:
+                    if attr["attr_type"] == FilePath.__name__ or attr["attr_type"] == DirectoryPath.__name__:
+                        current_value.path = attr["value"]
+                    elif isinstance(current_value, enum.Enum):
+                        enum_class = type(current_value)
+                        setattr(self.module, attr_name, enum_class[attr["value"]])
+                    else:
+                        typ = type(current_value)
+                        casted_value = typ(attr["value"])
+
+                        if typ in (int, float):
+                            limit = getattr(self.module, f"limit_{attr_name}", None)
+                            if limit and isinstance(limit, Limit):
+                                min_val = limit.min_val
+                                max_val = limit.max_val
+
+                                if min_val is not None and casted_value < min_val:
+                                    raise ValueError(f"Loaded value for {attr_name} must be at least {min_val}!")
+                                if max_val is not None and casted_value > max_val:
+                                    raise ValueError(f"Loaded value for {attr_name} cannot exceed {max_val}!")
+
+                        setattr(self.module, attr_name, casted_value)
+                except ValueError as e:
+                    has_load_errors = True
+                    error_manager.log(e)
+
+        if has_load_errors:
+            error_manager.show(f"An error occurred during updating the user attributes of the module: {self.module.gui_config().name}")

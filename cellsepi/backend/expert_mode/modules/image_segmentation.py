@@ -24,7 +24,7 @@ class ImageSegmentationModule(Module, ABC):
         self.user_model_path: FilePath = FilePath()
         self.user_segmentation_channel: str = "2"
         self.user_diameter: float = 125.00
-        self.limit_diameter: Limit = Limit(min_val=0.00)
+        self.limit_user_diameter: Limit = Limit(min_val=0.00)
         self.user_mask_suffix: str = "_seg"
         self.user_overwrite_existing_masks: bool = False
 
