@@ -25,7 +25,7 @@ class GUISettings:
         self.overlay = PageOverlay(
             page,
             content=None,
-            dismiss= False,
+            on_dismiss=lambda e: self._cancel,
             modal=False
         )
         pass
@@ -77,10 +77,10 @@ class GUISettings:
                                                 ft.Row(
                                                     controls=[
 
-                                                        ft.Button(
-                                                            "Cancel",
-                                                            on_click=self._cancel,
-                                                        ),
+                                                        #ft.Button(
+                                                        #    "Cancel",
+                                                        #    on_click=self._cancel,
+                                                        #),
                                                         ft.Button(
                                                             "Save",
                                                             on_click=self._save
