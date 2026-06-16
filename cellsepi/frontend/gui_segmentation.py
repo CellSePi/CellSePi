@@ -440,6 +440,7 @@ class GUISegmentation:
             self.gui.open_button.visible = False
             self.progress_bar_text.value = "Reading fluorescence"
             self.gui.directory.disable_path_choosing()
+            self.gui.training_environment.disable_switch_environment()
             model_title.disabled = True
             model_chooser.disabled = True
             self.gui.page.update()
@@ -462,6 +463,7 @@ class GUISegmentation:
                 self.progress_bar_text.value = "Waiting for Input"
 
             FluorescenceReadoutControl().disabled = False
+            self.gui.training_environment.enable_switch_environment()
             self.gui.directory.enable_path_choosing()
             model_title.disabled = False
             model_chooser.disabled = False
@@ -507,6 +509,7 @@ class GUISegmentation:
             self.gui.open_button.visible = False
             self.progress_bar_text.value = "Exporting images and masks"
             self.gui.directory.disable_path_choosing()
+            self.gui.training_environment.disable_switch_environment()
             model_title.disabled = True
             model_chooser.disabled = True
             self.gui.page.update()
@@ -529,6 +532,7 @@ class GUISegmentation:
                 self.progress_bar_text.value = "Waiting for Input"
 
             FluorescenceReadoutControl().disabled = False
+            self.gui.training_environment.enable_switch_environment()
             self.gui.directory.enable_path_choosing()
             model_title.disabled = False
             model_chooser.disabled = False
