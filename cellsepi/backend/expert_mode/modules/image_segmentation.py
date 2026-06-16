@@ -2,6 +2,7 @@ import os
 
 import pickle
 
+from backend.expert_mode.limits import Limit
 from backend.expert_mode.pipeline_manager import PipelineRunningException
 from backend.segmentation import BatchImageSegmentation
 from backend.expert_mode.module import *
@@ -22,7 +23,8 @@ class ImageSegmentationModule(Module, ABC):
         self.user_model_type: ModelType = ModelType.CUSTOM
         self.user_model_path: FilePath = FilePath()
         self.user_segmentation_channel: str = "2"
-        self.user_diameter: float = 125.0
+        self.user_diameter: float = 125.00
+        self.limit_diameter: Limit = Limit(min_val=0.00)
         self.user_mask_suffix: str = "_seg"
         self.user_overwrite_existing_masks: bool = False
 
