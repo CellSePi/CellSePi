@@ -24,14 +24,14 @@ class SettingsOption:
 # Define nested configuration schemas
 class SegmentationConfig(BaseModel):
     mode: DownscaleMode = DownscaleMode.PIXELS  # SettingsOption("Downscale Mode", DownscaleMode.PIXELS, hint="Whether to use the original image, a fixed downscaling (pixels) or a relative downscaling (fraction).")
-    max_pixels: int = Field(default=512, ge=0, le=10000)
-    max_fraction: float = Field(default=0.25, ge=0, le=1.0)
+    max_pixels: int = Field(default=512, ge=10, le=10000)
+    max_fraction: float = Field(default=0.25, ge=0.0, le=1.0)
 
 
 
 class VisualizationConfig(BaseModel):
     mode: DownscaleMode = DownscaleMode.PIXELS
-    max_pixels: int = Field(default=1024, ge=0, le=10000)
+    max_pixels: int = Field(default=1024, ge=10, le=10000)
     max_fraction: float = Field(default=0.25, ge=0.0, le=1.0)
 
 
