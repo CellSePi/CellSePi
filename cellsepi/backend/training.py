@@ -113,20 +113,25 @@ def run_cellpose_training(q, model_type, working_dir, mask_filter, weight, sgd_v
 
         if model_type == ModelType.CP_SAM:
             from cellpose import models, train
-            model = models.CellposeModel(
-                diam_mean=diameter,
-                pretrained_model=pretrained_path if sgd_value else None,
-                gpu=gpu_flag
-            )
+            if sgd_value:
+                model = models.CellposeModel(
+                    pretrained_model=pretrained_path,
+                    gpu=gpu_flag
+                )
+            else:
+                model = models.CellposeModel(
+                    diam_mean=diameter,
+                    gpu=gpu_flag
+                )
+
             train.train_seg(model.net, train_data=images, train_labels=labels, normalize=True,
                             test_data=test_images, test_labels=test_labels, weight_decay=weight, SGD=sgd_value,
-                            learning_rate=learning_rate, n_epochs=epochs, model_name=model_name,
+                            learning_rate=learning_rate, n_epochs=epochs, model_name=model_name, min_train_masks=1,
                             save_path=save_path)
         else:
             from backend.CellposeV3 import modelsV3, trainV3
             if sgd_value:
                 model = modelsV3.CellposeModel(
-                    diam_mean=diameter,
                     pretrained_model=pretrained_path,
                     gpu=gpu_flag
                 )
@@ -138,10 +143,10 @@ def run_cellpose_training(q, model_type, working_dir, mask_filter, weight, sgd_v
                 )
             trainV3.train_seg(model.net, train_data=images, train_labels=labels, channels=[0, 0], normalize=True,
                               test_data=test_images, test_labels=test_labels, weight_decay=weight, SGD=sgd_value,
-                              learning_rate=learning_rate, n_epochs=epochs, model_name=model_name,
+                              learning_rate=learning_rate, n_epochs=epochs, model_name=model_name, min_train_masks=1,
                               save_path=save_path)
 
         q.put({"type": "finished", "text": "Finished Training"})
 
     except Exception as e:
-        q.put({"type": "error", "text": "Something went wrong while training!", "error_obj": str(e)})
+        q.put({"type": "error", "text": "Something went wrong while training! Pls look into the logs.", "error_obj": str(e)})

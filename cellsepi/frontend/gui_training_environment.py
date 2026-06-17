@@ -17,7 +17,7 @@ def create_terminal_text(text, is_bold=False,color=None):
         text,
         size=12,
         color=color,
-        font_family="Consolas",
+        font_family="Cascadia Code",
         weight=ft.FontWeight.BOLD if is_bold else ft.FontWeight.NORMAL,
     )
 
@@ -96,7 +96,7 @@ class Training(ft.Container):
         # Changed from TextField to Dropdown for model type selection
         self.model_dropdown = ft.Dropdown(
             label="Model Type",
-            value=ModelType.CP_SAM.value.name,
+            value=ModelType.CP_CYTO.value.name,
             options=[
                 ft.dropdown.Option(key=v.value.name, text=v.value.name)
                 for v in ModelType if v != ModelType.CUSTOM
@@ -414,7 +414,9 @@ class Training(ft.Container):
                 else:
                     model_type = ModelType.CP_SAM
             except Exception as ex:
-                self.gui.error_manager.show_without_button(f"The input for the retrained model is invalid!")
+                msg= f"The input for the retrained model is invalid!"
+                self.gui.error_manager.show_without_button(msg)
+                self.training_error_terminal(msg)
                 self.gui.directory.enable_path_choosing()
                 self.start_button.disabled = False
                 self.start_button.visible = True
@@ -431,7 +433,9 @@ class Training(ft.Container):
             try:
                 model_type = [elem for elem in ModelType if elem.value.name == model_type][0]
             except IndexError:
-                self.gui.error_manager.show_without_button(f"Model type {model_type} not supported!")
+                msg = f"Model type {model_type} not supported!"
+                self.gui.error_manager.show_without_button(msg)
+                self.training_error_terminal(msg)
                 self.gui.directory.enable_path_choosing()
                 self.start_button.disabled = False
                 self.start_button.visible = True
@@ -480,8 +484,11 @@ class Training(ft.Container):
 
     async def update_terminal(self,msg):
         if msg["type"] == "error":
-            self.training_error_terminal()
-            self.gui.error_manager.log_and_show(msg["text"], msg["error_obj"])
+            if  not msg["error_obj"]:
+                self.gui.error_manager.show_without_button(msg["text"])
+            else:
+                self.gui.error_manager.log_and_show(msg["text"], msg["error_obj"])
+            self.training_error_terminal(msg["text"])
 
         elif msg["type"] == "finished":
             self.training_finished_terminal()
@@ -609,9 +616,9 @@ class Training(ft.Container):
             )
             self.terminal_list.update()
 
-    def training_error_terminal(self):
+    def training_error_terminal(self,msg):
             self.terminal_list.controls.append(
-                create_terminal_text(">>> Something went wrong while training! Pls look into the log.",is_bold=True, color=ft.Colors.RED)
+                create_terminal_text(f">>> {msg}",is_bold=True, color=ft.Colors.RED)
             )
             self.terminal_list.update()
 
