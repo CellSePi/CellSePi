@@ -1,14 +1,7 @@
 import argparse
 import json
 import sys
-print(json.dumps({"type": "log", "text": ">>> FIRST ROW"}), flush=True)
-sys.stdout.flush()
 import logging
-
-from cellpose import models, train, io
-
-from backend.CellposeV3 import modelsV3, trainV3
-from backend.constants import ModelType
 
 def send_to_gui(msg_dict):
     print(json.dumps(msg_dict), flush=True)
@@ -68,6 +61,19 @@ class JSONTqdmStream:
         pass
 
 if __name__ == "__main__":
+    print(json.dumps({"type": "log", "text": ">>> FIRST ROW"}), flush=True)
+
+    from cellpose import models, train, io
+
+    print(json.dumps({"type": "log", "text": ">>> cellpose ok"}), flush=True)
+
+    from backend.CellposeV3 import modelsV3, trainV3
+
+    print(json.dumps({"type": "log", "text": ">>> CellposeV3 ok"}), flush=True)
+
+    from backend.constants import ModelType
+
+    print(json.dumps({"type": "log", "text": ">>> constants ok"}), flush=True)
     parser = argparse.ArgumentParser()
     parser.add_argument("--model_type_name", type=str, required=True)
     parser.add_argument("--working_dir", type=str, required=True)
