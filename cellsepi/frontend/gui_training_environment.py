@@ -1,12 +1,15 @@
-import os
+import queue
+
+import multiprocessing
 import pathlib
-import subprocess
-import json
-import sys
 
 import flet as ft
+import torch
+import os
 
-from backend.constants import ModelType, FILTER_INT, FILTER_SCIENTIFIC_FLOAT, FILTER_FLOAT
+from backend.constants import ModelType, FILTER_INT, FILTER_SCIENTIFIC_FLOAT, FILTER_FLOAT, MAIN_COLOR, ERROR_COLOR, \
+    SUCCESS_COLOR
+from backend.training import run_cellpose_training
 from frontend.gui_directory import format_directory_path, copy_to_clipboard
 
 
@@ -15,7 +18,7 @@ def create_terminal_text(text, is_bold=False,color=None):
         text,
         size=12,
         color=color,
-        font_family="Consolas",
+        font_family="Cascadia Code",
         weight=ft.FontWeight.BOLD if is_bold else ft.FontWeight.NORMAL,
     )
 
@@ -24,6 +27,7 @@ class Training(ft.Container):
     def __init__(self, gui):
         super().__init__()
         self.gui = gui
+        self.log_queue = None
         self.training_process = None
         self.epoch_bar_control = None
         self.last_tqdm_control = None
@@ -58,8 +62,8 @@ class Training(ft.Container):
         self.cancel_button = ft.Button(
             content="Cancel",
             icon=ft.Icons.CANCEL,
-            icon_color=ft.Colors.RED,
-            color= ft.Colors.RED,
+            icon_color=ERROR_COLOR,
+            color= ERROR_COLOR,
             tooltip="Cancel the running training",
             disabled=True,
             visible=False,
@@ -76,7 +80,7 @@ class Training(ft.Container):
         self.weight = 1e-4  # standard value for the weight
         self.model_name = "new_model"
         self.re_train_model_name = None
-        self.color = ft.Colors.BLUE_400
+        self.color = MAIN_COLOR
         self.progress_bar_text = ft.Text("")
         self.model_directory = self.gui.csp.models_dir
         self.terminal_list = ft.ListView(expand=True, spacing=2,scroll=ft.ScrollMode.ALWAYS, auto_scroll=True)
@@ -86,18 +90,19 @@ class Training(ft.Container):
             ink=True,
             bgcolor=ft.Colors.SURFACE_CONTAINER_LOWEST,
             expand=True,
-            border=ft.Border.all(2, ft.Colors.BLUE_ACCENT),
+            border=ft.Border.all(2, MAIN_COLOR),
             border_radius=5,
             padding=10,
+            margin=5,
         )
         # Changed from TextField to Dropdown for model type selection
         self.model_dropdown = ft.Dropdown(
             label="Model Type",
-            value=ModelType.CP_SAM.value.name,
+            value=ModelType.CP_CYTO.value.name,
             options=[
                 ft.dropdown.Option(key=v.value.name, text=v.value.name)
                 for v in ModelType if v != ModelType.CUSTOM
-            ], border_color=ft.Colors.BLUE_400,
+            ], border_color=MAIN_COLOR,
             on_select=lambda e: self.changed_input("modeltype", e),
             expand=True,
         )
@@ -128,7 +133,7 @@ class Training(ft.Container):
                 self.gui.csp.re_train_model_path = files[0].path
                 self.field_model_name.value = files[0].name
                 self.re_train_model_name = files[0].name
-                self.field_model_name.color = ft.Colors.BLUE_400
+                self.field_model_name.color = MAIN_COLOR
                 self.gui.page.update()
 
         self.re_train_model_chooser = ft.IconButton(
@@ -198,13 +203,18 @@ class Training(ft.Container):
             self.model_dropdown.visible = False
             if self.re_train_model_name is not None:
                 self.field_model_name.value = self.re_train_model_name
-                self.field_model_name.color = ft.Colors.BLUE_400
+                self.field_model_name.color = MAIN_COLOR
             else:
                 self.field_model_name.value = None
         else:
             self.re_train_model_chooser.disabled = True
-            self.field_diameter.disabled = False
-            self.field_diameter.value = self.diameter
+            if self.model == "CP Sam":
+                self.field_diameter.disabled = True
+                self.field_diameter.value = None
+            else:
+                self.field_diameter.disabled = False
+                self.field_diameter.value = str(self.diameter)
+
             self.field_model_name.color = None
             self.field_model_name.value = self.model_name
             self.model_dropdown.visible = True
@@ -261,6 +271,8 @@ class Training(ft.Container):
                     self.field_lr.value = 0.001
                     self.weight = 1e-4
                     self.field_weights.value = 1e-4
+                    self.field_diameter.disabled = False
+                    self.field_diameter.value = str(self.diameter)
                 elif updated_value == "CP Sam":
                     self.batch_size = 1
                     self.field_batch.value = 1
@@ -270,6 +282,8 @@ class Training(ft.Container):
                     self.field_lr.value = 0.00001
                     self.weight = 0.1
                     self.field_weights.value = 0.1
+                    self.field_diameter.disabled = True
+                    self.field_diameter.value = None
             elif field == "custom_model":
                 self.model = updated_value
                 self.field_custom_model.value = updated_value
@@ -320,7 +334,7 @@ class Training(ft.Container):
             e.control.text_style = None
             self.gui.page.update()
         except ValueError as err:
-            e.control.color = ft.Colors.RED
+            e.control.color = ERROR_COLOR
             e.control.text_style = ft.TextStyle(weight=ft.FontWeight.BOLD)
             e.control.update()
 
@@ -364,16 +378,15 @@ class Training(ft.Container):
                 [title,
                  pick_model_row,
                  ]
-            )
+            ),
+            padding=10
         )
 
         progress_card = ft.Card(
-            content=ft.Container(
-                content=ft.Stack(
-                    [test_container]
+            content=ft.Column(
+                    [test_container,self.terminal_container,]
                 ),
-                padding=10
-            ),
+            expand=True
         )
 
         return progress_card
@@ -401,69 +414,99 @@ class Training(ft.Container):
         self.last_tqdm_control = None
         self.disable_switch_environment()
 
-
-        model_type = self.model_dropdown.value
-        try:
-            model_type = [elem for elem in ModelType if elem.value.name == model_type][0]
-        except IndexError:
-            self.gui.error_manager.show_without_button(f"Model type {model_type} not supported!")
-            self.gui.directory.enable_path_choosing()
-            self.start_button.disabled = False
-            self.start_button.visible = True
-            self.cancel_button.disabled = True
-            self.cancel_button.visible = False
-            self.re_train_model_chooser.disabled = False
-            self.progress_ring.visible = False
-            self.progress_bar_text.value = ""
-            self.enable_switch_environment()
-            self.page.update()
-            return
+        if self.re_train_model.value:
+            try:
+                state_dict = torch.load(self.gui.csp.re_train_model_path,weights_only=False,
+                                        map_location=torch.device("cuda" if self.gui.csp.gpu else "cpu"))
+                w2_data = state_dict.get('W2', None)
+                if w2_data is None:
+                    model_type = ModelType.CP_CYTO
+                else:
+                    model_type = ModelType.CP_SAM
+            except Exception as ex:
+                msg= f"The input for the retrained model is invalid!"
+                self.gui.error_manager.show_without_button(msg)
+                self.training_error_terminal(msg)
+                self.gui.directory.enable_path_choosing()
+                self.start_button.disabled = False
+                self.start_button.visible = True
+                self.cancel_button.disabled = True
+                self.cancel_button.visible = False
+                self.re_train_model_chooser.disabled = False
+                self.progress_ring.visible = False
+                self.progress_bar_text.value = ""
+                self.enable_switch_environment()
+                self.page.update()
+                return
+        else:
+            model_type = self.model_dropdown.value
+            try:
+                model_type = [elem for elem in ModelType if elem.value.name == model_type][0]
+            except IndexError:
+                msg = f"Model type {model_type} not supported!"
+                self.gui.error_manager.show_without_button(msg)
+                self.training_error_terminal(msg)
+                self.gui.directory.enable_path_choosing()
+                self.start_button.disabled = False
+                self.start_button.visible = True
+                self.cancel_button.disabled = True
+                self.cancel_button.visible = False
+                self.re_train_model_chooser.disabled = False
+                self.progress_ring.visible = False
+                self.progress_bar_text.value = ""
+                self.enable_switch_environment()
+                self.page.update()
+                return
 
         self.gui.csp.training_running = True
         self.gui.training_event.clear()
 
-        sgd_value = "1" if self.re_train_model.value else "0"
-        gpu_value = "1" if self.gui.csp.gpu else "0"
-        pretrained = self.gui.csp.re_train_model_path if self.re_train_model.value else "None"
+        mask_filter = f"{self.gui.csp.current_mask_suffix}.npy"
 
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        worker_script = os.path.join(current_dir, "..", "backend", "training.py")
-        worker_script = os.path.normpath(worker_script)
+        if self.re_train_model.value:
+            sgd_value = True
+        else:
+            sgd_value = False
 
-        cmd = [
-            sys.executable,
-            worker_script,
-            "--model_type_name", str(model_type.value.name),
-            "--working_dir", str(self.gui.csp.working_directory),
-            "--epochs", str(self.epochs),
-            "--learning_rate", str(self.learning_rate),
-            "--weight", str(self.weight),
-            "--diameter", str(self.diameter),
-            "--model_name", str(self.model_name),
-            "--save_path", str(os.path.dirname(self.model_directory)),
-            "--gpu", gpu_value,
-            "--sgd", sgd_value,
-            "--pretrained_path", str(pretrained),
-            "--mask_suffix", str(self.gui.csp.current_mask_suffix)
-        ]
-        self.training_process = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            bufsize=1
+        ctx = multiprocessing.get_context("spawn")
+        self.log_queue = ctx.Queue()
+        self.training_process = ctx.Process(
+            target=run_cellpose_training,
+            args=(
+                self.log_queue,
+                model_type,
+                str(self.gui.csp.working_directory),
+                mask_filter,
+                self.weight,
+                sgd_value,
+                self.learning_rate,
+                self.epochs,
+                self.model_name,
+                str(os.path.dirname(self.model_directory)),
+                self.gui.csp.gpu,
+                self.gui.csp.re_train_model_path if self.re_train_model.value else None,
+                self.diameter
+            )
         )
 
-        self.gui.page.run_thread(self.read_subprocess_output)
+        self.training_process.start()
+
+        self.gui.page.run_thread(self.queue_listener)
 
     async def update_terminal(self,msg):
         if msg["type"] == "error":
-            self.training_error_terminal()
-            self.gui.error_manager.log_and_show(msg["text"], msg.get("error_obj", ""))
+            if  not msg["error_obj"]:
+                self.gui.error_manager.show_without_button(msg["text"])
+            else:
+                self.gui.error_manager.log_and_show(msg["text"], msg["error_obj"])
+            self.training_error_terminal(msg["text"])
 
         elif msg["type"] == "finished":
             self.training_finished_terminal()
             self.progress_bar_text.value = "Finished"
+            self.progress_bar_text.update()
+        elif msg["type"] == "cancel":
+            self.progress_bar_text.value = "Cancelled"
             self.progress_bar_text.update()
 
         elif msg["type"] == "tqdm":
@@ -503,32 +546,25 @@ class Training(ft.Container):
         self.gui.csp.training_running = False
         self.gui.training_event.set()
 
-    def read_subprocess_output(self):
-        if not self.training_process:
-            return
-
-        for line in iter(self.training_process.stdout.readline, ''):
-            if not line:
+    def queue_listener(self):
+        while True:
+            msg = self.log_queue.get()
+            self.gui.page.run_task(self.update_terminal,msg)
+            if msg["type"] == "error" or msg["type"] == "finished" or msg["type"] == "cancel":
                 break
 
-            line = line.strip()
-            if not line:
-                continue
+        if self.training_process:
+            self.training_process.join(timeout=1.0)
 
+            if self.training_process.is_alive():
+                self.training_process.terminate()
+                self.training_process.join(timeout=0.5)
+
+        while not self.log_queue.empty():
             try:
-                msg = json.loads(line)
-                self.gui.page.run_task(self.update_terminal, msg)
-            except json.JSONDecodeError:
-                self.gui.page.run_task(self.update_terminal, {"type": "log", "text": line})
-
-        self.training_process.wait()
-
-        if self.training_process.returncode != 0:
-            self.gui.page.run_task(self.update_terminal, {
-                "type": "error",
-                "text": f"Worker process was unexpectedly terminated!",
-                "error_obj": f"Exit Code: {self.training_process.returncode}"
-            })
+                self.log_queue.get_nowait()
+            except queue.Empty:
+                break
 
         self.gui.page.run_task(self.finish_training)
 
@@ -550,7 +586,7 @@ class Training(ft.Container):
         if self.last_tqdm_control and is_last_item:
             self.last_tqdm_control.value = display_text
         else:
-            self.last_tqdm_control = create_terminal_text(display_text, color=ft.Colors.GREEN, is_bold=True)
+            self.last_tqdm_control = create_terminal_text(display_text, color=SUCCESS_COLOR, is_bold=True)
             self.terminal_list.controls.append(self.last_tqdm_control)
         self.terminal_list.update()
 
@@ -563,32 +599,37 @@ class Training(ft.Container):
         if self.epoch_bar_control in self.terminal_list.controls:
             self.terminal_list.controls.remove(self.epoch_bar_control)
 
-        self.epoch_bar_control = create_terminal_text(bar_text,color=ft.Colors.GREEN, is_bold=True)
+        self.epoch_bar_control = create_terminal_text(bar_text,color=SUCCESS_COLOR, is_bold=True)
 
         self.terminal_list.controls.append(create_terminal_text(text))
         self.terminal_list.controls.append(self.epoch_bar_control)
         self.terminal_list.update()
 
     async def cancel_training(self):
-        if self.training_process and self.training_process.poll() is None:
+        if self.training_process and self.training_process.is_alive():
             self.training_process.terminate()
 
             self.terminal_list.controls.append(
-                create_terminal_text(">>> Training cancelled.",is_bold=True, color=ft.Colors.RED_400)
+                create_terminal_text(">>> Training cancelled.",is_bold=True, color=ERROR_COLOR)
             )
             self.terminal_list.update()
 
-            await self.finish_training()
+            self.log_queue.put({"type": "cancel", "text": "cancelled"})
+
+            self.cancel_button.disabled = True
+            self.cancel_button.update()
+            self.epoch_bar_control = None
+            self.last_tqdm_control = None
 
     def training_finished_terminal(self):
             self.terminal_list.controls.append(
-                create_terminal_text(">>> Training finished.",is_bold=True, color=ft.Colors.GREEN)
+                create_terminal_text(">>> Training finished.",is_bold=True, color=SUCCESS_COLOR)
             )
             self.terminal_list.update()
 
-    def training_error_terminal(self):
+    def training_error_terminal(self,msg):
             self.terminal_list.controls.append(
-                create_terminal_text(">>> Something went wrong while training! Pls look into the log.",is_bold=True, color=ft.Colors.RED)
+                create_terminal_text(f">>> {msg}",is_bold=True, color=ERROR_COLOR)
             )
             self.terminal_list.update()
 

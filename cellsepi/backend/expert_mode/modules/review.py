@@ -1,3 +1,4 @@
+from backend.constants import MAIN_COLOR, HIGHLIGHT_COLOR, ERROR_COLOR, SUCCESS_COLOR
 from image_editing_view import ImageEditingView
 
 from backend.data_util import convert_tiffs_to_png_parallel
@@ -78,7 +79,7 @@ class Review(Module, ABC):
                 [self._text_field_segmentation_channel,
                  self._text_field_mask_suffix,
                  ], spacing=2, alignment=ft.MainAxisAlignment.CENTER,
-            ), bgcolor=ft.Colors.BLUE_ACCENT, expand=True, border_radius=ft.BorderRadius.vertical(top=0, bottom=12),
+            ), bgcolor=MAIN_COLOR, expand=True, border_radius=ft.BorderRadius.vertical(top=0, bottom=12),
                 height=38,
             )
             )
@@ -161,7 +162,7 @@ class Review(Module, ABC):
                 self._selected_images_visualise[image_id][channel_id] = ft.Container(
                     width=154,
                     height=154,
-                    border=ft.Border.all(4, ft.Colors.ORANGE_700),
+                    border=ft.Border.all(4, HIGHLIGHT_COLOR),
                     alignment=ft.Alignment.CENTER,
                     visible=False,
                     padding=5
@@ -193,7 +194,7 @@ class Review(Module, ABC):
                 spacing=10,
                 scroll=ft.ScrollMode.AUTO,
             )
-            self._icon_check[image_id] = ft.Icon(ft.Icons.CHECK, color=ft.Colors.GREEN, size=17, visible=False,
+            self._icon_check[image_id] = ft.Icon(ft.Icons.CHECK, color=SUCCESS_COLOR, size=17, visible=False,
                                                  tooltip="Mask is available")
             self._icon_x[image_id] = ft.Icon(ft.Icons.CLOSE, size=17, visible=True, tooltip="Mask not available")
             self.update_mask_check(image_id, False)
@@ -244,7 +245,7 @@ class Review(Module, ABC):
                 ft.SnackBar(
                     ft.Text(f"Mask suffix must be not empty!",
                             color=ft.Colors.WHITE),
-                    bgcolor=ft.Colors.RED))
+                    bgcolor=ERROR_COLOR))
             e.control.value = self.user_mask_suffix
             self.settings.page.update()
             return
@@ -258,7 +259,7 @@ class Review(Module, ABC):
                 ft.SnackBar(
                     ft.Text(f"Segmentation channel must be not empty!",
                             color=ft.Colors.WHITE),
-                    bgcolor=ft.Colors.RED))
+                    bgcolor=ERROR_COLOR))
             e.control.value = self.user_segmentation_channel
             self.settings.page.update()
             return

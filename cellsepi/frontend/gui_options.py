@@ -5,6 +5,7 @@ import sys
 import flet as ft
 import torch
 
+from backend.constants import MAIN_COLOR
 from backend.error_manager import ErrorManager
 from frontend.gui_colors import ColorSelection, ColorOpacity
 from frontend.gui_page_overlay import PageOverlay
@@ -27,7 +28,7 @@ class Options(ft.Container):
         self.color_opacity = ColorOpacity(gui)
         self.slider = ft.CupertinoSlidingSegmentedButton(
             selected_index=1 if torch.cuda.is_available() else 0,
-            thumb_color=ft.Colors.BLUE_400,
+            thumb_color=MAIN_COLOR,
             disabled=True if not torch.cuda.is_available() else False,
             on_change=self.gpu_slider_change,
             padding=ft.Padding.symmetric(vertical=0,horizontal=0),
@@ -58,7 +59,7 @@ class Options(ft.Container):
                 control.color = ft.Colors.GREY_700
         else:
             self.slider.on_change = self.gpu_slider_change
-            self.slider.thumb_color = ft.Colors.BLUE_400
+            self.slider.thumb_color = MAIN_COLOR
             self.slider_blocker.visible = False
             for control in self.slider.controls:
                 control.color = None

@@ -5,7 +5,7 @@ import flet as ft
 from typing import List, Any, Dict, cast
 
 from backend.constants import FILTER_INT, FILTER_FLOAT, FILTER_SCIENTIFIC_FLOAT, FILTER_INT_SIGNED, \
-    FILTER_SCIENTIFIC_FLOAT_SIGNED, FILTER_FLOAT_0_TO_1
+    FILTER_SCIENTIFIC_FLOAT_SIGNED, FILTER_FLOAT_0_TO_1, MAIN_COLOR, ERROR_COLOR
 from backend.error_manager import ErrorManager
 from backend.expert_mode.limits import Limit
 from backend.expert_mode.listener import DragAndDropEvent, OnPipelineChangeEvent
@@ -153,13 +153,13 @@ class ModuleGUI(ft.GestureDetector):
                     [ft.Container(bgcolor=ft.Colors.WHITE, width=10, height=20, bottom=10, right=15,
                                   border_radius=ft.BorderRadius.all(45)), ft.Container(
                         ft.IconButton(ft.Icons.WARNING_ROUNDED, icon_size=35, disabled=True,
-                                      hover_color=ft.Colors.TRANSPARENT, icon_color=ft.Colors.RED,
+                                      hover_color=ft.Colors.TRANSPARENT, icon_color=ERROR_COLOR,
                                       tooltip=f"Port '{port.name}' is mandatory and has no incoming pipe!"), bottom=-3,
                         right=-5)], alignment=ft.Alignment.CENTER,
                     visible=not self.pipeline_gui.pipeline.check_ports_occupied(self.module_id, [port.name]), width=40,
                     height=40)
                 self.in_ports_Icons_occupied[port.name] = ft.Stack(
-                    [ft.Container(bgcolor=ft.Colors.GREEN, width=30, height=30, border_radius=ft.BorderRadius.all(45)),
+                    [ft.Container(bgcolor=SUCCESS_COLOR, width=30, height=30, border_radius=ft.BorderRadius.all(45)),
                      ft.IconButton(ft.Icons.CHECK, disabled=True, hover_color=ft.Colors.TRANSPARENT,
                                    icon_color=ft.Colors.WHITE,
                                    tooltip=f"Port '{port.name}' is mandatory and is satisfied.")],
@@ -171,13 +171,13 @@ class ModuleGUI(ft.GestureDetector):
                     [ft.Container(bgcolor=ft.Colors.WHITE, width=10, height=20, bottom=10, right=15,
                                   border_radius=ft.BorderRadius.all(45)), ft.Container(
                         ft.IconButton(ft.Icons.WARNING_ROUNDED, icon_size=35, disabled=True,
-                                      hover_color=ft.Colors.TRANSPARENT, icon_color=ft.Colors.RED,
+                                      hover_color=ft.Colors.TRANSPARENT, icon_color=ERROR_COLOR,
                                       tooltip=f"Port '{port.name}' is optional and has no incoming pipe!"), bottom=-3,
                         right=-5)], alignment=ft.Alignment.CENTER,
                     visible=not self.pipeline_gui.pipeline.check_ports_occupied(self.module_id, [port.name]),
                     opacity=0.2, width=40, height=40)
                 self.in_ports_Icons_occupied[port.name] = ft.Stack(
-                    [ft.Container(bgcolor=ft.Colors.GREEN, width=30, height=30, border_radius=ft.BorderRadius.all(45)),
+                    [ft.Container(bgcolor=SUCCESS_COLOR, width=30, height=30, border_radius=ft.BorderRadius.all(45)),
                      ft.IconButton(ft.Icons.CHECK, disabled=True, hover_color=ft.Colors.TRANSPARENT,
                                    icon_color=ft.Colors.WHITE,
                                    tooltip=f"Port '{port.name}' is optional and is satisfied.")],
@@ -202,7 +202,7 @@ class ModuleGUI(ft.GestureDetector):
             control_list_ports.append(out_ports)
 
         self.error_icon = ft.IconButton(ft.Icons.REPORT, icon_size=35, disabled=True,
-                                        hover_color=ft.Colors.TRANSPARENT, icon_color=ft.Colors.RED,
+                                        hover_color=ft.Colors.TRANSPARENT, icon_color=ERROR_COLOR,
                                         tooltip="An error occurred while executing!",
                                         highlight_color=ft.Colors.TRANSPARENT,
                                         padding=ft.Padding.all(2))
@@ -216,7 +216,7 @@ class ModuleGUI(ft.GestureDetector):
             [ft.Container(bgcolor=ft.Colors.WHITE, width=10, height=20, bottom=16, right=23,
                           border_radius=ft.BorderRadius.all(45)),
              ft.IconButton(ft.Icons.WARNING_ROUNDED, icon_size=35, disabled=False, hover_color=ft.Colors.TRANSPARENT,
-                           icon_color=ft.Colors.RED, tooltip=f"Not all mandatory inputs are satisfied!",
+                           icon_color=ERROR_COLOR, tooltip=f"Not all mandatory inputs are satisfied!",
                            on_click=self.ports_in_out_clicked, highlight_color=ft.Colors.TRANSPARENT,
                            padding=ft.Padding.all(2))],
             visible=not self.pipeline_gui.pipeline.check_module_satisfied(self.module_id) and not show_mode, width=48,
@@ -239,7 +239,7 @@ class ModuleGUI(ft.GestureDetector):
                 tight=True)
             , bgcolor=self.color, width=MODULE_WIDTH
             , height=MODULE_HEIGHT,
-            border=ft.Border.all(4, ft.Colors.RED if not self.pipeline_gui.pipeline.check_module_satisfied(
+            border=ft.Border.all(4, ERROR_COLOR if not self.pipeline_gui.pipeline.check_module_satisfied(
                 self.module_id) and not show_mode else ft.Colors.BLACK12),
             border_radius=ft.BorderRadius.all(10),
         )
@@ -364,7 +364,7 @@ class ModuleGUI(ft.GestureDetector):
         Checks if the module should have a warning.
         """
         self.module_container.border = ft.Border.all(4,
-                                                     ft.Colors.RED if not self.pipeline_gui.pipeline.check_module_satisfied(
+                                                     ERROR_COLOR if not self.pipeline_gui.pipeline.check_module_satisfied(
                                                          self.module_id) or self.error_stack.visible else ft.Colors.BLACK12)
         self.module_container.update()
         if not self.error_stack.visible:
@@ -474,7 +474,7 @@ class ModuleGUI(ft.GestureDetector):
         self.valid = False
         self.block_container.bgcolor = INVALID_COLOR
         self.module_container.border = ft.Border.all(4,
-                                                     ft.Colors.RED if not self.pipeline_gui.pipeline.check_module_satisfied(
+                                                     ERROR_COLOR if not self.pipeline_gui.pipeline.check_module_satisfied(
                                                          self.module_id) or self.error_stack.visible else ft.Colors.BLACK12)
         self.module_container.update()
         self.block_container.update()
@@ -762,7 +762,7 @@ class ModuleGUI(ft.GestureDetector):
                 items.append(
                     ft.TextField(
                         label=attribute_name.removeprefix("user_"),
-                        border_color=ft.Colors.BLUE_ACCENT,
+                        border_color=MAIN_COLOR,
                         value=str(value),
                         ref=ref,
                         on_blur=lambda e, attr_name=attribute_name, type_atr=typ:
@@ -790,7 +790,7 @@ class ModuleGUI(ft.GestureDetector):
                 items.append(
                     ft.TextField(
                         label=attribute_name.removeprefix("user_"),
-                        border_color=ft.Colors.BLUE_ACCENT,
+                        border_color=MAIN_COLOR,
                         value=str(value),
                         ref=ref,
                         input_filter=ft.InputFilter(allow=True, regex_string=current_regex, replacement_string=""),
@@ -822,7 +822,7 @@ class ModuleGUI(ft.GestureDetector):
                 items.append(
                     ft.TextField(
                         label=attribute_name.removeprefix("user_"),
-                        border_color=ft.Colors.BLUE_ACCENT,
+                        border_color=MAIN_COLOR,
                         value=str(value),
                         ref=ref,
                         input_filter=ft.InputFilter(allow=True, regex_string=current_regex, replacement_string=""),
@@ -841,7 +841,7 @@ class ModuleGUI(ft.GestureDetector):
                 setattr(self.module, "on_change_" + attribute_name, lambda: None)
                 slider_bool = ft.CupertinoSlidingSegmentedButton(
                     selected_index=index,
-                    thumb_color=ft.Colors.BLUE_400,
+                    thumb_color=MAIN_COLOR,
                     on_change=lambda e, attr_name=attribute_name: self.update_bool(e, attr_name),
                     padding=ft.Padding.symmetric(vertical=0, horizontal=0),
                     controls=[
@@ -855,7 +855,7 @@ class ModuleGUI(ft.GestureDetector):
             elif typ == FilePath:
                 text_field = ft.TextField(
                     label=attribute_name.removeprefix("user_"),
-                    border_color=ft.Colors.BLUE_ACCENT,
+                    border_color=MAIN_COLOR,
                     value=format_directory_path(value.path, 50),
                     height=60,
                     read_only=True,
@@ -890,7 +890,7 @@ class ModuleGUI(ft.GestureDetector):
             elif typ == DirectoryPath:
                 text_field = ft.TextField(
                     label=attribute_name.removeprefix("user_"),
-                    border_color=ft.Colors.BLUE_ACCENT,
+                    border_color=MAIN_COLOR,
                     value=format_directory_path(value.path, 50),
                     height=60,
                     read_only=True,
@@ -927,7 +927,7 @@ class ModuleGUI(ft.GestureDetector):
                 setattr(self.module, "on_change_" + attribute_name, lambda: None)
                 slider_bool = ft.CupertinoSlidingSegmentedButton(
                     selected_index=index,
-                    thumb_color=ft.Colors.BLUE_400,
+                    thumb_color=MAIN_COLOR,
                     on_change=lambda e, attr_name=attribute_name, e_class=enum_class: self.update_enum(e, attr_name, e_class),
                     padding=ft.Padding.symmetric(vertical=0, horizontal=0),
                     controls=[
@@ -984,7 +984,7 @@ class ModuleGUI(ft.GestureDetector):
                 ft.SnackBar(
                     ft.Text(f"{attribute_name_without_prefix} must not be empty!",
                             color=ft.Colors.WHITE),
-                    bgcolor=ft.Colors.RED))
+                    bgcolor=ERROR_COLOR))
             e.control.value = str(getattr(self.module, attr_name))
             e.control.update()
             return
@@ -995,7 +995,7 @@ class ModuleGUI(ft.GestureDetector):
                     ft.SnackBar(
                         ft.Text(f"{attribute_name_without_prefix} contains an incomplete number!",
                                 color=ft.Colors.WHITE),
-                        bgcolor=ft.Colors.RED))
+                        bgcolor=ERROR_COLOR))
                 e.control.value = str(getattr(self.module, attr_name))
                 e.control.update()
                 return
@@ -1016,7 +1016,7 @@ class ModuleGUI(ft.GestureDetector):
             error_msg = str(err) if "Value for" in str(err) else f"{attribute_name_without_prefix} only allows {typ.__name__}'s."
             self.pipeline_gui.page.show_dialog(ft.SnackBar(
                 ft.Text(error_msg, color=ft.Colors.WHITE),
-                bgcolor=ft.Colors.RED))
+                bgcolor=ERROR_COLOR))
             e.control.value = str(getattr(self.module, attr_name))
             e.control.update()
 

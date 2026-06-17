@@ -2,13 +2,18 @@ from enum import Enum, auto
 from types import SimpleNamespace
 from pathlib import Path
 from typing import Optional, Callable
-
+import flet as ft
 BIT_DEPTH = 16
 
 CSP_CHANNEL_PREFIX = "_CSP-channel-pref_"
 
 APP_NAME = ".cellsepi"
 APP_DIR = Path(Path.home() / APP_NAME)
+
+MAIN_COLOR = ft.Colors.BLUE_ACCENT
+HIGHLIGHT_COLOR = ft.Colors.ORANGE_700
+ERROR_COLOR = ft.Colors.RED
+SUCCESS_COLOR = ft.Colors.GREEN
 
 class ReturnTypePath(Enum):
     IMAGE_PATHS = auto()

@@ -2,7 +2,7 @@ import logging
 import flet as ft
 from flet import SnackBarAction
 
-from backend.constants import APP_DIR
+from backend.constants import APP_DIR, ERROR_COLOR
 import os
 import sys
 import subprocess
@@ -36,7 +36,7 @@ class ErrorManager:
             self.page.show_dialog(
                 ft.SnackBar(
                     content=ft.Text(user_message, color=ft.Colors.WHITE),
-                    bgcolor=ft.Colors.RED,
+                    bgcolor=ERROR_COLOR,
                     action=SnackBarAction(text_color=ft.Colors.WHITE, label="Open log", on_click=self.open_log_file),
                 )
             )
@@ -47,7 +47,7 @@ class ErrorManager:
             self.page.show_dialog(
                 ft.SnackBar(
                     content=ft.Text(user_message, color=ft.Colors.WHITE),
-                    bgcolor=ft.Colors.RED,
+                    bgcolor=ERROR_COLOR,
                 )
             )
             self.page.update()
@@ -62,7 +62,7 @@ class ErrorManager:
         self.page.show_dialog(
             ft.SnackBar(
                 content=ft.Text(user_message, color=ft.Colors.WHITE),
-                bgcolor=ft.Colors.RED,
+                bgcolor=ERROR_COLOR,
                 action=SnackBarAction(text_color=ft.Colors.WHITE,label="Open log",on_click=self.open_log_file),
             )
         )

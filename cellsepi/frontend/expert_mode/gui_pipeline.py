@@ -1,6 +1,7 @@
 from collections import deque
 from typing import List
 
+from backend.constants import SUCCESS_COLOR
 from backend.expert_mode.listener import OnPipelineChangeEvent
 from backend.expert_mode.pipe import Pipe
 from backend.expert_mode.pipeline_manager import PipelineManager
@@ -75,7 +76,7 @@ class PipelineGUI(ft.Stack):
         await self.interactive_view.set_transformation_data(offset_x=offset_x, offset_y=offset_y, scale=scale)
 
         self.page.show_dialog(
-            ft.SnackBar(ft.Text(f"Pipeline successfully loaded.", color=ft.Colors.WHITE), bgcolor=ft.Colors.GREEN))
+            ft.SnackBar(ft.Text(f"Pipeline successfully loaded.", color=ft.Colors.WHITE), bgcolor=SUCCESS_COLOR))
         self.page.update()
         self.loading = False
         self.pipeline.event_manager.notify(OnPipelineChangeEvent(f"Pipeline {self.pipeline_name} loaded."))

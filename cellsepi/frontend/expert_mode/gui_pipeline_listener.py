@@ -2,6 +2,7 @@ import textwrap
 from typing import Type
 import flet as ft
 
+from backend.constants import ERROR_COLOR, SUCCESS_COLOR
 from backend.error_manager import ErrorManager
 from backend.expert_mode.listener import EventListener, OnPipelineChangeEvent, Event, \
     ModuleExecutedEvent, ProgressEvent, ErrorEvent, ModuleStartedEvent, DragAndDropEvent, PipelinePauseEvent, \
@@ -231,7 +232,7 @@ class ModuleProgressListener(EventListener):
         if self.builder.pipeline_gui.pipeline._cancel_event.is_set():
             self.builder.info_text.value = ""
             self.builder.info_text.spans = [
-                ft.TextSpan("Canceling: ", style=ft.TextStyle(weight=ft.FontWeight.BOLD, color=ft.Colors.RED)),
+                ft.TextSpan("Canceling: ", style=ft.TextStyle(weight=ft.FontWeight.BOLD, color=ERROR_COLOR)),
                 ft.TextSpan(event.process, style=ft.TextStyle(color=ft.Colors.WHITE60)), ]
             self.builder.info_text.update()
         else:
@@ -264,7 +265,7 @@ class ModuleErrorListener(EventListener):
             ErrorManager().log(event.error)
             self.builder.cancel_button.visible = False
             self.builder.cancel_button.disabled = False
-            self.builder.cancel_button.color = ft.Colors.RED
+            self.builder.cancel_button.color = ERROR_COLOR
             self.builder.cancel_button.update()
             self.builder.pipeline_gui.modules[self.builder.pipeline_gui.pipeline.executing].error_stack.visible = True
             self.builder.pipeline_gui.modules[self.builder.pipeline_gui.pipeline.executing].error_stack.update()
@@ -273,15 +274,15 @@ class ModuleErrorListener(EventListener):
             self.builder.pipeline_gui.modules[self.builder.pipeline_gui.pipeline.executing].error_icon.update()
             self.builder.pipeline_gui.modules[
                 self.builder.pipeline_gui.pipeline.executing].module_container.border = ft.Border.all(4,
-                                                                                                      ft.Colors.RED)
+                                                                                                      ERROR_COLOR)
             self.builder.pipeline_gui.modules[self.builder.pipeline_gui.pipeline.executing].module_container.update()
             self.builder.pipeline_gui.enables_all_stuck_in_running()
             self.builder.info_text.value = ""
             self.builder.info_text.spans = [
-            ft.TextSpan("Error: ", style=ft.TextStyle(weight=ft.FontWeight.BOLD, color=ft.Colors.RED)),
+            ft.TextSpan("Error: ", style=ft.TextStyle(weight=ft.FontWeight.BOLD, color=ERROR_COLOR)),
             ft.TextSpan(event.error_msg, style=ft.TextStyle(color=ft.Colors.WHITE60)),]
             self.builder.info_text.update()
-            self.builder.category_icon.color = ft.Colors.RED
+            self.builder.category_icon.color = ERROR_COLOR
             self.builder.category_icon.update()
             self.builder.progress_bar_module_text.value = f"{0}%"
             self.builder.progress_bar_module.value = 0
@@ -312,13 +313,13 @@ class PipelineCancelListener(EventListener):
         self.builder.pipeline_gui.enables_all_stuck_in_running()
         self.builder.running_module.value = "Module"
         self.builder.running_module.update()
-        self.builder.category_icon.color = ft.Colors.GREEN
+        self.builder.category_icon.color = SUCCESS_COLOR
         self.builder.category_icon.update()
         self.builder.resume_button.visible = False
         self.builder.resume_button.update()
         self.builder.cancel_button.visible = True
         self.builder.cancel_button.disabled = False
-        self.builder.cancel_button.color = ft.Colors.RED
+        self.builder.cancel_button.color = ERROR_COLOR
         self.builder.cancel_button.update()
         self.builder.progress_bar_module_text.value = f"{0}%"
         self.builder.progress_bar_module.value = 0
@@ -344,13 +345,13 @@ class PipelineErrorListener(EventListener):
     async def _update(self, event: PipelineErrorEvent) -> None:
         self.builder.info_text.value = ""
         self.builder.info_text.spans = [
-            ft.TextSpan("Error: ", style=ft.TextStyle(weight=ft.FontWeight.BOLD, color=ft.Colors.RED)),
+            ft.TextSpan("Error: ", style=ft.TextStyle(weight=ft.FontWeight.BOLD, color=ERROR_COLOR)),
             ft.TextSpan(event.error_msg, style=ft.TextStyle(color=ft.Colors.WHITE60)), ]
         self.builder.info_text.update()
         self.builder.pipeline_gui.enables_all_stuck_in_running()
         self.builder.running_module.value = "Pipeline"
         self.builder.running_module.update()
-        self.builder.category_icon.color = ft.Colors.RED
+        self.builder.category_icon.color = ERROR_COLOR
         self.builder.category_icon.update()
         self.builder.progress_bar_module_text.value = f"{0}%"
         self.builder.progress_bar_module.value = 0

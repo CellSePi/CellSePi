@@ -11,6 +11,7 @@ import importlib.util
 import inspect
 import pathlib
 
+from backend.constants import MAIN_COLOR, ERROR_COLOR
 from backend.data_util import DirectoryManager
 from backend.error_manager import ErrorManager
 from backend.expert_mode.module import Module
@@ -58,7 +59,7 @@ class GUI:
         self.expert_running_event = threading.Event()
         self.readout_event = threading.Event()
         self.canvas = ImageEditingView(
-            on_mask_change=self._mask_update_async)
+            on_mask_change=self._mask_update_async,main_color=MAIN_COLOR)
         self.canvas.mask_color = self.csp.config.get_mask_color()
         self.canvas.outline_color = self.csp.config.get_outline_color()
         self.canvas.mask_suffix = self.csp.config.get_mask_suffix()
@@ -137,7 +138,7 @@ class GUI:
             self.csp.config.set_ignore_warning()
 
         self.zenity_warning = ft.Banner(
-            bgcolor=ft.Colors.RED,
+            bgcolor=ERROR_COLOR,
             leading=ft.Icon(ft.Icons.WARNING_AMBER_ROUNDED, color=ft.Colors.WHITE_60, size=40),
             content=ft.Text(
                 "System tool 'zenity' (or similar) was not found.\n"
@@ -206,7 +207,6 @@ class GUI:
                                 [
                                     self.training_environment.add_parameter_container(),
                                     self.training_environment.create_training_card(),
-                                    self.training_environment.terminal_container,
                                 ],
                                 expand=6,
                                 alignment=ft.MainAxisAlignment.START,
@@ -336,7 +336,7 @@ class GUI:
             self.page.run_task(self.handle_window_closing)
 
     def on_enter_diameter(self):
-        self.diameter_text.color = ft.Colors.BLUE_400
+        self.diameter_text.color = MAIN_COLOR
         self.diameter_text.update()
 
     def on_exit_diameter(self):
