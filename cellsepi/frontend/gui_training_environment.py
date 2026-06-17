@@ -1,12 +1,16 @@
-import os
+import queue
+
+import multiprocessing
 import pathlib
-import subprocess
-import json
-import sys
 
 import flet as ft
+import torch
+from cellpose import io
+import os
 
+from backend.CellposeV3 import ioV3
 from backend.constants import ModelType, FILTER_INT, FILTER_SCIENTIFIC_FLOAT, FILTER_FLOAT
+from backend.training import run_cellpose_training
 from frontend.gui_directory import format_directory_path, copy_to_clipboard
 
 
@@ -24,6 +28,7 @@ class Training(ft.Container):
     def __init__(self, gui):
         super().__init__()
         self.gui = gui
+        self.log_queue = None
         self.training_process = None
         self.epoch_bar_control = None
         self.last_tqdm_control = None
@@ -401,77 +406,128 @@ class Training(ft.Container):
         self.last_tqdm_control = None
         self.disable_switch_environment()
 
+        if self.re_train_model.value:
+            try:
+                state_dict = torch.load(self.gui.csp.re_train_model_path,weights_only=False,
+                                        map_location=torch.device("cuda" if self.gui.csp.gpu else "cpu"))
+                w2_data = state_dict.get('W2', None)
+                if w2_data is None:
+                    model_type = ModelType.CP_CYTO
+                else:
+                    model_type = ModelType.CP_SAM
+            except Exception as ex:
+                self.gui.error_manager.show_without_button(f"The input for the retrained model is invalid!")
+                self.gui.directory.enable_path_choosing()
+                self.start_button.disabled = False
+                self.start_button.visible = True
+                self.cancel_button.disabled = True
+                self.cancel_button.visible = False
+                self.re_train_model_chooser.disabled = False
+                self.progress_ring.visible = False
+                self.progress_bar_text.value = ""
+                self.enable_switch_environment()
+                self.page.update()
+                return
+        else:
+            model_type = self.model_dropdown.value
+            try:
+                model_type = [elem for elem in ModelType if elem.value.name == model_type][0]
+            except IndexError:
+                self.gui.error_manager.show_without_button(f"Model type {model_type} not supported!")
+                self.gui.directory.enable_path_choosing()
+                self.start_button.disabled = False
+                self.start_button.visible = True
+                self.cancel_button.disabled = True
+                self.cancel_button.visible = False
+                self.re_train_model_chooser.disabled = False
+                self.progress_ring.visible = False
+                self.progress_bar_text.value = ""
+                self.enable_switch_environment()
+                self.page.update()
+                return
 
-        model_type = self.model_dropdown.value
-        try:
-            model_type = [elem for elem in ModelType if elem.value.name == model_type][0]
-        except IndexError:
-            self.gui.error_manager.show_without_button(f"Model type {model_type} not supported!")
+        self.gui.csp.training_running = True
+        self.gui.training_event.clear()
+
+        mask_filter = f"{self.gui.csp.current_mask_suffix}.npy"
+
+        # TODO EK: By splitting the directory into train and test, one can provide two distinct dirs to support test_dir
+        # loads the mask files out of the directory to start training
+        if model_type == ModelType.CP_CYTO or model_type == ModelType.CP_NUCLEI:
+            output = ioV3.load_train_test_data(
+                train_dir=str(self.gui.csp.working_directory),  # test_dir=None,
+                mask_filter=mask_filter,
+                look_one_level_down=False
+            )
+        elif model_type == ModelType.CP_SAM:
+            output = io.load_train_test_data(
+                train_dir=str(self.gui.csp.working_directory),  # test_dir=None,
+                mask_filter=mask_filter,
+                look_one_level_down=False
+            )
+        else:
+            self.page.show_dialog(
+                ft.SnackBar(
+                    ft.Text(f"Custom model not supported yet!")
+                )
+            )
+            return
+
+        images, labels, image_names, test_images, test_labels, image_names_test = output
+        print("images: ", images)
+        print("labels: ", labels)
+        print("image_names: ", image_names)
+        print("test_images: ", test_images)
+        print("test_labels: ", test_labels)
+        print("image_names_test: ", image_names_test)
+
+        if len(images) == 0 or len(labels) == 0:
+            self.page.show_dialog(ft.SnackBar(
+                ft.Text(f"You need images and suitable masks to train a model!")))
             self.gui.directory.enable_path_choosing()
             self.start_button.disabled = False
             self.start_button.visible = True
             self.cancel_button.disabled = True
             self.cancel_button.visible = False
-            self.re_train_model_chooser.disabled = False
             self.progress_ring.visible = False
+            self.re_train_model_chooser.disabled = False
             self.progress_bar_text.value = ""
             self.enable_switch_environment()
             self.page.update()
+            self.gui.csp.training_running = False
+            self.gui.training_event.set()
             return
 
-        self.gui.csp.training_running = True
-        self.gui.training_event.clear()
+        if self.re_train_model.value:
+            sgd_value = True
+        else:
+            sgd_value = False
 
-        sgd_value = "1" if self.re_train_model.value else "0"
-        gpu_value = "1" if self.gui.csp.gpu else "0"
-        pretrained = self.gui.csp.re_train_model_path if self.re_train_model.value else "None"
+        model_name = self.model_name
 
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        worker_script = os.path.join(current_dir, "..", "backend", "training.py")
-        worker_script = os.path.normpath(worker_script)
-        self.terminal_list.controls.append(
-            create_terminal_text(f"DEBUG path: {worker_script}")
-        )
-        self.terminal_list.controls.append(
-            create_terminal_text(f"DEBUG exists: {os.path.exists(worker_script)}")
-        )
-        self.terminal_list.update()
-        cmd = [
-            sys.executable,
-            worker_script,
-            "--model_type_name", str(model_type.value.name),
-            "--working_dir", str(self.gui.csp.working_directory),
-            "--epochs", str(self.epochs),
-            "--learning_rate", str(self.learning_rate),
-            "--weight", str(self.weight),
-            "--diameter", str(self.diameter),
-            "--model_name", str(self.model_name),
-            "--save_path", str(os.path.dirname(self.model_directory)),
-            "--gpu", gpu_value,
-            "--sgd", sgd_value,
-            "--pretrained_path", str(pretrained),
-            "--mask_suffix", str(self.gui.csp.current_mask_suffix),
-        ]
-
-        self.training_process = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            bufsize=1,
-            env={**os.environ, "PYTHONUNBUFFERED": "1"}
+        self.log_queue = multiprocessing.Queue()
+        self.training_process = multiprocessing.Process(
+            target=run_cellpose_training,
+            args=(self.log_queue, model_type, images, labels, test_images, test_labels, self.weight, sgd_value,
+                  self.learning_rate, self.epochs, model_name, os.path.dirname(self.model_directory),
+                  self.gui.csp.gpu, self.gui.csp.re_train_model_path, self.diameter)
         )
 
-        self.gui.page.run_thread(self.read_subprocess_output)
+        self.training_process.start()
+
+        self.gui.page.run_thread(self.queue_listener)
 
     async def update_terminal(self,msg):
         if msg["type"] == "error":
             self.training_error_terminal()
-            self.gui.error_manager.log_and_show(msg["text"], msg.get("error_obj", ""))
+            self.gui.error_manager.log_and_show(msg["text"], msg["error_obj"])
 
         elif msg["type"] == "finished":
             self.training_finished_terminal()
             self.progress_bar_text.value = "Finished"
+            self.progress_bar_text.update()
+        elif msg["type"] == "cancel":
+            self.progress_bar_text.value = "Cancelled"
             self.progress_bar_text.update()
 
         elif msg["type"] == "tqdm":
@@ -511,32 +567,25 @@ class Training(ft.Container):
         self.gui.csp.training_running = False
         self.gui.training_event.set()
 
-    def read_subprocess_output(self):
-        if not self.training_process:
-            return
-
-        for line in iter(self.training_process.stdout.readline, ''):
-            if not line:
+    def queue_listener(self):
+        while True:
+            msg = self.log_queue.get()
+            self.gui.page.run_task(self.update_terminal,msg)
+            if msg["type"] == "error" or msg["type"] == "finished" or msg["type"] == "cancel":
                 break
 
-            line = line.strip()
-            if not line:
-                continue
+        if self.training_process:
+            self.training_process.join(timeout=1.0)
 
+            if self.training_process.is_alive():
+                self.training_process.terminate()
+                self.training_process.join(timeout=0.5)
+
+        while not self.log_queue.empty():
             try:
-                msg = json.loads(line)
-                self.gui.page.run_task(self.update_terminal, msg)
-            except json.JSONDecodeError:
-                self.gui.page.run_task(self.update_terminal, {"type": "log", "text": line})
-
-        self.training_process.wait()
-
-        if self.training_process.returncode != 0:
-            self.gui.page.run_task(self.update_terminal, {
-                "type": "error",
-                "text": f"Worker process was unexpectedly terminated!",
-                "error_obj": f"Exit Code: {self.training_process.returncode}"
-            })
+                self.log_queue.get_nowait()
+            except queue.Empty:
+                break
 
         self.gui.page.run_task(self.finish_training)
 
@@ -578,7 +627,7 @@ class Training(ft.Container):
         self.terminal_list.update()
 
     async def cancel_training(self):
-        if self.training_process and self.training_process.poll() is None:
+        if self.training_process and self.training_process.is_alive():
             self.training_process.terminate()
 
             self.terminal_list.controls.append(
@@ -586,7 +635,12 @@ class Training(ft.Container):
             )
             self.terminal_list.update()
 
-            await self.finish_training()
+            self.log_queue.put({"type": "cancel", "text": "cancelled"})
+
+            self.cancel_button.disabled = True
+            self.cancel_button.update()
+            self.epoch_bar_control = None
+            self.last_tqdm_control = None
 
     def training_finished_terminal(self):
             self.terminal_list.controls.append(
