@@ -26,11 +26,6 @@ def main():
 
 if __name__ == "__main__":
     multiprocessing.freeze_support()
-    if any(arg in sys.argv for arg in ["--multiprocessing-fork", "spawn_main", "resource_tracker"]):
-        import multiprocessing.spawn
-
-        sys.exit(multiprocessing.spawn.spawn_main(pipe_handle=int(sys.argv[-1])))
-
     main()
 
 """
