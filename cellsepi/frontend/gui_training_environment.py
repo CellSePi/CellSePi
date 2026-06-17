@@ -458,8 +458,9 @@ class Training(ft.Container):
         else:
             sgd_value = False
 
-        self.log_queue = multiprocessing.Queue()
-        self.training_process = multiprocessing.Process(
+        ctx = multiprocessing.get_context("spawn")
+        self.log_queue = ctx.Queue()
+        self.training_process = ctx.Process(
             target=run_cellpose_training,
             args=(
                 self.log_queue,
