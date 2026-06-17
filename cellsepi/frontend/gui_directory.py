@@ -10,7 +10,7 @@ import numpy as np
 
 from frontend.dialogs import ChoiceDialog
 from frontend.gui_fluorescence import FluorescenceReadoutControl
-from backend.constants import FileType, SourceType, APP_DIR, ModelType
+from backend.constants import FileType, SourceType, APP_DIR, ModelType, MAIN_COLOR
 from backend.data_util import consistent_hash, extract_from_directory, DirectoryManager
 from backend.data_util import extract_from_file, load_directory, \
     convert_tiffs_to_png_parallel
@@ -83,7 +83,7 @@ class DirectoryCard(ft.Card):
 
             self.file_type_slider = ft.CupertinoSlidingSegmentedButton(
                 selected_index=index,
-                thumb_color=ft.Colors.BLUE_400,
+                thumb_color=MAIN_COLOR,
                 on_change=self.update_view,
                 padding=ft.Padding.symmetric(vertical=0, horizontal=0),
                 controls=[
@@ -153,7 +153,7 @@ class DirectoryCard(ft.Card):
 
     def create_path_list_tile(self):
         def on_enter_text(text_filed):
-            text_filed.color = ft.Colors.BLUE_400
+            text_filed.color = MAIN_COLOR
             text_filed.update()
 
         def on_exit_text(text_filed):
@@ -635,7 +635,7 @@ class DirectoryCard(ft.Card):
                 control.color = ft.Colors.GREY_700
         else:
             slider.on_change = self.update_view
-            slider.thumb_color = ft.Colors.BLUE_400
+            slider.thumb_color = MAIN_COLOR
             self.lif_slider_blocker.visible = False
             for control in slider.controls:
                 control.color = None

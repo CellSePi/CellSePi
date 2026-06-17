@@ -4,6 +4,7 @@ from typing import cast
 
 from flet_extended_interactive_viewer import FletExtendedInteractiveViewer
 
+from backend.constants import MAIN_COLOR
 from backend.error_manager import ErrorManager
 from frontend.expert_mode.gui_pipeline import PipelineGUI
 from frontend.expert_mode.gui_pipeline_listener import PipelineChangeListener, ModuleExecutedListener, ModuleStartedListener, \
@@ -139,8 +140,8 @@ class Builder:
             visible=False,
             opacity=0.75
         )
-        self.progress_bar_module = ft.ProgressBar(value=0, width=220,bgcolor=ft.Colors.WHITE24,color=ft.Colors.BLUE_400)
-        self.progress_pipeline = ft.ProgressRing(value=0,width=50,height=50,stroke_width=8,bgcolor=ft.Colors.WHITE24,color=ft.Colors.BLUE_400)
+        self.progress_bar_module = ft.ProgressBar(value=0, width=220,bgcolor=ft.Colors.WHITE24,color=MAIN_COLOR)
+        self.progress_pipeline = ft.ProgressRing(value=0,width=50,height=50,stroke_width=8,bgcolor=ft.Colors.WHITE24,color=MAIN_COLOR)
         self.progress_text = ft.Text(f"{self.pipeline_gui.pipeline.modules_executed}/{len(self.pipeline_gui.pipeline.modules)}", weight=ft.FontWeight.BOLD, tooltip="How many modules has been executed", color=MAIN_ACTIVE_COLOR)
         self.progress_stack = ft.Stack([self.progress_pipeline,ft.Container(self.progress_text,alignment=ft.Alignment.CENTER)],width=50,height=50,)
         self.progress_bar_module_text = ft.Text("0%", color=MAIN_ACTIVE_COLOR)
@@ -407,7 +408,7 @@ class Builder:
         """
         Called when clicked a file should be saved.
         """
-        self.save_button.icon_color = ft.Colors.BLUE_400
+        self.save_button.icon_color = MAIN_COLOR
         self.save_button.update()
         path = await self.pipeline_storage.save_pipeline()
         self.pipeline_gui.page.show_dialog(
@@ -425,7 +426,7 @@ class Builder:
         """
         files = await self.file_picker.pick_files(file_type=ft.FilePickerFileType.CUSTOM, allowed_extensions=["csp"],
                                     allow_multiple=False)
-        self.load_button.icon_color = ft.Colors.BLUE_400
+        self.load_button.icon_color = MAIN_COLOR
         self.load_button.update()
         if files is not None and len(files) > 0:
             if not await self.pipeline_storage.check_saved():
@@ -492,7 +493,7 @@ class Builder:
         dir = await self.file_saver.save_file(file_type=ft.FilePickerFileType.CUSTOM, allowed_extensions=["csp"],
                              dialog_title="Save Pipeline", file_name=str(self.pipeline_gui.pipeline_name),
                              initial_directory=str(self.pipeline_gui.pipeline_directory))
-        self.save_as_button.icon_color = ft.Colors.BLUE_400
+        self.save_as_button.icon_color = MAIN_COLOR
         self.save_as_button.update()
         if dir is not None:
             if Path(dir).suffix == "":
@@ -565,7 +566,7 @@ class Builder:
             self.run_menu.animate_opacity = ft.Animation(duration=300, curve=ft.AnimationCurve.LINEAR_TO_EASE_OUT)
             self.run_menu.update()
             await asyncio.sleep(0.05)
-            self.run_menu_button.icon_color = ft.Colors.BLUE_400
+            self.run_menu_button.icon_color = MAIN_COLOR
             self.run_menu_button.tooltip = f"Hide run menu\n[Ctrl + R]"
             self.run_menu_button.update()
             self.run_menu.width = 470
@@ -586,7 +587,7 @@ class Builder:
             self.zoom_menu.opacity = 0
             self.zoom_menu.update()
         else:
-            self.zoom_menu_button.icon_color = ft.Colors.BLUE_400
+            self.zoom_menu_button.icon_color = MAIN_COLOR
             self.zoom_menu_button.tooltip = f"Hide zoom menu\n[Ctrl + M]"
             self.zoom_menu_button.update()
             self.zoom_menu.width = 122
@@ -603,7 +604,7 @@ class Builder:
             self.pipeline_gui.show_delete_button = False
             self.pipeline_gui.lines_gui.update_all()
         else:
-            self.delete_button.icon_color = ft.Colors.BLUE_400
+            self.delete_button.icon_color = MAIN_COLOR
             self.delete_button.tooltip = f"Hide delete buttons\n[Ctrl + D]"
             self.pipeline_gui.show_delete_button = True
             if self.pipeline_gui.show_ports:
@@ -622,7 +623,7 @@ class Builder:
             self.pipeline_gui.show_ports = False
             self.pipeline_gui.lines_gui.update_all()
         else:
-            self.port_button.icon_color = ft.Colors.BLUE_400
+            self.port_button.icon_color = MAIN_COLOR
             self.port_button.tooltip = f"Hide which ports get transferred\n[Ctrl + P]"
             self.pipeline_gui.show_ports = True
             if self.pipeline_gui.show_delete_button:

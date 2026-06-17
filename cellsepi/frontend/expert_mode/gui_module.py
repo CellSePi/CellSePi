@@ -5,7 +5,7 @@ import flet as ft
 from typing import List, Any, Dict, cast
 
 from backend.constants import FILTER_INT, FILTER_FLOAT, FILTER_SCIENTIFIC_FLOAT, FILTER_INT_SIGNED, \
-    FILTER_SCIENTIFIC_FLOAT_SIGNED, FILTER_FLOAT_0_TO_1
+    FILTER_SCIENTIFIC_FLOAT_SIGNED, FILTER_FLOAT_0_TO_1, MAIN_COLOR
 from backend.error_manager import ErrorManager
 from backend.expert_mode.limits import Limit
 from backend.expert_mode.listener import DragAndDropEvent, OnPipelineChangeEvent
@@ -762,7 +762,7 @@ class ModuleGUI(ft.GestureDetector):
                 items.append(
                     ft.TextField(
                         label=attribute_name.removeprefix("user_"),
-                        border_color=ft.Colors.BLUE_ACCENT,
+                        border_color=MAIN_COLOR,
                         value=str(value),
                         ref=ref,
                         on_blur=lambda e, attr_name=attribute_name, type_atr=typ:
@@ -790,7 +790,7 @@ class ModuleGUI(ft.GestureDetector):
                 items.append(
                     ft.TextField(
                         label=attribute_name.removeprefix("user_"),
-                        border_color=ft.Colors.BLUE_ACCENT,
+                        border_color=MAIN_COLOR,
                         value=str(value),
                         ref=ref,
                         input_filter=ft.InputFilter(allow=True, regex_string=current_regex, replacement_string=""),
@@ -822,7 +822,7 @@ class ModuleGUI(ft.GestureDetector):
                 items.append(
                     ft.TextField(
                         label=attribute_name.removeprefix("user_"),
-                        border_color=ft.Colors.BLUE_ACCENT,
+                        border_color=MAIN_COLOR,
                         value=str(value),
                         ref=ref,
                         input_filter=ft.InputFilter(allow=True, regex_string=current_regex, replacement_string=""),
@@ -841,7 +841,7 @@ class ModuleGUI(ft.GestureDetector):
                 setattr(self.module, "on_change_" + attribute_name, lambda: None)
                 slider_bool = ft.CupertinoSlidingSegmentedButton(
                     selected_index=index,
-                    thumb_color=ft.Colors.BLUE_400,
+                    thumb_color=MAIN_COLOR,
                     on_change=lambda e, attr_name=attribute_name: self.update_bool(e, attr_name),
                     padding=ft.Padding.symmetric(vertical=0, horizontal=0),
                     controls=[
@@ -855,7 +855,7 @@ class ModuleGUI(ft.GestureDetector):
             elif typ == FilePath:
                 text_field = ft.TextField(
                     label=attribute_name.removeprefix("user_"),
-                    border_color=ft.Colors.BLUE_ACCENT,
+                    border_color=MAIN_COLOR,
                     value=format_directory_path(value.path, 50),
                     height=60,
                     read_only=True,
@@ -890,7 +890,7 @@ class ModuleGUI(ft.GestureDetector):
             elif typ == DirectoryPath:
                 text_field = ft.TextField(
                     label=attribute_name.removeprefix("user_"),
-                    border_color=ft.Colors.BLUE_ACCENT,
+                    border_color=MAIN_COLOR,
                     value=format_directory_path(value.path, 50),
                     height=60,
                     read_only=True,
@@ -927,7 +927,7 @@ class ModuleGUI(ft.GestureDetector):
                 setattr(self.module, "on_change_" + attribute_name, lambda: None)
                 slider_bool = ft.CupertinoSlidingSegmentedButton(
                     selected_index=index,
-                    thumb_color=ft.Colors.BLUE_400,
+                    thumb_color=MAIN_COLOR,
                     on_change=lambda e, attr_name=attribute_name, e_class=enum_class: self.update_enum(e, attr_name, e_class),
                     padding=ft.Padding.symmetric(vertical=0, horizontal=0),
                     controls=[

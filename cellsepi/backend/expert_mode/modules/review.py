@@ -1,3 +1,4 @@
+from backend.constants import MAIN_COLOR
 from image_editing_view import ImageEditingView
 
 from backend.data_util import convert_tiffs_to_png_parallel
@@ -78,7 +79,7 @@ class Review(Module, ABC):
                 [self._text_field_segmentation_channel,
                  self._text_field_mask_suffix,
                  ], spacing=2, alignment=ft.MainAxisAlignment.CENTER,
-            ), bgcolor=ft.Colors.BLUE_ACCENT, expand=True, border_radius=ft.BorderRadius.vertical(top=0, bottom=12),
+            ), bgcolor=MAIN_COLOR, expand=True, border_radius=ft.BorderRadius.vertical(top=0, bottom=12),
                 height=38,
             )
             )

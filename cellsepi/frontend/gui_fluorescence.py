@@ -1,6 +1,6 @@
 import flet as ft
 
-from backend.constants import ExportFileType
+from backend.constants import ExportFileType, MAIN_COLOR
 
 
 # fluorescence_button = ft.Button(
@@ -38,7 +38,7 @@ class FluorescenceReadoutControl(ft.Container):
 
         self.slider = ft.CupertinoSlidingSegmentedButton(
             selected_index=0,
-            thumb_color=ft.Colors.BLUE_400,
+            thumb_color=MAIN_COLOR,
             on_change=lambda e: print(f"selected_index: {list(ExportFileType)[e.data]}"),
             padding=ft.Padding.symmetric(vertical=0, horizontal=0),
             controls=[

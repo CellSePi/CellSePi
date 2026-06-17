@@ -11,6 +11,7 @@ import importlib.util
 import inspect
 import pathlib
 
+from backend.constants import MAIN_COLOR
 from backend.data_util import DirectoryManager
 from backend.error_manager import ErrorManager
 from backend.expert_mode.module import Module
@@ -335,7 +336,7 @@ class GUI:
             self.page.run_task(self.handle_window_closing)
 
     def on_enter_diameter(self):
-        self.diameter_text.color = ft.Colors.BLUE_400
+        self.diameter_text.color = MAIN_COLOR
         self.diameter_text.update()
 
     def on_exit_diameter(self):

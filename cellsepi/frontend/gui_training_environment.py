@@ -7,7 +7,7 @@ import flet as ft
 import torch
 import os
 
-from backend.constants import ModelType, FILTER_INT, FILTER_SCIENTIFIC_FLOAT, FILTER_FLOAT
+from backend.constants import ModelType, FILTER_INT, FILTER_SCIENTIFIC_FLOAT, FILTER_FLOAT, MAIN_COLOR
 from backend.training import run_cellpose_training
 from frontend.gui_directory import format_directory_path, copy_to_clipboard
 
@@ -79,7 +79,7 @@ class Training(ft.Container):
         self.weight = 1e-4  # standard value for the weight
         self.model_name = "new_model"
         self.re_train_model_name = None
-        self.color = ft.Colors.BLUE_400
+        self.color = MAIN_COLOR
         self.progress_bar_text = ft.Text("")
         self.model_directory = self.gui.csp.models_dir
         self.terminal_list = ft.ListView(expand=True, spacing=2,scroll=ft.ScrollMode.ALWAYS, auto_scroll=True)
@@ -89,7 +89,7 @@ class Training(ft.Container):
             ink=True,
             bgcolor=ft.Colors.SURFACE_CONTAINER_LOWEST,
             expand=True,
-            border=ft.Border.all(2, ft.Colors.BLUE_ACCENT),
+            border=ft.Border.all(2, MAIN_COLOR),
             border_radius=5,
             padding=10,
             margin=5,
@@ -101,7 +101,7 @@ class Training(ft.Container):
             options=[
                 ft.dropdown.Option(key=v.value.name, text=v.value.name)
                 for v in ModelType if v != ModelType.CUSTOM
-            ], border_color=ft.Colors.BLUE_400,
+            ], border_color=MAIN_COLOR,
             on_select=lambda e: self.changed_input("modeltype", e),
             expand=True,
         )
@@ -132,7 +132,7 @@ class Training(ft.Container):
                 self.gui.csp.re_train_model_path = files[0].path
                 self.field_model_name.value = files[0].name
                 self.re_train_model_name = files[0].name
-                self.field_model_name.color = ft.Colors.BLUE_400
+                self.field_model_name.color = MAIN_COLOR
                 self.gui.page.update()
 
         self.re_train_model_chooser = ft.IconButton(
@@ -202,7 +202,7 @@ class Training(ft.Container):
             self.model_dropdown.visible = False
             if self.re_train_model_name is not None:
                 self.field_model_name.value = self.re_train_model_name
-                self.field_model_name.color = ft.Colors.BLUE_400
+                self.field_model_name.color = MAIN_COLOR
             else:
                 self.field_model_name.value = None
         else:

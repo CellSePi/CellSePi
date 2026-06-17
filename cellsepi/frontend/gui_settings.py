@@ -3,7 +3,8 @@ from enum import Enum
 import flet as ft
 from pydantic import BaseModel
 
-from backend.constants import FILTER_INT, FILTER_FLOAT_0_TO_1, FILTER_FLOAT, FILTER_INT_SIGNED, FILTER_FLOAT_SIGNED
+from backend.constants import FILTER_INT, FILTER_FLOAT_0_TO_1, FILTER_FLOAT, FILTER_INT_SIGNED, FILTER_FLOAT_SIGNED, \
+    MAIN_COLOR
 from backend.error_manager import ErrorManager
 from backend.settings import SettingsManager
 from frontend.gui_page_overlay import PageOverlay
@@ -183,7 +184,7 @@ class GUISettings:
                         ),
                         ft.CupertinoSlidingSegmentedButton(
                             selected_index=list(field_type).index(value),
-                            thumb_color=ft.Colors.BLUE_400,
+                            thumb_color=MAIN_COLOR,
                             on_change=
                             lambda e, m=model, f=field_name, t=field_type:
                             self._on_change_handler(e, m, f, target_type=t),
