@@ -5,10 +5,8 @@ import pathlib
 
 import flet as ft
 import torch
-from cellpose import io
 import os
 
-from backend.CellposeV3 import ioV3
 from backend.constants import ModelType, FILTER_INT, FILTER_SCIENTIFIC_FLOAT, FILTER_FLOAT
 from backend.training import run_cellpose_training
 from frontend.gui_directory import format_directory_path, copy_to_clipboard
@@ -451,66 +449,29 @@ class Training(ft.Container):
 
         mask_filter = f"{self.gui.csp.current_mask_suffix}.npy"
 
-        # TODO EK: By splitting the directory into train and test, one can provide two distinct dirs to support test_dir
-        # loads the mask files out of the directory to start training
-        if model_type == ModelType.CP_CYTO or model_type == ModelType.CP_NUCLEI:
-            output = ioV3.load_train_test_data(
-                train_dir=str(self.gui.csp.working_directory),  # test_dir=None,
-                mask_filter=mask_filter,
-                look_one_level_down=False
-            )
-        elif model_type == ModelType.CP_SAM:
-            output = io.load_train_test_data(
-                train_dir=str(self.gui.csp.working_directory),  # test_dir=None,
-                mask_filter=mask_filter,
-                look_one_level_down=False
-            )
-        else:
-            self.page.show_dialog(
-                ft.SnackBar(
-                    ft.Text(f"Custom model not supported yet!")
-                )
-            )
-            return
-
-        images, labels, image_names, test_images, test_labels, image_names_test = output
-        print("images: ", images)
-        print("labels: ", labels)
-        print("image_names: ", image_names)
-        print("test_images: ", test_images)
-        print("test_labels: ", test_labels)
-        print("image_names_test: ", image_names_test)
-
-        if len(images) == 0 or len(labels) == 0:
-            self.page.show_dialog(ft.SnackBar(
-                ft.Text(f"You need images and suitable masks to train a model!")))
-            self.gui.directory.enable_path_choosing()
-            self.start_button.disabled = False
-            self.start_button.visible = True
-            self.cancel_button.disabled = True
-            self.cancel_button.visible = False
-            self.progress_ring.visible = False
-            self.re_train_model_chooser.disabled = False
-            self.progress_bar_text.value = ""
-            self.enable_switch_environment()
-            self.page.update()
-            self.gui.csp.training_running = False
-            self.gui.training_event.set()
-            return
-
         if self.re_train_model.value:
             sgd_value = True
         else:
             sgd_value = False
 
-        model_name = self.model_name
-
         self.log_queue = multiprocessing.Queue()
         self.training_process = multiprocessing.Process(
             target=run_cellpose_training,
-            args=(self.log_queue, model_type, images, labels, test_images, test_labels, self.weight, sgd_value,
-                  self.learning_rate, self.epochs, model_name, os.path.dirname(self.model_directory),
-                  self.gui.csp.gpu, self.gui.csp.re_train_model_path, self.diameter)
+            args=(
+                self.log_queue,
+                model_type,
+                str(self.gui.csp.working_directory),
+                mask_filter,
+                self.weight,
+                sgd_value,
+                self.learning_rate,
+                self.epochs,
+                self.model_name,
+                str(os.path.dirname(self.model_directory)),
+                self.gui.csp.gpu,
+                self.gui.csp.re_train_model_path if self.re_train_model.value else None,
+                self.diameter
+            )
         )
 
         self.training_process.start()

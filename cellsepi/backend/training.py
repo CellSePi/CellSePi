@@ -1,11 +1,6 @@
 import sys
-
 import logging
-import queue
 
-from cellpose import models, train
-
-from backend.CellposeV3 import modelsV3, trainV3
 from backend.constants import ModelType
 
 
@@ -14,6 +9,7 @@ def _last_logged_epoch(n):
         if i == 5 or i % 10 == 0:
             return i
     return 0
+
 
 class QueueLogHandler(logging.Handler):
 
@@ -39,6 +35,7 @@ class QueueLogHandler(logging.Handler):
                         "percent": 1.0})
         else:
             self.q.put({"type": "log", "text": log_msg})
+
 
 class QueueTqdmStream:
     def __init__(self, q):
@@ -75,7 +72,8 @@ class QueueTqdmStream:
     def flush(self):
         pass
 
-def run_cellpose_training(q, model_type, images, labels, test_images, test_labels, weight, sgd_value, learning_rate,
+
+def run_cellpose_training(q, model_type, working_dir, mask_filter, weight, sgd_value, learning_rate,
                           epochs, model_name, save_path, gpu_flag, pretrained_path, diameter):
     cellpose_logger = logging.getLogger()
     cellpose_logger.handlers.clear()
@@ -85,28 +83,65 @@ def run_cellpose_training(q, model_type, images, labels, test_images, test_label
     sys.stderr = QueueTqdmStream(q)
 
     try:
-        if model_type == ModelType.CP_SAM:
-            if sgd_value:
-                model = models.CellposeModel(diam_mean=diameter,pretrained_model=pretrained_path if sgd_value else None, gpu=gpu_flag)
-            else:
-                model = models.CellposeModel(diam_mean=diameter,gpu=gpu_flag)
+        q.put({"type": "log", "text": ">>> Loading images and masks..."})
 
+        if model_type == ModelType.CP_CYTO or model_type == ModelType.CP_NUCLEI:
+            from backend.CellposeV3 import ioV3, modelsV3, trainV3
+            output = ioV3.load_train_test_data(
+                train_dir=working_dir,
+                mask_filter=mask_filter,
+                look_one_level_down=False
+            )
+        elif model_type == ModelType.CP_SAM:
+            from cellpose import models, train, io
+            output = io.load_train_test_data(
+                train_dir=working_dir,
+                mask_filter=mask_filter,
+                look_one_level_down=False
+            )
+        else:
+            q.put({"type": "error", "text": "Custom Model not supported yet!", "error_obj": ""})
+            return
+
+        images, labels, image_names, test_images, test_labels, image_names_test = output
+
+        if len(images) == 0 or len(labels) == 0:
+            q.put({"type": "error", "text": "You need images and suitable masks to train a model!", "error_obj": ""})
+            return
+
+        q.put({"type": "log", "text": f">>> Loaded {len(images)} images and {len(labels)} masks, starting training..."})
+
+        if model_type == ModelType.CP_SAM:
+            from cellpose import models, train
+            model = models.CellposeModel(
+                diam_mean=diameter,
+                pretrained_model=pretrained_path if sgd_value else None,
+                gpu=gpu_flag
+            )
             train.train_seg(model.net, train_data=images, train_labels=labels, normalize=True,
                             test_data=test_images, test_labels=test_labels, weight_decay=weight, SGD=sgd_value,
                             learning_rate=learning_rate, n_epochs=epochs, model_name=model_name,
                             save_path=save_path)
         else:
+            from backend.CellposeV3 import modelsV3, trainV3
             if sgd_value:
-                model = modelsV3.CellposeModel(diam_mean=diameter,pretrained_model=pretrained_path, gpu=gpu_flag)
+                model = modelsV3.CellposeModel(
+                    diam_mean=diameter,
+                    pretrained_model=pretrained_path,
+                    gpu=gpu_flag
+                )
             else:
-                model = modelsV3.CellposeModel(diam_mean=diameter,model_type="cyto3" if model_type == ModelType.CP_CYTO else "nuclei",
-                                               gpu=gpu_flag)
+                model = modelsV3.CellposeModel(
+                    diam_mean=diameter,
+                    model_type="cyto3" if model_type == ModelType.CP_CYTO else "nuclei",
+                    gpu=gpu_flag
+                )
             trainV3.train_seg(model.net, train_data=images, train_labels=labels, channels=[0, 0], normalize=True,
                               test_data=test_images, test_labels=test_labels, weight_decay=weight, SGD=sgd_value,
                               learning_rate=learning_rate, n_epochs=epochs, model_name=model_name,
-                              save_path=save_path,)
+                              save_path=save_path)
 
         q.put({"type": "finished", "text": "Finished Training"})
 
     except Exception as e:
-        q.put({"type": "error", "text": "Something went wrong while training!", "error_obj": e})
+        q.put({"type": "error", "text": "Something went wrong while training!", "error_obj": str(e)})
