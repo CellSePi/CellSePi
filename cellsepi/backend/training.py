@@ -78,6 +78,7 @@ class QueueTqdmStream:
 def run_cellpose_training(q, model_type, images, labels, test_images, test_labels, weight, sgd_value, learning_rate,
                           epochs, model_name, save_path, gpu_flag, pretrained_path, diameter):
     cellpose_logger = logging.getLogger()
+    cellpose_logger.handlers.clear()
     log_handler = QueueLogHandler(q, epochs)
     cellpose_logger.addHandler(log_handler)
     cellpose_logger.setLevel(logging.INFO)
