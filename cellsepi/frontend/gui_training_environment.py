@@ -429,7 +429,13 @@ class Training(ft.Container):
         current_dir = os.path.dirname(os.path.abspath(__file__))
         worker_script = os.path.join(current_dir, "..", "backend", "training.py")
         worker_script = os.path.normpath(worker_script)
-
+        self.terminal_list.controls.append(
+            create_terminal_text(f"DEBUG path: {worker_script}")
+        )
+        self.terminal_list.controls.append(
+            create_terminal_text(f"DEBUG exists: {os.path.exists(worker_script)}")
+        )
+        self.terminal_list.update()
         cmd = [
             sys.executable,
             worker_script,
@@ -444,14 +450,16 @@ class Training(ft.Container):
             "--gpu", gpu_value,
             "--sgd", sgd_value,
             "--pretrained_path", str(pretrained),
-            "--mask_suffix", str(self.gui.csp.current_mask_suffix)
+            "--mask_suffix", str(self.gui.csp.current_mask_suffix),
         ]
+
         self.training_process = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
-            bufsize=1
+            bufsize=1,
+            env={**os.environ, "PYTHONUNBUFFERED": "1"}
         )
 
         self.gui.page.run_thread(self.read_subprocess_output)

@@ -1,6 +1,8 @@
 import argparse
 import json
 import sys
+print(json.dumps({"type": "log", "text": ">>> FIRST ROW"}), flush=True)
+sys.stdout.flush()
 import logging
 
 from cellpose import models, train, io
@@ -64,7 +66,6 @@ class JSONTqdmStream:
 
     def flush(self):
         pass
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
