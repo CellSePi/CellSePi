@@ -59,7 +59,7 @@ class GUI:
         self.expert_running_event = threading.Event()
         self.readout_event = threading.Event()
         self.canvas = ImageEditingView(
-            on_mask_change=self._mask_update_async)
+            on_mask_change=self._mask_update_async,main_color=MAIN_COLOR)
         self.canvas.mask_color = self.csp.config.get_mask_color()
         self.canvas.outline_color = self.csp.config.get_outline_color()
         self.canvas.mask_suffix = self.csp.config.get_mask_suffix()

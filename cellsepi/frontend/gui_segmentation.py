@@ -10,7 +10,7 @@ import threading
 
 import flet as ft
 
-from backend.constants import downloads_directory, ModelType, ExportFileType
+from backend.constants import downloads_directory, ModelType, ExportFileType, MAIN_COLOR
 from backend.data_util import FileTransfer
 from backend.expert_mode.event_manager import EventManager
 from backend.fluorescence import Fluorescence
@@ -596,11 +596,10 @@ class GUISegmentation:
                 ]
             )
         )
-
         model_drop_down = ft.Dropdown(
             width=250,
             label="Choose model",
-            border_color=ft.Colors.BLUE_ACCENT,
+            border_color=MAIN_COLOR,
             options=[
                 ft.DropdownOption(
                     key="CellposeSAM",
