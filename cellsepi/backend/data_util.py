@@ -232,8 +232,7 @@ def copy_files_between_directories(source_dir, target_dir, file_types=None, even
                                                process=f"Readout Images: {iN + 1}/{n_files} (Latest Image: {src_path.name})"))
 
 
-def write_image_with_preprocessing(target_path, image_data):
-    # TODO:PREPROCESSING (resize,dark corners,etc...)
+def write_image(target_path, image_data):
     clean_data = np.squeeze(image_data)
     tifffile.imwrite(target_path, clean_data)
 
@@ -453,7 +452,7 @@ def extract_from_file(
             target_path = target_dir / file_name
 
             # Store 3D data to disk
-            write_image_with_preprocessing(target_path, image_data)
+            write_image(target_path, image_data)
 
         if event_manager is not None:
             event_manager.notify(event=ProgressEvent(int((index + 1) / total_scenes * 100),
@@ -491,34 +490,44 @@ def extract_from_directory(
     # and bioio returns a T x C x Z x Y x X image with T=1 and C=1
     channels_in_individual_files = all([channel_prefix in str(ipath) for ipath in image_paths])
 
-    smallest_channel_id = 1
-    if channels_in_individual_files:
-        channel_ids = [int(fpath.stem.split(channel_prefix)[1]) for fpath in image_paths]
-        smallest_channel_id = min(channel_ids)
-
     scenes = defaultdict(list)
     scenes_masks = defaultdict(list)
+
     for ipath in image_paths:
         stem = ipath.stem
-        scene = stem
-        channel = smallest_channel_id
         if channels_in_individual_files:
-            scene, channel = stem.split(channel_prefix)
-        channel_id = int(channel) - smallest_channel_id + 1
-        scenes[scene].append((channel_id, ipath))
-        # cur_mask_paths = [mpath for mpath in mask_paths if mpath.stem.split(channel_prefix)[0] == scene]
-        for mpath in mask_paths:
-            stem = mpath.stem
-            scene_mask, channel_mask = stem.split(channel_prefix)
-            # channel_id_mask = int(channel_mask)
-            if scene_mask != scene:  # Make sure that scene matches
-                continue
-            if str(channel_id) not in channel_mask:  # Make sure that channel matches
-                continue
-            scenes_masks[scene].append((channel_id, mpath))
+            scene, channel_str = stem.rsplit(channel_prefix, 1)
+        else:
+            scene = stem
+            channel_str = stem
 
-    # scenes = bio_image.scenes
+        scenes[scene].append((channel_str, ipath))
+
+    for mpath in mask_paths:
+        stem = mpath.stem
+
+        if stem.endswith(mask_suffix):
+            base_stem = stem[:-len(mask_suffix)]
+        else:
+            continue
+
+        if channels_in_individual_files:
+            if channel_prefix in base_stem:
+                scene_mask, channel_str = base_stem.rsplit(channel_prefix, 1)
+            else:
+                continue
+        else:
+            scene_mask = base_stem
+            channel_str = base_stem
+
+        scenes_masks[scene_mask].append((channel_str, mpath))
+
     total_scenes = len(scenes)
+    if total_scenes == 0:
+        if event_manager is not None:
+            event_manager.notify(event=ProgressEvent(100, process="No images found. Extraction finished!"))
+        return
+
     if event_manager is not None:
         event_manager.notify(
             event=ProgressEvent(0, process=f"Extracting Directory: {0}/{total_scenes}"))
@@ -526,41 +535,45 @@ def extract_from_directory(
     # Create the target directory if it doesn't exist
     target_dir.mkdir(parents=True, exist_ok=True)
 
+    def natural_sort_key(elem):
+        val = elem[0]
+        return (0, int(val)) if val.isdigit() else (1, val)
+
     for iX, scene in enumerate(scenes):
+        channel_mapping = defaultdict(list)
 
         if channels_in_individual_files:
             raw_data = []
-            for channel_id, fpath in sorted(scenes[scene], key=lambda elem: elem[1]):
+            sorted_scene_images = sorted(scenes[scene], key=natural_sort_key)
+            for new_idx, (orig_channel_str, fpath) in enumerate(sorted_scene_images):
                 # TCZXY 5D array
                 bio_image = CellSePiImage(file_type, fpath)
                 c_raw_data = bio_image.data
                 raw_data.append(c_raw_data)
+                channel_mapping[orig_channel_str].append(new_idx)
             raw_data = np.concat(raw_data, axis=1)
         else:
-            channel_id, fpath = scenes[scene][0]
+            orig_channel_str, fpath = scenes[scene][0]
             bio_image = CellSePiImage(file_type, fpath)
             raw_data = bio_image.data
-
-        if raw_data.shape[0] != 1:
-            raise ValueError(f"CellSePi can't handle time series currently")
+            for i in range(raw_data.shape[1]):
+                channel_mapping[orig_channel_str].append(i)
 
         n_channels = raw_data.shape[1]
-        for channel_id in range(n_channels):
-            image_data = raw_data[0, channel_id]
+        for new_idx in range(n_channels):
+            image_data = raw_data[0, new_idx]
 
-            # Construct file name and path
-            file_name = f"{scene}{CSP_CHANNEL_PREFIX}{channel_id}.tiff"
+            file_name = f"{scene}{CSP_CHANNEL_PREFIX}{new_idx+1}.tif"
             target_path = target_dir / file_name
 
-            # Store 3D data to disk
-            write_image_with_preprocessing(target_path, image_data)
+            write_image(target_path, image_data)
 
-        for channel_id, mpath in scenes_masks[scene]:
-            # Copy all associated mask information
-            channel_id = channel_id - smallest_channel_id
-            src_path = mpath
-            target_path = target_dir / f"{scene}{CSP_CHANNEL_PREFIX}{channel_id}{mask_suffix}.npy"
-            shutil.copy(str(src_path), str(target_path))
+        for orig_channel_str, mpath in scenes_masks[scene]:
+            if orig_channel_str in channel_mapping and len(channel_mapping[orig_channel_str]) > 0:
+                new_idx = channel_mapping[orig_channel_str].pop(0)
+
+                target_path = target_dir / f"{scene}{CSP_CHANNEL_PREFIX}{new_idx+1}{mask_suffix}.npy"
+                shutil.copy(str(mpath), str(target_path))
 
         if event_manager is not None:
             event_manager.notify(event=ProgressEvent(int((iX + 1) / total_scenes * 100),
@@ -617,7 +630,11 @@ def process_channel(channel_id, channel_path):
         if SettingsManager().settings.image.normalize_gallery:
             image = image.astype(np.float32)
             image = normalize_image(image)
-            image = (image * 65535).clip(0, 65535).astype(np.uint16)
+            np.multiply(image, 255.0, out=image)
+            np.clip(image, 0.0, 255.0, out=image)
+            image = image.astype(np.uint8)
+        else:
+            image = cv2.convertScaleAbs(image, alpha=1 / 256.0)
 
         if image.ndim == 3:
             image = np.max(image, axis=0)
@@ -626,17 +643,17 @@ def process_channel(channel_id, channel_path):
         max_size = 150
         scale = max_size / max(h, w)
         new_w, new_h = int(w * scale), int(h * scale)
+
         down_scaled_image = cv2.resize(image, (new_w, new_h), interpolation=cv2.INTER_AREA)
-        image_8bit = cv2.convertScaleAbs(down_scaled_image, alpha=1 / 256.0)
-        _, buffer = cv2.imencode('.png', image_8bit, [cv2.IMWRITE_PNG_COMPRESSION, 0])
+        _, buffer = cv2.imencode('.png', down_scaled_image, [cv2.IMWRITE_PNG_COMPRESSION, 0])
         return channel_id, base64.b64encode(buffer).decode('utf-8')
     finally:
         del image
-        gc.collect()
 
 def convert_series_parallel(image_id, cur_image_paths):
     png_images = {image_id: {}}
-    with ThreadPoolExecutor() as executor:
+    optimal_workers = min(4, (os.cpu_count() or 1))
+    with ThreadPoolExecutor(max_workers=optimal_workers) as executor:
         futures = {
             executor.submit(process_channel, channel_id, cur_image_paths[channel_id]): channel_id
             for channel_id in cur_image_paths

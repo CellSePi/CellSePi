@@ -1,5 +1,8 @@
+import os
+
 import pickle
 
+from backend.expert_mode.limits import Limit
 from backend.expert_mode.pipeline_manager import PipelineRunningException
 from backend.segmentation import BatchImageSegmentation
 from backend.expert_mode.module import *
@@ -20,8 +23,10 @@ class ImageSegmentationModule(Module, ABC):
         self.user_model_type: ModelType = ModelType.CUSTOM
         self.user_model_path: FilePath = FilePath()
         self.user_segmentation_channel: str = "2"
-        self.user_diameter: float = 125.0
+        self.user_diameter: float = 125.00
+        self.limit_user_diameter: Limit = Limit(min_val=0.00)
         self.user_mask_suffix: str = "_seg"
+        self.user_overwrite_existing_masks: bool = False
 
     @property
     def settings(self) -> ft.Stack | None:
@@ -45,6 +50,15 @@ class ImageSegmentationModule(Module, ABC):
     def run(self):
         if self.inputs["mask_paths"].data is None:
             self.inputs["mask_paths"].data = {}
+        else:
+            masks = self.inputs["mask_paths"].data
+            if self.user_overwrite_existing_masks:
+                for img in masks:
+                    path = masks[img][self.user_segmentation_channel]
+                    if os.path.exists(path):
+                        os.remove(path)
+                    masks[img].pop(self.user_segmentation_channel, None)
+
         try:
             BatchImageSegmentation(segmentation_channel=self.user_segmentation_channel,diameter=self.user_diameter,suffix=self.user_mask_suffix).run(self.event_manager,self.inputs["image_paths"].data,self.inputs["mask_paths"].data,self.user_model_path.path,model_type=self.user_model_type)
         except pickle.UnpicklingError as ex:

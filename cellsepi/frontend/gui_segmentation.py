@@ -214,14 +214,15 @@ class GUISegmentation:
 
                     if delete:
                         for img in self.gui.csp.mask_paths:
-                            for seg_channel in self.gui.csp.mask_paths[img]:
-                                path = self.gui.csp.mask_paths[img][seg_channel]
-                                if os.path.exists(path):
-                                    os.remove(path)
-
-                        self.gui.csp.mask_paths = {}
-                        self.gui.directory.update_all_masks_check()
-                        self.gui.page.update()
+                            path = self.gui.csp.mask_paths[img][self.gui.csp.config.get_bf_channel()]
+                            if os.path.exists(path):
+                                os.remove(path)
+                            self.gui.csp.mask_paths[img].pop(self.gui.csp.config.get_bf_channel(), None)
+                            self.gui.directory.update_mask_check(img)
+                            self.gui.page.run_task(self.gui.directory.check_masks)
+                            self.gui.average_diameter.remove_image_from_cache(img)
+                            self.gui.page.run_task(self.gui.average_diameter.get_avg_diameter)
+                        await self.gui.canvas.update_mask_image(True)
 
                 def threaded_segmentation_runner():
                     try:
@@ -439,6 +440,7 @@ class GUISegmentation:
             self.gui.open_button.visible = False
             self.progress_bar_text.value = "Reading fluorescence"
             self.gui.directory.disable_path_choosing()
+            self.gui.training_environment.disable_switch_environment()
             model_title.disabled = True
             model_chooser.disabled = True
             self.gui.page.update()
@@ -461,6 +463,7 @@ class GUISegmentation:
                 self.progress_bar_text.value = "Waiting for Input"
 
             FluorescenceReadoutControl().disabled = False
+            self.gui.training_environment.enable_switch_environment()
             self.gui.directory.enable_path_choosing()
             model_title.disabled = False
             model_chooser.disabled = False
@@ -506,6 +509,7 @@ class GUISegmentation:
             self.gui.open_button.visible = False
             self.progress_bar_text.value = "Exporting images and masks"
             self.gui.directory.disable_path_choosing()
+            self.gui.training_environment.disable_switch_environment()
             model_title.disabled = True
             model_chooser.disabled = True
             self.gui.page.update()
@@ -528,6 +532,7 @@ class GUISegmentation:
                 self.progress_bar_text.value = "Waiting for Input"
 
             FluorescenceReadoutControl().disabled = False
+            self.gui.training_environment.enable_switch_environment()
             self.gui.directory.enable_path_choosing()
             model_title.disabled = False
             model_chooser.disabled = False

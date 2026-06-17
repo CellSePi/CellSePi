@@ -205,7 +205,8 @@ class GUI:
                             ft.Column(
                                 [
                                     self.training_environment.add_parameter_container(),
-                                    self.training_environment.create_training_card()
+                                    self.training_environment.create_training_card(),
+                                    self.training_environment.terminal_container,
                                 ],
                                 expand=6,
                                 alignment=ft.MainAxisAlignment.START,
@@ -319,6 +320,7 @@ class GUI:
                 self.cancel_segmentation()
                 await asyncio.to_thread(self.cancel_event.wait)
             if self.csp.training_running:
+                self.page.run_task(self.training_environment.cancel_training)
                 await asyncio.to_thread(self.training_event.wait)
             if self.csp.readout_running:
                 await asyncio.to_thread(self.readout_event.wait)

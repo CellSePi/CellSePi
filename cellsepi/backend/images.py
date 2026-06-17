@@ -218,9 +218,9 @@ class BatchImageSegmentation(Notifier):
             self._call_start_listeners()
         if event_manager is None:
             image_paths = self.gui.csp.image_paths
+            mask_paths = self.gui.csp.mask_paths
 
         segmentation_channel = self.segmentation_channel
-        diameter = self.diameter
         suffix = self.suffix
 
         n_images = len(image_paths)
@@ -270,6 +270,7 @@ class BatchImageSegmentation(Notifier):
             model.eval()"""
 
         start_index = self.num_seg_images
+        settings_manager = SettingsManager()
         for iN, image_id in enumerate(list(image_paths)[start_index:], start=start_index):
             diameter = self.diameter
             if (segmentation_channel in image_paths[image_id]
@@ -288,8 +289,8 @@ class BatchImageSegmentation(Notifier):
                         self.resume_now = False
                         self.segmentation.is_resuming()
 
-                if image_paths and image_id in mask_paths:
-                    if mask_paths[image_id] is not None:
+                if mask_paths and image_id in mask_paths and mask_paths[image_id] is not None and segmentation_channel in mask_paths[image_id]:
+                    if mask_paths[image_id][segmentation_channel] is not None:
                         print("skip image, mask already exists")
                         percent = round((iN + 1) / n_images * 100)
                         progress = str(percent) + " %"
@@ -314,7 +315,7 @@ class BatchImageSegmentation(Notifier):
                 image = normalize_image(image)
 
                 # Rescaling
-                rescale_settings = SettingsManager().settings.performance.segmentation_downscaling
+                rescale_settings = settings_manager.settings.performance.segmentation_downscaling
                 image = rescale_image(image, rescale_settings=rescale_settings)
                 factor = np.max(image.shape[-2:]) / np.max(original_shape[-2:])
                 diameter = diameter * factor
@@ -388,7 +389,27 @@ class BatchImageSegmentation(Notifier):
                         interpolation=cv2.INTER_NEAREST
                     )
 
-                # print(f"Rescaled Mask Shape: {mask.shape}")
+                # delete small masks below user defined diameter
+                if settings_manager.settings.segmentation.delete_small_masks and mask is not None:
+
+                    threshold = settings_manager.settings.segmentation.mask_deletion_diameter
+
+                    counts = np.bincount(mask.ravel())
+
+                    for cell_id, size in enumerate(counts[1:], start=1):
+
+                        if size == 0:
+                            continue
+
+                        if mask.ndim == 3:
+                            # equivalent sphere diameter
+                            diameter = 2 * ((3 * size) / (4 * np.pi)) ** (1 / 3)
+                        else:
+                            # equivalent circle diameter
+                            diameter = 2 * np.sqrt(size / np.pi)
+                        if diameter < threshold:
+                            mask[mask == cell_id] = 0
+
                 image = original_image
 
                 # Generate the output filename directly using the suffix attribute
@@ -428,7 +449,6 @@ class BatchImageSegmentation(Notifier):
                         #if backup_path is not None:
                          #   os.rename(backup_path, default_suffix_path)
                 if event_manager is None:
-                    print("mask paths", self.gui.csp.mask_paths)
                     if image_id not in self.gui.csp.mask_paths:
                         self.gui.csp.mask_paths[image_id] = {}
                 else:
