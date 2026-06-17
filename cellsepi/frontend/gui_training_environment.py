@@ -368,16 +368,15 @@ class Training(ft.Container):
                 [title,
                  pick_model_row,
                  ]
-            )
+            ),
+            padding=10
         )
 
         progress_card = ft.Card(
-            content=ft.Container(
-                content=ft.Stack(
-                    [test_container]
+            content=ft.Column(
+                    [test_container,self.terminal_container,]
                 ),
-                padding=10
-            ),
+            expand=True
         )
 
         return progress_card

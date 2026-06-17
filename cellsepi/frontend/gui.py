@@ -206,7 +206,6 @@ class GUI:
                                 [
                                     self.training_environment.add_parameter_container(),
                                     self.training_environment.create_training_card(),
-                                    ft.Card(content=self.training_environment.terminal_container,expand=True),
                                 ],
                                 expand=6,
                                 alignment=ft.MainAxisAlignment.START,
