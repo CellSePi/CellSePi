@@ -92,6 +92,7 @@ class Training(ft.Container):
             border=ft.Border.all(2, ft.Colors.BLUE_ACCENT),
             border_radius=5,
             padding=10,
+            margin=5,
         )
         # Changed from TextField to Dropdown for model type selection
         self.model_dropdown = ft.Dropdown(
