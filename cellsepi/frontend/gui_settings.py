@@ -4,7 +4,7 @@ import flet as ft
 from pydantic import BaseModel
 
 from backend.constants import FILTER_INT, FILTER_FLOAT_0_TO_1, FILTER_FLOAT, FILTER_INT_SIGNED, FILTER_FLOAT_SIGNED, \
-    MAIN_COLOR
+    MAIN_COLOR, ERROR_COLOR
 from backend.error_manager import ErrorManager
 from backend.settings import SettingsManager
 from frontend.gui_page_overlay import PageOverlay
@@ -72,7 +72,7 @@ class GUISettings:
                                                 ),
                                                 ft.Row([
                                                 ft.Button(
-                                                    ft.Text("Reset", color=ft.Colors.RED),
+                                                    ft.Text("Reset", color=ERROR_COLOR),
                                                     on_click=self._reset,
                                                 ),
                                                 ft.Row(
@@ -346,7 +346,7 @@ class GUISettings:
             e.control.update()
 
         except ValueError as err:
-            e.control.color = ft.Colors.RED
+            e.control.color = ERROR_COLOR
             e.control.text_style = ft.TextStyle(weight=ft.FontWeight.BOLD)
             e.control.update()
 

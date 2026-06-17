@@ -10,7 +10,8 @@ import numpy as np
 
 from frontend.dialogs import ChoiceDialog
 from frontend.gui_fluorescence import FluorescenceReadoutControl
-from backend.constants import FileType, SourceType, APP_DIR, ModelType, MAIN_COLOR
+from backend.constants import FileType, SourceType, APP_DIR, ModelType, MAIN_COLOR, HIGHLIGHT_COLOR, ERROR_COLOR, \
+    SUCCESS_COLOR
 from backend.data_util import consistent_hash, extract_from_directory, DirectoryManager
 from backend.data_util import extract_from_file, load_directory, \
     convert_tiffs_to_png_parallel
@@ -50,7 +51,7 @@ async def copy_to_clipboard(page, value: str, name: str):
     """
     await ft.Clipboard().set(value)
     page.show_dialog(
-        ft.SnackBar(ft.Text(f"{name} copied to clipboard!", color=ft.Colors.WHITE), bgcolor=ft.Colors.GREEN))
+        ft.SnackBar(ft.Text(f"{name} copied to clipboard!", color=ft.Colors.WHITE), bgcolor=SUCCESS_COLOR))
     page.update()
 
 
@@ -253,7 +254,7 @@ class DirectoryCard(ft.Card):
 
         self.formatted_path.value = format_directory_path(self.directory_path.value)
         if self.output_dir or not self.is_file_type_supported:
-            self.formatted_path.color = ft.Colors.RED
+            self.formatted_path.color = ERROR_COLOR
             self.gui.diameter_text.value = 0.0
             self.gui.diameter_display.update()
         else:
@@ -303,7 +304,7 @@ class DirectoryCard(ft.Card):
             if not has_images:
                 if event_manager is None:
                     self.gui.page.show_dialog(
-                        ft.SnackBar(ft.Text("The directory is empty.", color=ft.Colors.WHITE), bgcolor=ft.Colors.RED))
+                        ft.SnackBar(ft.Text("The directory is empty.", color=ft.Colors.WHITE), bgcolor=ERROR_COLOR))
                     self.output_dir = True
                     self.gui.page.update()
                     self.gui.csp.image_paths = {}
@@ -398,7 +399,7 @@ class DirectoryCard(ft.Card):
             self.gui.ready_to_start = False
             self.gui.page.show_dialog(ft.SnackBar(
                 ft.Text("The selected file is not supported!", color=ft.Colors.WHITE),
-                bgcolor=ft.Colors.RED))
+                bgcolor=ERROR_COLOR))
             image_paths = {}
             mask_paths = {}
             self.gui.progress_ring.visible = False
@@ -410,9 +411,9 @@ class DirectoryCard(ft.Card):
                 self.gui.ready_to_start = False
                 self.gui.page.show_dialog(
                     ft.SnackBar(ft.Text("The directory contains no valid files with the current channel prefix!",
-                                        color=ft.Colors.WHITE), bgcolor=ft.Colors.RED))
+                                        color=ft.Colors.WHITE), bgcolor=ERROR_COLOR))
                 self.gui.page.update()
-                self.count_results_txt.color = ft.Colors.RED
+                self.count_results_txt.color = ERROR_COLOR
                 self.gui.progress_ring.visible = False
                 if not self.file_type:
                     os.rmdir(self.gui.csp.working_directory)
@@ -450,7 +451,7 @@ class DirectoryCard(ft.Card):
                 self.selected_images_visualise[image_id][channel_id] = ft.Container(
                     width=154,
                     height=154,
-                    border=ft.Border.all(4, ft.Colors.ORANGE_700),
+                    border=ft.Border.all(4, HIGHLIGHT_COLOR),
                     alignment=ft.Alignment.CENTER,
                     visible=False,
                     padding=5
@@ -486,7 +487,7 @@ class DirectoryCard(ft.Card):
                 spacing=10,
                 scroll=ft.ScrollMode.AUTO,
             )
-            self.icon_check[image_id] = ft.Icon(ft.Icons.CHECK, color=ft.Colors.GREEN, size=17, visible=False,
+            self.icon_check[image_id] = ft.Icon(ft.Icons.CHECK, color=SUCCESS_COLOR, size=17, visible=False,
                                                 tooltip="Mask is available")
             self.icon_x[image_id] = ft.Icon(ft.Icons.CLOSE, size=17, visible=True, tooltip="Mask not available")
             self.update_mask_check(image_id, False)

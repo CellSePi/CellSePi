@@ -7,6 +7,7 @@ from typing import List, Dict, Any, cast
 
 import flet.canvas as cv
 
+from backend.constants import ERROR_COLOR
 from frontend.expert_mode.expert_constants import MODULE_WIDTH, ARROW_PADDING, MODULE_HEIGHT, \
     ARROW_COLOR, ARROW_LENGTH, ARROW_ANGLE, VALID_COLOR, THROTTLE_UPDATE_LINES
 from frontend.expert_mode.gui_module import ModuleGUI
@@ -148,7 +149,7 @@ class LinesGUI(cv.Canvas):
             disabled = True
             opacity = 0.4
         delete_button = ft.GestureDetector(top=port_y-20,left=port_x-20,on_hover=lambda e:dummy(),content=ft.IconButton(
-            icon=ft.Icons.CLOSE,tooltip="Delete Connection",hover_color=VALID_COLOR,icon_color=ft.Colors.WHITE,bgcolor=ft.Colors.RED_ACCENT,opacity=opacity,on_click=lambda e,source=source_module_gui,target=target_module_gui:self.pipeline_gui.remove_connection(source,target)
+            icon=ft.Icons.CLOSE,tooltip="Delete Connection",hover_color=VALID_COLOR,icon_color=ft.Colors.WHITE,bgcolor=ERROR_COLOR,opacity=opacity,on_click=lambda e,source=source_module_gui,target=target_module_gui:self.pipeline_gui.remove_connection(source,target)
             ),visible=self.pipeline_gui.show_delete_button,disabled=disabled)
 
         self.connections[key] = {

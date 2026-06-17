@@ -11,6 +11,9 @@ APP_NAME = ".cellsepi"
 APP_DIR = Path(Path.home() / APP_NAME)
 
 MAIN_COLOR = ft.Colors.BLUE_ACCENT
+HIGHLIGHT_COLOR = ft.Colors.ORANGE_700
+ERROR_COLOR = ft.Colors.RED
+SUCCESS_COLOR = ft.Colors.GREEN
 
 class ReturnTypePath(Enum):
     IMAGE_PATHS = auto()

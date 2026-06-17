@@ -4,7 +4,7 @@ from typing import cast
 
 from flet_extended_interactive_viewer import FletExtendedInteractiveViewer
 
-from backend.constants import MAIN_COLOR
+from backend.constants import MAIN_COLOR, ERROR_COLOR, SUCCESS_COLOR
 from backend.error_manager import ErrorManager
 from frontend.expert_mode.gui_pipeline import PipelineGUI
 from frontend.expert_mode.gui_pipeline_listener import PipelineChangeListener, ModuleExecutedListener, ModuleStartedListener, \
@@ -135,7 +135,7 @@ class Builder:
             content="Cancel",
             tooltip="Cancel the pipeline",
             icon=ft.Icons.STOP_CIRCLE_ROUNDED,
-            color=ft.Colors.RED,
+            color=ERROR_COLOR,
             on_click=lambda e: self.cancel(),
             visible=False,
             opacity=0.75
@@ -151,7 +151,7 @@ class Builder:
         )
         self.running_module = ft.Text("Module",color=ft.Colors.WHITE70,width=230,overflow=ft.TextOverflow.ELLIPSIS,max_lines=1,theme_style=ft.TextThemeStyle.HEADLINE_SMALL)
         self.info_text = ft.Text("Idle, waiting for start.", color=MAIN_ACTIVE_COLOR, width=250, overflow=ft.TextOverflow.ELLIPSIS, max_lines=2)
-        self.category_icon = ft.Icon(ft.Icons.CATEGORY_ROUNDED,color=ft.Colors.GREEN)
+        self.category_icon = ft.Icon(ft.Icons.CATEGORY_ROUNDED,color=SUCCESS_COLOR)
         self.run_infos = ft.Column([ft.Row([self.category_icon,self.running_module]),self.info_text])
         self.left_run_menu = ft.Column([
             self.run_infos,ft.Row([ft.Container(self.progress_bar_module),self.progress_bar_module_text],width=260),
@@ -232,14 +232,14 @@ class Builder:
         if self.cancel_button.visible:
             self.running_module.value = f"Pipeline"
             self.running_module.update()
-            self.category_icon.color = ft.Colors.RED
+            self.category_icon.color = ERROR_COLOR
             self.category_icon.update()
             self.cancel_button.disabled = True
             self.cancel_button.color = None
             self.cancel_button.update()
             self.info_text.value = ""
             self.info_text.spans = [
-                ft.TextSpan("Canceling: ", style=ft.TextStyle(weight=ft.FontWeight.BOLD, color=ft.Colors.RED)),
+                ft.TextSpan("Canceling: ", style=ft.TextStyle(weight=ft.FontWeight.BOLD, color=ERROR_COLOR)),
                 ft.TextSpan("...", style=ft.TextStyle(color=ft.Colors.WHITE60)), ]
             self.info_text.update()
             self.page.update()
@@ -412,7 +412,7 @@ class Builder:
         self.save_button.update()
         path = await self.pipeline_storage.save_pipeline()
         self.pipeline_gui.page.show_dialog(
-            ft.SnackBar(ft.Text(f"Pipeline saved at {path}", color=ft.Colors.WHITE), bgcolor=ft.Colors.GREEN))
+            ft.SnackBar(ft.Text(f"Pipeline saved at {path}", color=ft.Colors.WHITE), bgcolor=SUCCESS_COLOR))
         self.pipeline_gui.page.update()
 
         self.page.title = f"CellSePi - {self.pipeline_gui.pipeline_name}"
@@ -442,7 +442,7 @@ class Builder:
                             ft.SnackBar(
                                 ft.Text(f"Failed to load pipeline: a previous pipeline execution is still active!",
                                         color=ft.Colors.WHITE),
-                                bgcolor=ft.Colors.RED))
+                                bgcolor=ERROR_COLOR))
                         self.pipeline_gui.page.update()
                         return
                     try:
@@ -473,7 +473,7 @@ class Builder:
                 if self.pipeline_gui.pipeline.running:
                     self.pipeline_gui.page.show_dialog(
                         ft.SnackBar(ft.Text(f"Failed to load pipeline: a previous pipeline execution is still active!", color=ft.Colors.WHITE),
-                                    bgcolor=ft.Colors.RED))
+                                    bgcolor=ERROR_COLOR))
                     self.pipeline_gui.page.update()
                     return
                 try:
@@ -499,14 +499,14 @@ class Builder:
             if Path(dir).suffix == "":
                 dir = dir + ".csp"
             if Path(dir).suffix != ".csp":
-                self.pipeline_gui.page.show_dialog(ft.SnackBar(ft.Text(f"Pipeline name must have .csp suffix!",color=ft.Colors.WHITE),bgcolor=ft.Colors.RED))
+                self.pipeline_gui.page.show_dialog(ft.SnackBar(ft.Text(f"Pipeline name must have .csp suffix!",color=ft.Colors.WHITE),bgcolor=ERROR_COLOR))
                 self.pipeline_gui.page.update()
                 self.page.title = f"CellSePi - {self.pipeline_gui.pipeline_name}*"
                 self.save_as_button.icon_color = MAIN_ACTIVE_COLOR
                 self.page.update()
                 return
             self.page.run_task(self.pipeline_storage.save_as_pipeline,dir)
-            self.pipeline_gui.page.show_dialog(ft.SnackBar(ft.Text(f"Pipeline saved at {dir}",color=ft.Colors.WHITE),bgcolor=ft.Colors.GREEN))
+            self.pipeline_gui.page.show_dialog(ft.SnackBar(ft.Text(f"Pipeline saved at {dir}",color=ft.Colors.WHITE),bgcolor=SUCCESS_COLOR))
             self.pipeline_gui.page.update()
             self.page.title = f"CellSePi - {self.pipeline_gui.pipeline_name}"
             self.save_button.icon_color = ft.Colors.WHITE24

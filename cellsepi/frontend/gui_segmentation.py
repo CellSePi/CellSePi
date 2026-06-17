@@ -10,7 +10,7 @@ import threading
 
 import flet as ft
 
-from backend.constants import downloads_directory, ModelType, ExportFileType, MAIN_COLOR
+from backend.constants import downloads_directory, ModelType, ExportFileType, MAIN_COLOR, ERROR_COLOR
 from backend.data_util import FileTransfer
 from backend.expert_mode.event_manager import EventManager
 from backend.fluorescence import Fluorescence
@@ -62,8 +62,8 @@ class GUISegmentation:
             icon=ft.Icons.CANCEL,
             visible=False,
             on_click=None,
-            color=ft.Colors.RED,
-            icon_color=ft.Colors.RED,
+            color=ERROR_COLOR,
+            icon_color=ERROR_COLOR,
         )
         resume_button = ft.Button(  # button to resume the segmentation calculation after it has been paused
             content="Resume",
@@ -173,7 +173,7 @@ class GUISegmentation:
                 pause_button.visible = False
                 cancel_button.visible = False
                 model_title.disabled = False
-                model_text.color = ft.Colors.RED
+                model_text.color = ERROR_COLOR
                 model_chooser.disabled = False
                 FluorescenceReadoutControl().visible = state_fl_control
                 self.gui.open_button.visible = state_open_button
@@ -189,8 +189,8 @@ class GUISegmentation:
             model_title.disabled = True
             model_chooser.disabled = True
             FluorescenceReadoutControl().visible = False
-            cancel_button.color = ft.Colors.RED
-            cancel_button.icon_color = ft.Colors.RED
+            cancel_button.color = ERROR_COLOR
+            cancel_button.icon_color = ERROR_COLOR
             self.gui.open_button.visible = False
             self.gui.training_environment.disable_switch_environment()
             self.gui.directory.disable_path_choosing()
@@ -357,8 +357,8 @@ class GUISegmentation:
             cancel_button.disabled = False
             extracted_percentage = re.search(r'\d+', self.progress_bar_text.value)
             self.progress_bar_text.value = "Paused at: " + extracted_percentage.group(0) + " %"
-            cancel_button.color = ft.Colors.RED
-            cancel_button.icon_color = ft.Colors.RED
+            cancel_button.color = ERROR_COLOR
+            cancel_button.icon_color = ERROR_COLOR
             self.gui.page.update()
             self.segmentation_pausing = False
             self.segmentation_currently_paused = True
@@ -369,8 +369,8 @@ class GUISegmentation:
             """
             pause_button.disabled = False
             cancel_button.disabled = False
-            cancel_button.color = ft.Colors.RED
-            cancel_button.icon_color = ft.Colors.RED
+            cancel_button.color = ERROR_COLOR
+            cancel_button.icon_color = ERROR_COLOR
             self.gui.page.update()
             self.segmentation_resuming = False
 

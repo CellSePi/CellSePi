@@ -11,7 +11,7 @@ import importlib.util
 import inspect
 import pathlib
 
-from backend.constants import MAIN_COLOR
+from backend.constants import MAIN_COLOR, ERROR_COLOR
 from backend.data_util import DirectoryManager
 from backend.error_manager import ErrorManager
 from backend.expert_mode.module import Module
@@ -138,7 +138,7 @@ class GUI:
             self.csp.config.set_ignore_warning()
 
         self.zenity_warning = ft.Banner(
-            bgcolor=ft.Colors.RED,
+            bgcolor=ERROR_COLOR,
             leading=ft.Icon(ft.Icons.WARNING_AMBER_ROUNDED, color=ft.Colors.WHITE_60, size=40),
             content=ft.Text(
                 "System tool 'zenity' (or similar) was not found.\n"

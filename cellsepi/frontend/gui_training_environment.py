@@ -7,7 +7,8 @@ import flet as ft
 import torch
 import os
 
-from backend.constants import ModelType, FILTER_INT, FILTER_SCIENTIFIC_FLOAT, FILTER_FLOAT, MAIN_COLOR
+from backend.constants import ModelType, FILTER_INT, FILTER_SCIENTIFIC_FLOAT, FILTER_FLOAT, MAIN_COLOR, ERROR_COLOR, \
+    SUCCESS_COLOR
 from backend.training import run_cellpose_training
 from frontend.gui_directory import format_directory_path, copy_to_clipboard
 
@@ -61,8 +62,8 @@ class Training(ft.Container):
         self.cancel_button = ft.Button(
             content="Cancel",
             icon=ft.Icons.CANCEL,
-            icon_color=ft.Colors.RED,
-            color= ft.Colors.RED,
+            icon_color=ERROR_COLOR,
+            color= ERROR_COLOR,
             tooltip="Cancel the running training",
             disabled=True,
             visible=False,
@@ -333,7 +334,7 @@ class Training(ft.Container):
             e.control.text_style = None
             self.gui.page.update()
         except ValueError as err:
-            e.control.color = ft.Colors.RED
+            e.control.color = ERROR_COLOR
             e.control.text_style = ft.TextStyle(weight=ft.FontWeight.BOLD)
             e.control.update()
 
@@ -585,7 +586,7 @@ class Training(ft.Container):
         if self.last_tqdm_control and is_last_item:
             self.last_tqdm_control.value = display_text
         else:
-            self.last_tqdm_control = create_terminal_text(display_text, color=ft.Colors.GREEN, is_bold=True)
+            self.last_tqdm_control = create_terminal_text(display_text, color=SUCCESS_COLOR, is_bold=True)
             self.terminal_list.controls.append(self.last_tqdm_control)
         self.terminal_list.update()
 
@@ -598,7 +599,7 @@ class Training(ft.Container):
         if self.epoch_bar_control in self.terminal_list.controls:
             self.terminal_list.controls.remove(self.epoch_bar_control)
 
-        self.epoch_bar_control = create_terminal_text(bar_text,color=ft.Colors.GREEN, is_bold=True)
+        self.epoch_bar_control = create_terminal_text(bar_text,color=SUCCESS_COLOR, is_bold=True)
 
         self.terminal_list.controls.append(create_terminal_text(text))
         self.terminal_list.controls.append(self.epoch_bar_control)
@@ -609,7 +610,7 @@ class Training(ft.Container):
             self.training_process.terminate()
 
             self.terminal_list.controls.append(
-                create_terminal_text(">>> Training cancelled.",is_bold=True, color=ft.Colors.RED_400)
+                create_terminal_text(">>> Training cancelled.",is_bold=True, color=ERROR_COLOR)
             )
             self.terminal_list.update()
 
@@ -622,13 +623,13 @@ class Training(ft.Container):
 
     def training_finished_terminal(self):
             self.terminal_list.controls.append(
-                create_terminal_text(">>> Training finished.",is_bold=True, color=ft.Colors.GREEN)
+                create_terminal_text(">>> Training finished.",is_bold=True, color=SUCCESS_COLOR)
             )
             self.terminal_list.update()
 
     def training_error_terminal(self,msg):
             self.terminal_list.controls.append(
-                create_terminal_text(f">>> {msg}",is_bold=True, color=ft.Colors.RED)
+                create_terminal_text(f">>> {msg}",is_bold=True, color=ERROR_COLOR)
             )
             self.terminal_list.update()
 
