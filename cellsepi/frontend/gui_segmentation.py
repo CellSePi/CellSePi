@@ -602,12 +602,12 @@ class GUISegmentation:
             label="Choose model",
             border_color=ft.Colors.BLUE_ACCENT,
             options=[
-                ft.DropdownOption(key="CellposeCyto", text="Cellpose Cyto"),
-                ft.DropdownOption(key="CellposeNuclei", text="Cellpose Nuclei"),
                 ft.DropdownOption(
                     key="CellposeSAM",
                     text="Cellpose SAM"
                 ),
+                ft.DropdownOption(key="CellposeCyto", text="Cellpose Cyto"),
+                ft.DropdownOption(key="CellposeNuclei", text="Cellpose Nuclei"),
                 ft.DropdownOption(
                     key="Custom",
                     text="\u200BCellpose",
