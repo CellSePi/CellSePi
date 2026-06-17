@@ -120,7 +120,6 @@ def run_cellpose_training(q, model_type, working_dir, mask_filter, weight, sgd_v
                 )
             else:
                 model = models.CellposeModel(
-                    diam_mean=diameter,
                     gpu=gpu_flag
                 )
 

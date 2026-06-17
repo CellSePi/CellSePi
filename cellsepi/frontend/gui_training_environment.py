@@ -207,8 +207,13 @@ class Training(ft.Container):
                 self.field_model_name.value = None
         else:
             self.re_train_model_chooser.disabled = True
-            self.field_diameter.disabled = False
-            self.field_diameter.value = self.diameter
+            if self.model == "CP Sam":
+                self.field_diameter.disabled = True
+                self.field_diameter.value = None
+            else:
+                self.field_diameter.disabled = False
+                self.field_diameter.value = str(self.diameter)
+
             self.field_model_name.color = None
             self.field_model_name.value = self.model_name
             self.model_dropdown.visible = True
@@ -265,6 +270,8 @@ class Training(ft.Container):
                     self.field_lr.value = 0.001
                     self.weight = 1e-4
                     self.field_weights.value = 1e-4
+                    self.field_diameter.disabled = False
+                    self.field_diameter.value = str(self.diameter)
                 elif updated_value == "CP Sam":
                     self.batch_size = 1
                     self.field_batch.value = 1
@@ -274,6 +281,8 @@ class Training(ft.Container):
                     self.field_lr.value = 0.00001
                     self.weight = 0.1
                     self.field_weights.value = 0.1
+                    self.field_diameter.disabled = True
+                    self.field_diameter.value = None
             elif field == "custom_model":
                 self.model = updated_value
                 self.field_custom_model.value = updated_value
