@@ -488,6 +488,7 @@ class Training(ft.Container):
                 self.diameter
             )
         )
+        self.training_process.daemon = True
 
         self.training_process.start()
 
