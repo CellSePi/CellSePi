@@ -5,7 +5,8 @@ import shutil
 import time
 from threading import Lock
 
-from backend.constants import FileType
+from backend.error_manager import ErrorManager
+from backend.constants import FileType, APP_DIR
 
 
 class DeletionForbidden(Exception):
@@ -57,7 +58,7 @@ def reset_config(file_directory):
         with open(file_directory, 'w') as file:
             json.dump(config, file, indent=4)
     except Exception as e:
-        print(f"Error while saving config: {e}")
+        ErrorManager().log_and_show("Error while saving config",e)
     return config
 
 
@@ -116,6 +117,7 @@ class ConfigFile:
 
     def __init__(self, app_dir, filename="config.json"):
         self.file_directory = os.path.join(app_dir, filename)
+        self.error_manager = ErrorManager()
         self.config = load_config(self.file_directory)
         self.config_lock = Lock()
 
@@ -132,7 +134,7 @@ class ConfigFile:
                     json.dump(self.config, file, indent=4)
 
             except Exception as e:
-                print(f"Error while saving config: {e}")
+                self.error_manager.log_and_show("Error while saving config", e)
 
     def add_profile(self, name: str, bf_channel: int, mask_suffix: str, channel_prefix: str, diameter: float):
         """
@@ -501,7 +503,7 @@ class ConfigFile:
         and deletes the original config.
         Then it loads the deleted config to trigger the default config to load.
         """
-        backup_filepath = os.path.join(self.project_root, "config_backup.json")
+        backup_filepath = os.path.join(APP_DIR, "config_backup.json")
         shutil.copy(self.file_directory, backup_filepath)
         open(self.file_directory, 'w').close()
         self.config = load_config(self.file_directory)
@@ -514,7 +516,7 @@ class ConfigFile:
         refreshes the ConfigFile class with the "new" values.
         Then deletes the backup.
         """
-        backup_filepath = os.path.join(self.project_root, "config_backup.json")
+        backup_filepath = os.path.join(APP_DIR, "config_backup.json")
         shutil.copy(backup_filepath, self.file_directory)
         self.config = load_config(self.file_directory)
         os.remove(backup_filepath)

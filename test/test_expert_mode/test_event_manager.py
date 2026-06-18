@@ -1,5 +1,10 @@
-from backend.main_window import Module, ModuleGuiConfig
-from backend.main_window import PipelineManager, PipelineRunningException
+from typing import Type
+
+from backend.expert_mode.event_manager import EventManager
+from backend.expert_mode.listener import Event, ProgressEvent, ErrorEvent, PipelineErrorEvent, DragAndDropEvent, \
+    PipelineStateChangeEvent, ModuleExecutedEvent, EventListener, PipelinePauseEvent, PipelineStates
+from backend.expert_mode.module import Module, ModuleGuiConfig
+from backend.expert_mode.pipeline_manager import PipelineManager, PipelineRunningException
 import pytest
 
 class DummyErrorModule(Module):

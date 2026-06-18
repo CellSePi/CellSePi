@@ -2,16 +2,16 @@ import ast
 
 import pytest
 
-from backend.main_window import ConfigFile
-from backend.main_window.constants import FileType
-from src.cellsepi.backend.main_window.config_file import ConfigFile
+from backend.constants import FileType, APP_DIR
+from backend.config_file import ConfigFile
 
-from backend.main_window import create_default_config, DeletionForbidden
-
+from backend.config_file import create_default_config, DeletionForbidden
+from backend.error_manager import ErrorManager
+from backend.config_file import reset_config
 
 @pytest.fixture
 def config():
-    cfg = ConfigFile()
+    cfg = ConfigFile(APP_DIR)
     cfg.clear_config()
     yield cfg
     cfg.restore_config()
@@ -88,6 +88,85 @@ def test_idx_name(config):
     assert config.name_to_index("Lif") == 0, "Idx is wrong for Lif"
     assert config.index_to_name(0) == "Lif", "Lif is wrong for this IDX"
 
+
+def test_ignore_warning(config):
+    assert config.get_ignore_warning() is False, "Default ignore_warning is not False"
+    config.set_ignore_warning()
+    assert config.get_ignore_warning() is True, "ignore_warning was not set to True"
+
+
+def test_is_profile_existing(config):
+    assert config.is_profile_existing("Lif") is True, "Existing profile was not recognized"
+    assert config.is_profile_existing("Batman") is False, "Non-existing profile falsely recognized"
+
+
+def test_selected_profile_fallback(config):
+    config.config["Selected Profile"]["name"] = None
+    fallback_name = config.get_selected_profile_name()
+    assert fallback_name == "Lif", "Fallback to first profile failed when name was None"
+
+
+from unittest.mock import patch
+
+
+def test_update_profile_specific_values_and_errors(config):
+    """
+    Testet das erfolgreiche Update einzelner Werte (diameter)
+    und die exakten Fehlermeldungen der Setter.
+    """
+    config.update_profile("Lif", diameter=150.5)
+    assert config.get_profile("Lif")["diameter"] == 150.5, "Diameter was not successfully updated"
+
+    with pytest.raises(ValueError) as exc_info:
+        config.update_profile("Lif", bf_channel="")
+    assert "bf_channel must not be empty" in str(exc_info.value)
+
+    with pytest.raises(ValueError) as exc_info:
+        config.update_profile("Lif", diameter=-5.0)
+    assert "diameter must be greater than 0" in str(exc_info.value)
+
+
+from unittest.mock import patch
+
+
+def test_save_config_exception_handling(config):
+    with patch.object(config.error_manager, 'log_and_show') as mock_log_show:
+        with patch('builtins.open', side_effect=IOError("Simulated error")):
+            config.save_config()
+
+        mock_log_show.assert_called_once()
+
+        args = mock_log_show.call_args[0]
+        assert args[0] == "Error while saving config"
+        assert str(args[1]) == "Simulated error"
+
+
+def test_reset_config_exception_handling():
+    """
+    Testet den except-Block in der alleinstehenden reset_config Funktion.
+    """
+    err_mgr = ErrorManager()
+
+    with patch.object(err_mgr, 'log_and_show') as mock_log_show:
+        with patch('builtins.open', side_effect=IOError("Reset Fehler")):
+            result_config = reset_config("dummy_path.json")
+
+            mock_log_show.assert_called_once()
+            args = mock_log_show.call_args[0]
+            assert args[0] == "Error while saving config"
+            assert str(args[1]) == "Reset Fehler"
+
+            assert "Profiles" in result_config
+
+def test_add_profile_invalid_diameter(config):
+    with pytest.raises(ValueError) as exc_info:
+        config.add_profile("TestProf1", 1, "_seg", "c", 0.0)
+    assert "diameter must be greater than 0" in str(exc_info.value)
+
+    with pytest.raises(ValueError) as exc_info:
+        config.add_profile("TestProf2", 2, "_seg", "c", -15.5)
+    assert "diameter must be greater than 0" in str(exc_info.value)
+
 def test_invalid_profile(config):
         with pytest.raises(ValueError):
             config.add_profile("", "42", "", "", -10)
@@ -106,3 +185,11 @@ def test_invalid_profile(config):
         with pytest.raises(DeletionForbidden):
             config.delete_profile("Lif")
             config.delete_profile("Tif")
+        with pytest.raises(ValueError):
+            config.set_outline_color((22, 12))
+        with pytest.raises(ValueError):
+            config.name_to_index("GhostProfile")
+        with pytest.raises(ValueError):
+            config.index_to_name(999)
+        with pytest.raises(ValueError):
+            config.index_to_name(-1)

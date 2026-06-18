@@ -39,9 +39,12 @@ class Port:
             self._data = None
         elif isinstance(multi, (set, list, tuple)):
             self.mode = "multi_tagged"
-            self.allowed_tags = set(multi)
+            if isinstance(multi, set):
+                self.allowed_tags = sorted(list(multi))
+            else:
+                self.allowed_tags = list(dict.fromkeys(multi))
             self._data = {tag: list() for tag in self.allowed_tags}
-        elif multi:
+        elif multi is True:
             self.mode = "multi_list"
             self._data = list()
         else:
@@ -96,7 +99,7 @@ class Port:
             self._data.append(value)
 
     def __str__(self):
-        return f"port_name: {self.name}, port_data_type: {self.data_type.__name__}, opt: {self.opt}, data: {self.data}"
+        return f"port_name: {self.name}, port_data_type: {self.data_type.__name__}, opt: {self.opt}, data: {self.data}, mode: {self.mode}"
 
 class InputPort(Port):
     """
@@ -338,6 +341,6 @@ class Module(ABC):
         pass
 
     def __str__(self):
-        return f"module_id: '{self.module_id}', category: '{self.gui_config().category}', module_name: {self.gui_config().name}, inputs: {self.inputs}, outputs: {self.outputs}, user_attributes: {self.get_user_attributes}"
+        return f"module_id: {self.module_id}, category: {self.gui_config().category}, module_name: {self.gui_config().name}, inputs: {self.inputs}, outputs: {self.outputs}, user_attributes: {self.get_user_attributes}"
 
 
