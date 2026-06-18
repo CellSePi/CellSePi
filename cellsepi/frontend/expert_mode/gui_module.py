@@ -84,7 +84,7 @@ class ModuleGUI(ft.GestureDetector):
         self.options_button = ft.IconButton(icon=ft.Icons.TUNE, icon_color=ft.Colors.WHITE60,
                                             style=ft.ButtonStyle(
                                                 shape=ft.RoundedRectangleBorder(radius=12),
-                                            ), on_click=lambda e: self.open_options(e),
+                                            ), on_click=self.open_options,
                                             tooltip="Options", hover_color=ft.Colors.WHITE12,
                                             visible=True if len(self.module.get_user_attributes) != 0 else False, )
         self.copy_button = ft.IconButton(icon=ft.Icons.CONTENT_COPY, icon_color=ft.Colors.WHITE60,
@@ -286,14 +286,14 @@ class ModuleGUI(ft.GestureDetector):
                 return True
         return False
 
-    def disable_tools(self):
+    async def disable_tools(self):
         """
         Disable the tools of the modules.
         """
         self.warning_satisfied.disabled = True
         self.warning_satisfied.update()
         if self.port_selection:
-            self.connect_clicked()
+            await self.connect_clicked()
         self.connect_button.disabled = True
         self.connect_button.icon_color = DISABLED_BUTTONS_COLOR
         self.options_button.disabled = True
@@ -354,7 +354,7 @@ class ModuleGUI(ft.GestureDetector):
             self.block_container.bgcolor = ft.Colors.TRANSPARENT
             self.block_container.update()
 
-    def update_port_icons(self):
+    async def update_port_icons(self):
         """
         Updates all ports_Icons of the show ports tab.
         """
@@ -369,9 +369,9 @@ class ModuleGUI(ft.GestureDetector):
             self.in_ports_Icons[port].update()
             self.in_ports_Icons_occupied[port].update()
 
-            self.check_warning()
+            await self.check_warning()
 
-    def check_warning(self):
+    async def check_warning(self):
         """
         Checks if the module should have a warning.
         """
@@ -383,11 +383,11 @@ class ModuleGUI(ft.GestureDetector):
             self.warning_satisfied.visible = not self.pipeline_gui.pipeline.check_module_satisfied(self.module_id)
             self.warning_satisfied.update()
 
-    def connect_clicked(self, update: bool = True):
+    async def connect_clicked(self, update: bool = True):
         """
         Handles the event when the connection button gets pressed.
         """
-        self.pipeline_gui.toggle_all_module_detection(self.module_id)
+        await self.pipeline_gui.toggle_all_module_detection(self.module_id)
         if not self.port_selection:
             if self.show_ports:
                 self.ports_in_out_clicked(False)
@@ -469,7 +469,7 @@ class ModuleGUI(ft.GestureDetector):
                     self.content.update()
                 self.show_ports = False
 
-    def set_valid(self):
+    async def set_valid(self):
         """
         Sets a module valid to connect.
         """
@@ -479,7 +479,7 @@ class ModuleGUI(ft.GestureDetector):
         self.module_container.update()
         self.block_container.update()
 
-    def set_invalid(self):
+    async def set_invalid(self):
         """
         Sets a module to invalid to connect.
         """
@@ -491,7 +491,7 @@ class ModuleGUI(ft.GestureDetector):
         self.module_container.update()
         self.block_container.update()
 
-    def set_running(self):
+    async def set_running(self):
         """
         Called when the module is currently running.
         """
@@ -512,12 +512,12 @@ class ModuleGUI(ft.GestureDetector):
             ports_chips.controls.append(
                 ft.Chip(
                     label=ft.Text(port_name),
-                    on_select=lambda e, name=port_name: self.select_port(e, name),
+                    on_select=lambda e, name=port_name: self.pipeline_gui.page.run_task(self.select_port,e, name),
                 )
             )
         return ports_chips
 
-    def select_port(self, e, port_name):
+    async def select_port(self, e, port_name):
         """
         Handles the event if a port gets selected for connecting.
         """
@@ -528,9 +528,9 @@ class ModuleGUI(ft.GestureDetector):
             self.pipeline_gui.transmitting_ports.remove(port_name)
             self.port_chips.update()
 
-        self.pipeline_gui.check_for_valid_all_modules()
+        await self.pipeline_gui.check_for_valid_all_modules()
 
-    def toggle_detection(self):
+    async def toggle_detection(self):
         """
         Toggles between the module state 'only moveable' and  'normal mode'
         """
@@ -547,7 +547,7 @@ class ModuleGUI(ft.GestureDetector):
             self.delete_button.update()
         else:
             self.detection = True
-            self.set_invalid()
+            await self.set_invalid()
             self.block_container.disabled = True
             self.block_container.visible = False
             self.block_container.ignore_interactions = True
@@ -561,7 +561,7 @@ class ModuleGUI(ft.GestureDetector):
             self.connection_ports.visible = False
             self.connect_button.update()
 
-    def add_connection(self, e=None):
+    async def add_connection(self, e=None):
         """
         Handles the last step of the adding event when the target gets selected.
         Opens a tag selection dialog if the target port requires it.
@@ -578,7 +578,7 @@ class ModuleGUI(ft.GestureDetector):
                     ports_needing_tags.append((port_name, in_port))
 
             if not ports_needing_tags:
-                self._execute_connection(source_id, transmitting_ports)
+                await self._execute_connection(source_id, transmitting_ports)
                 return
 
             dropdowns = {}
@@ -606,10 +606,10 @@ class ModuleGUI(ft.GestureDetector):
                 scroll=ft.ScrollMode.AUTO
             )
 
-            def on_cancel(e):
+            async def on_cancel(e):
                 dialog.open = False
                 self.pipeline_gui.page.update()
-                self.pipeline_gui.check_for_valid_all_modules()
+                await self.pipeline_gui.check_for_valid_all_modules()
 
             dialog = ft.AlertDialog(
                 title=dialog_title,
@@ -618,7 +618,7 @@ class ModuleGUI(ft.GestureDetector):
                 actions_alignment=ft.MainAxisAlignment.END,
             )
 
-            def on_confirm(e):
+            async def on_confirm(e):
                 final_ports = []
                 for port_name in transmitting_ports:
                     if port_name in dropdowns:
@@ -635,7 +635,7 @@ class ModuleGUI(ft.GestureDetector):
                 dialog.open = False
                 self.pipeline_gui.page.update()
 
-                self._execute_connection(source_id, final_ports)
+                await self._execute_connection(source_id, final_ports)
 
             dialog.actions = [
                 ft.Button("Connect", on_click=on_confirm)
@@ -645,38 +645,38 @@ class ModuleGUI(ft.GestureDetector):
             dialog.open = True
             self.pipeline_gui.page.update()
 
-    def _execute_connection(self, source_id: str, ports_list: list):
+    async def _execute_connection(self, source_id: str, ports_list: list):
         """
         Helper method to finalize the connection setup.
         """
         current_pipe = self.pipeline_gui.pipeline.get_pipe(source_id, self.module_id)
         if current_pipe is None:
-            self.pipeline_gui.add_connection(
+            await self.pipeline_gui.add_connection(
                 self.pipeline_gui.modules[source_id],
                 self,
                 ports_list
             )
         else:
-            self.pipeline_gui.expand_connection(current_pipe, ports_list)
+            await self.pipeline_gui.expand_connection(current_pipe, ports_list)
 
-        self.pipeline_gui.check_for_valid_all_modules()
+        await self.pipeline_gui.check_for_valid_all_modules()
 
-    def remove_module(self):
+    async def remove_module(self):
         """
         Removes a module and all its connections.
         """
         for pipe in list(self.pipeline_gui.pipeline.pipes_in[self.module_id]):
-            self.pipeline_gui.remove_connection(self.pipeline_gui.modules[pipe.source_module.module_id], self)
+            await self.pipeline_gui.remove_connection(pipe.source_module.module_id, self.module_id)
         for pipe in list(self.pipeline_gui.pipeline.pipes_out[self.module_id]):
-            self.pipeline_gui.remove_connection(self, self.pipeline_gui.modules[pipe.target_module.module_id])
+            await self.pipeline_gui.remove_connection(self.module_id, pipe.target_module.module_id)
 
         if self.show_mode:
             self.pipeline_gui.show_room_modules.remove(self)
-            self.pipeline_gui.pipeline.remove_module(self.module)
+            await self.pipeline_gui.pipeline.remove_module(self.module)
             self.pipeline_gui.page_stack.controls.remove(self)
             self.pipeline_gui.update()
         else:
-            self.pipeline_gui.remove_module(self.module_id)
+            await self.pipeline_gui.remove_module(self.module_id)
 
     @property
     def module_id(self):
@@ -685,12 +685,12 @@ class ModuleGUI(ft.GestureDetector):
         """
         return self.module.module_id
 
-    def bounce_back(self):
+    async def bounce_back(self):
         """Returns card to its original position"""
         self.left = self.old_left
         self.top = self.old_top
-        self.pipeline_gui.lines_gui._update_lines(self)
-        self.pipeline_gui.lines_gui.update_gui()
+        await self.pipeline_gui.lines_gui._update_lines(self)
+        await self.pipeline_gui.lines_gui.update_gui()
         self.update()
 
     async def start_drag(self, e: ft.DragStartEvent):
@@ -700,7 +700,7 @@ class ModuleGUI(ft.GestureDetector):
         self.old_left = self.left
         self.old_top = self.top
         if not self.show_mode:
-            self.pipeline_gui.lines_gui.update_lines(self)
+            await self.pipeline_gui.lines_gui.update_lines(self)
         self.update()
 
     async def drag(self, e: ft.DragUpdateEvent):
@@ -726,7 +726,7 @@ class ModuleGUI(ft.GestureDetector):
         else:
             self.top = min(max(0, self.top + e.local_delta.y), CANVAS_HEIGHT - MODULE_HEIGHT)
             self.left = min(max(0, self.left + e.local_delta.x), CANVAS_WIDTH - MODULE_WIDTH)
-            self.pipeline_gui.lines_gui.update_lines(self)
+            await self.pipeline_gui.lines_gui.update_lines(self)
 
         self.update()
 
@@ -751,8 +751,8 @@ class ModuleGUI(ft.GestureDetector):
             )
 
             if overlap:
-                self.bounce_back()
-                self.pipeline_gui.lines_gui.update_lines(self)
+                await self.bounce_back()
+                await self.pipeline_gui.lines_gui.update_lines(self)
                 e.control.update()
                 return
 
@@ -765,7 +765,7 @@ class ModuleGUI(ft.GestureDetector):
         ) and self.show_mode
 
         if overlap_show_room:
-            self.bounce_back()
+            await self.bounce_back()
             e.control.update()
             return
         elif self.show_mode:
@@ -777,7 +777,7 @@ class ModuleGUI(ft.GestureDetector):
             self.pipeline_gui.modules[self.module_id] = self
             if DEBUG:
                 self.name_text.value = self.module_id
-            self.pipeline_gui.refill_show_room(self, self.visible, index, show_room_id)
+            await self.pipeline_gui.refill_show_room(self, self.visible, index, show_room_id)
             self.pipeline_gui.page_stack.controls.remove(self)
             self.pipeline_gui.page_stack.update()
             self.left = min(max(0, cast(int, check_left)), CANVAS_WIDTH - MODULE_WIDTH)
@@ -792,7 +792,7 @@ class ModuleGUI(ft.GestureDetector):
             self.click_gesture.visible = False
             self.delete_button.visible = True
             if self.pipeline_gui.source_module != "":
-                self.toggle_detection()
+                await self.toggle_detection()
                 self.pipeline_gui.check_for_valid_all_modules()
             self.pipeline_gui.update()
 
@@ -801,7 +801,7 @@ class ModuleGUI(ft.GestureDetector):
             self.pipeline_gui.pipeline.event_manager.notify(DragAndDropEvent(False))
 
         self.update()
-        self.pipeline_gui.lines_gui.update_lines(self)
+        await self.pipeline_gui.lines_gui.update_lines(self)
 
     async def generate_options_overlay(self):
         """
@@ -865,7 +865,7 @@ class ModuleGUI(ft.GestureDetector):
                         value=str(value),
                         ref=ref,
                         on_blur=lambda e, attr_name=attribute_name, type_atr=typ:
-                        self.on_change(e,
+                        self.pipeline_gui.page.run_task(self.on_change,e,
                                        attr_name,
                                        type_atr),
                         height=60,
@@ -894,7 +894,7 @@ class ModuleGUI(ft.GestureDetector):
                         ref=ref,
                         input_filter=ft.InputFilter(allow=True, regex_string=current_regex, replacement_string=""),
                         on_blur=lambda e, attr_name=attribute_name, type_atr=typ,mi=min_val, ma=max_val:
-                        self.on_change(e,
+                        self.pipeline_gui.page.run_task(self.on_change,e,
                                        attr_name,
                                        type_atr,
                                        mi,
@@ -926,7 +926,7 @@ class ModuleGUI(ft.GestureDetector):
                         ref=ref,
                         input_filter=ft.InputFilter(allow=True, regex_string=current_regex, replacement_string=""),
                         on_blur=lambda e, attr_name=attribute_name, type_atr=typ, mi=min_val, ma=max_val:
-                        self.on_change(e,
+                        self.pipeline_gui.page.run_task(self.on_change,e,
                                        attr_name,
                                        type_atr,
                                        mi,
@@ -941,7 +941,7 @@ class ModuleGUI(ft.GestureDetector):
                 slider_bool = ft.CupertinoSlidingSegmentedButton(
                     selected_index=index,
                     thumb_color=MAIN_COLOR,
-                    on_change=lambda e, attr_name=attribute_name: self.update_bool(e, attr_name),
+                    on_change=lambda e, attr_name=attribute_name: self.pipeline_gui.page.run_task(self.update_bool,e, attr_name),
                     padding=ft.Padding.symmetric(vertical=0, horizontal=0),
                     controls=[
                         ft.Text("False"),
@@ -1027,7 +1027,7 @@ class ModuleGUI(ft.GestureDetector):
                 slider_bool = ft.CupertinoSlidingSegmentedButton(
                     selected_index=index,
                     thumb_color=MAIN_COLOR,
-                    on_change=lambda e, attr_name=attribute_name, e_class=enum_class: self.update_enum(e, attr_name, e_class),
+                    on_change=lambda e, attr_name=attribute_name, e_class=enum_class: self.pipeline_gui.page.run_task(self.update_enum,e, attr_name, e_class),
                     padding=ft.Padding.symmetric(vertical=0, horizontal=0),
                     controls=[
                         ft.Text(enum_val.name) for enum_val in enum_class
@@ -1072,7 +1072,7 @@ class ModuleGUI(ft.GestureDetector):
             text.update()
             self.pipeline_gui.pipeline.event_manager.notify(OnPipelineChangeEvent("user_attr_change"))
 
-    def on_change(self, e, attr_name, typ: type, min_value = None, max_value = None):
+    async def on_change(self, e, attr_name, typ: type, min_value = None, max_value = None):
         """
         Handles changes to the attribute for different types.
         """
@@ -1120,7 +1120,7 @@ class ModuleGUI(ft.GestureDetector):
             e.control.update()
 
 
-    def update_bool(self, e, attr_name):
+    async def update_bool(self, e, attr_name):
         """
         Handels changes to the attribute for booleans.
         """
@@ -1132,7 +1132,7 @@ class ModuleGUI(ft.GestureDetector):
         self.module.settings.update()
         self.pipeline_gui.pipeline.event_manager.notify(OnPipelineChangeEvent("user_attr_change"))
 
-    def update_enum(self, e, attr_name, enum_class):
+    async def update_enum(self, e, attr_name, enum_class):
         """
         Handles changes to the attribute for enumerations.
         """
@@ -1150,7 +1150,7 @@ class ModuleGUI(ft.GestureDetector):
             page = self.pipeline_gui._page
             self.page_overlay = PageOverlay(page, self.module.settings, self.close_options)
 
-    def open_options(self, e):
+    async def open_options(self, e):
         """
         Open options overlay of the module.
         """
@@ -1158,7 +1158,7 @@ class ModuleGUI(ft.GestureDetector):
         self.options_button.icon_color = ft.Colors.BLACK38
         self.options_button.update()
 
-    def close_options(self, e):
+    async def close_options(self, e):
         """
         Called when the overlay gets dismissed.
         """
@@ -1167,7 +1167,7 @@ class ModuleGUI(ft.GestureDetector):
         self.options_button.icon_color = ft.Colors.WHITE60
         self.options_button.update()
 
-    def copy_module(self):
+    async def copy_module(self):
         """
         Called when the copy button is clicked.
         """
@@ -1204,6 +1204,7 @@ class ModuleGUI(ft.GestureDetector):
         Update user_attributes with a module dict.
         """
         has_load_errors = False
+        error_manager = ErrorManager(self.pipeline_gui.page)
         for attr in module_dict.get("user_attributes", []):
             user_attributes = self.module.get_user_attributes
             attr_name = attr["name"]
@@ -1233,7 +1234,7 @@ class ModuleGUI(ft.GestureDetector):
                         setattr(self.module, attr_name, casted_value)
                 except ValueError as e:
                     has_load_errors = True
-                    self.error_manager.log(e)
+                    error_manager.log(e)
 
         if has_load_errors:
-            self.error_manager.show(f"An error occurred during updating the user attributes of the module: {self.module.gui_config().name}")
+            error_manager.show(f"An error occurred during updating the user attributes of the module: {self.module.gui_config().name}")

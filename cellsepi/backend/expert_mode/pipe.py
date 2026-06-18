@@ -57,9 +57,9 @@ class Pipe:
                 tag = None
 
             if port_name not in self.source_module.outputs:
-                raise KeyError(f"{port_name} is not in the outputs of Module '{self.source_module.module_id}'")
+                raise KeyError(f"{port_name} is not in the outputs of Module {self.source_module.module_id}")
             if port_name not in self.target_module.inputs:
-                raise KeyError(f"{port_name} is not in the inputs of Module '{self.target_module.module_id}'")
+                raise KeyError(f"{port_name} is not in the inputs of Module {self.target_module.module_id}")
             out_port = self.source_module.outputs[port_name]
             in_port = self.target_module.inputs[port_name]
 

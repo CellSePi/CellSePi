@@ -9,8 +9,25 @@ import subprocess
 
 
 class ErrorManager:
+    _instance = None
+    _initialized = False
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
     def __init__(self, page: ft.Page|None = None, log_filename: str = "app_errors.log"):
-        self.page = page
+        if not hasattr(self, "page"):
+            self.page = None
+
+        if self._initialized:
+            if page is not None:
+                self.page = page
+            return
+
+        if page is not None:
+            self.page = page
 
         self.log_dir = APP_DIR / "logs"
         self.log_dir.mkdir(parents=True, exist_ok=True)
@@ -19,6 +36,7 @@ class ErrorManager:
         self.logger = logging.getLogger("cellsepi")
         self.logger.setLevel(logging.ERROR)
         self.logger.propagate = False
+        self.logger.handlers.clear()
 
         if not self.logger.handlers:
             file_handler = logging.FileHandler(self.log_path)
@@ -30,6 +48,8 @@ class ErrorManager:
             )
             file_handler.setFormatter(formatter)
             self.logger.addHandler(file_handler)
+
+        self._initialized = True
 
     def show(self,user_message: str):
         if self.page is not None:

@@ -92,11 +92,11 @@ class Builder:
                                              style=ft.ButtonStyle(
                                              shape=ft.RoundedRectangleBorder(radius=12), ),
                                              tooltip="Show run menu\n[Ctrl + R]", hover_color=ft.Colors.WHITE12)
-        self.delete_button = ft.IconButton(icon=ft.Icons.DELETE, on_click=lambda e: self.delete_button_click(), icon_color=MAIN_ACTIVE_COLOR,
+        self.delete_button = ft.IconButton(icon=ft.Icons.DELETE, on_click=self.delete_button_click, icon_color=MAIN_ACTIVE_COLOR,
                                            style=ft.ButtonStyle(
                                               shape=ft.RoundedRectangleBorder(radius=12),),
                                            tooltip="Show delete buttons\n[Ctrl + D]", hover_color=ft.Colors.WHITE12)
-        self.port_button = ft.IconButton(icon=ft.Icons.VISIBILITY, on_click=lambda e: self.port_button_click(),
+        self.port_button = ft.IconButton(icon=ft.Icons.VISIBILITY, on_click=self.port_button_click,
                                          icon_color=MAIN_ACTIVE_COLOR,
                                          style=ft.ButtonStyle(
                                                shape=ft.RoundedRectangleBorder(radius=12), ),
@@ -201,12 +201,12 @@ class Builder:
             bottom=BOTTOM_SPACING, left=cast(float, self.left_tools.left) + cast(float, self.left_tools.width) + 5,blur=10,opacity=0,
             )
         self.setup()
-        self.page_forward = ft.IconButton(icon=ft.Icons.CHEVRON_RIGHT_SHARP, on_click=lambda e: self.press_page_forward(),
+        self.page_forward = ft.IconButton(icon=ft.Icons.CHEVRON_RIGHT_SHARP, on_click=self.press_page_forward,
                                           icon_color=MAIN_ACTIVE_COLOR,
                                           style=ft.ButtonStyle(
                                          shape=ft.RoundedRectangleBorder(radius=12), ),
                                           tooltip="Get to the next page\n[Ctrl + E]", hover_color=ft.Colors.WHITE12)
-        self.page_backward = ft.IconButton(icon=ft.Icons.CHEVRON_LEFT_SHARP, on_click=lambda e: self.press_page_backward(),
+        self.page_backward = ft.IconButton(icon=ft.Icons.CHEVRON_LEFT_SHARP, on_click=self.press_page_backward,
                                            icon_color=ft.Colors.WHITE24,
                                            style=ft.ButtonStyle(
                                            shape=ft.RoundedRectangleBorder(radius=12), ), disabled=True,
@@ -291,15 +291,15 @@ class Builder:
         self.load_button.icon_color = ft.Colors.WHITE24
         self.load_button.update()
         for module in self.pipeline_gui.modules.values():
-            self.pipeline_gui.lines_gui.update_delete_buttons(module,True)
-            module.disable_tools()
+            await self.pipeline_gui.lines_gui.update_delete_buttons(module,True)
+            await module.disable_tools()
             module.waiting_button.visible = True
             module.delete_button.visible = False
             module.waiting_button.update()
             module.delete_button.update()
             module.error_stack.visible = False
             module.error_stack.update()
-            module.check_warning()
+            await module.check_warning()
         self.update_modules_executed(reset=True)
         self.pipeline_running_event.clear()
         await asyncio.to_thread(self.pipeline_gui.pipeline.run,show_room_module_ids)
@@ -356,15 +356,15 @@ class Builder:
         if e.ctrl and e.key == "R" and not e.alt and not e.shift and not e.meta:
             self.page.run_task(self.run_menu_click)
         if e.ctrl and e.key == "D" and not e.alt and not e.shift and not e.meta:
-            self.delete_button_click()
+            self.page.run_task(self.delete_button_click)
         if e.ctrl and e.key == "P" and not e.alt and not e.shift and not e.meta:
-            self.port_button_click()
+            self.page.run_task(self.port_button_click)
         if e.ctrl and e.key == "Q" and not e.alt and not e.shift and not e.meta:
             if not self.page_backward.disabled:
-                self.press_page_backward()
+                self.page.run_task(self.press_page_backward)
         if e.ctrl and e.key == "E" and not e.alt and not e.shift and not e.meta:
             if not self.page_forward.disabled:
-                self.press_page_forward()
+                self.page.run_task(self.press_page_forward)
         if e.ctrl and e.key == "M" and not e.alt and not e.shift and not e.meta:
             self.zoom_menu_click()
         if e.ctrl and e.key == "." and not e.alt and not e.shift and not e.meta:
@@ -447,7 +447,7 @@ class Builder:
                         return
                     try:
                         self.pipeline_storage.load_pipeline(files[0].path)
-                        self.pipeline_gui.reset()
+                        await self.pipeline_gui.reset()
                         await self.pipeline_gui.load_pipeline()
                     except Exception as ex:
                         self.error_manager.log_and_show(f"Failed to load pipeline: {ex}",ex)
@@ -478,7 +478,7 @@ class Builder:
                     return
                 try:
                     self.pipeline_storage.load_pipeline(files[0].path)
-                    self.pipeline_gui.reset()
+                    await self.pipeline_gui.reset()
                     await self.pipeline_gui.load_pipeline()
                 except Exception as exception1:
                     self.error_manager.log_and_show(f"Failed to load pipeline: {exception1}",exception1)
@@ -516,11 +516,11 @@ class Builder:
         self.save_as_button.icon_color = MAIN_ACTIVE_COLOR
         self.save_as_button.update()
 
-    def press_page_forward(self):
+    async def press_page_forward(self):
         """
         Called when clicked to load the next page.
         """
-        self.pipeline_gui.change_show_room_page(self.pipeline_gui.show_room_page_number + 1)
+        await self.pipeline_gui.change_show_room_page(self.pipeline_gui.show_room_page_number + 1)
         if self.pipeline_gui.show_room_page_number > 0:
             self.page_backward.icon_color = MAIN_ACTIVE_COLOR
             self.page_backward.disabled = False
@@ -530,11 +530,11 @@ class Builder:
             self.page_forward.disabled = True
             self.page_forward.update()
 
-    def press_page_backward(self):
+    async def press_page_backward(self):
         """
         Called when clicked to load the previous page.
         """
-        self.pipeline_gui.change_show_room_page(self.pipeline_gui.show_room_page_number - 1)
+        await self.pipeline_gui.change_show_room_page(self.pipeline_gui.show_room_page_number - 1)
         if self.pipeline_gui.show_room_page_number == 0:
             self.page_backward.icon_color = ft.Colors.WHITE24
             self.page_backward.disabled = True
@@ -594,7 +594,7 @@ class Builder:
             self.zoom_menu.opacity = 1
             self.zoom_menu.update()
 
-    def delete_button_click(self):
+    async def delete_button_click(self):
         """
         Called when the delete button is clicked and toggles between all delete buttons be visible or be hidden.
         """
@@ -602,18 +602,18 @@ class Builder:
             self.delete_button.icon_color = MAIN_ACTIVE_COLOR
             self.delete_button.tooltip = f"Show delete buttons\n[Ctrl + D]"
             self.pipeline_gui.show_delete_button = False
-            self.pipeline_gui.lines_gui.update_all()
+            await self.pipeline_gui.lines_gui.update_all()
         else:
             self.delete_button.icon_color = MAIN_COLOR
             self.delete_button.tooltip = f"Hide delete buttons\n[Ctrl + D]"
             self.pipeline_gui.show_delete_button = True
             if self.pipeline_gui.show_ports:
-                self.port_button_click()
-            self.pipeline_gui.lines_gui.update_all()
+                await self.port_button_click()
+            await self.pipeline_gui.lines_gui.update_all()
 
         self.delete_button.update()
 
-    def port_button_click(self):
+    async def port_button_click(self):
         """
         Called when the port button is clicked and toggles between all port text being visible or hidden.
         """
@@ -621,14 +621,14 @@ class Builder:
             self.port_button.icon_color = MAIN_ACTIVE_COLOR
             self.port_button.tooltip = f"Show which ports get transferred\n[Ctrl + P]"
             self.pipeline_gui.show_ports = False
-            self.pipeline_gui.lines_gui.update_all()
+            await self.pipeline_gui.lines_gui.update_all()
         else:
             self.port_button.icon_color = MAIN_COLOR
             self.port_button.tooltip = f"Hide which ports get transferred\n[Ctrl + P]"
             self.pipeline_gui.show_ports = True
             if self.pipeline_gui.show_delete_button:
-                self.delete_button_click()
-            self.pipeline_gui.lines_gui.update_all()
+                await self.delete_button_click()
+            await self.pipeline_gui.lines_gui.update_all()
 
         self.port_button.update()
 

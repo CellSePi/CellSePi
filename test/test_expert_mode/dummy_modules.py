@@ -1,6 +1,7 @@
-from backend.main_window import ModuleGuiConfig, OutputPort, InputPort
-from backend.main_window import Module
-
+from backend.expert_mode.module import ModuleGuiConfig, OutputPort, InputPort
+from backend.expert_mode.module import Module
+from backend.expert_mode.listener import Event, EventListener, PipelineCancelEvent
+from typing import Type
 
 class DummyModule1(Module):
     _gui_config = ModuleGuiConfig("test1", None, None)
@@ -70,6 +71,19 @@ class DummyModule4(Module):
         result = self.inputs["port2"].data + " == " + str(self.inputs["port1"].data)
         self.outputs["port3"].data = result
 
+class DummyModule5(Module):
+    _gui_config = ModuleGuiConfig("test5", None, None)
+    def __init__(self, module_id: str = None):
+        super().__init__(module_id)
+        self.outputs = {
+            "port5": OutputPort("port5", int),
+        }
+        self._event_manager = None
+
+    def run(self):
+        result = 900
+        self.outputs["port5"].data = result
+
 class DummyPauseModule(Module):
     _gui_config = ModuleGuiConfig("testPause", None, None)
     def __init__(self, module_id: str = None):
@@ -90,3 +104,60 @@ class DummyPauseModule(Module):
         result = 42 + 25
         self.outputs["port1"].data = result
         return True
+
+class DummyMultiModule(Module):
+    _gui_config = ModuleGuiConfig("testMulti", None, None)
+    def __init__(self, module_id: str = None):
+        super().__init__(module_id)
+        self.inputs = {
+            "port1": InputPort("port1", int,multi=["cat","dog"]),
+            "port5": InputPort("port5",int,multi=True)
+        }
+        self.outputs = {
+            "port7": OutputPort("port7", int),
+            "port8": OutputPort("port8", int),
+            "port9": OutputPort("port9", int)
+        }
+
+
+    def run(self):
+        result1 = 0
+        for value in self.inputs["port1"].data["dog"]:
+            result1 += value
+        self.outputs["port7"].data = result1
+
+        result2 = 1
+
+        for value in self.inputs["port1"].data["cat"]:
+            result2 *= value
+        self.outputs["port8"].data = result2
+
+        result3 = 0
+        for value in self.inputs["port5"].data:
+            result3 += value
+        self.outputs["port9"].data = result3
+
+
+class DummyCancelDuringRunModule(Module):
+    _gui_config = ModuleGuiConfig("CancelDuringRun", None, None)
+
+    def __init__(self, module_id: str = None):
+        super().__init__(module_id)
+        self.pipeline_manager_ref = None
+
+    def run(self):
+        if self.pipeline_manager_ref is not None:
+            self.pipeline_manager_ref.cancel()
+        return False
+
+
+class DummyCancelListener(EventListener):
+    def __init__(self):
+        self.last_event: PipelineCancelEvent | None = None
+        self.event_type = PipelineCancelEvent
+
+    def get_event_type(self) -> Type[Event]:
+        return self.event_type
+
+    def _update(self, event: Event) -> None:
+        self.last_event = event

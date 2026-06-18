@@ -125,8 +125,8 @@ class ModuleExecutedListener(EventListener):
         self.builder.pipeline_gui.modules[event.module_id].enable_tools()
         if self.builder.pipeline_gui.source_module != "":
             self.builder.pipeline_gui.check_for_valid(event.module_id)
-        self.builder.pipeline_gui.lines_gui.update_delete_buttons(self.builder.pipeline_gui.modules[event.module_id])
-        self.builder.pipeline_gui.check_all_deletable()
+        await self.builder.pipeline_gui.lines_gui.update_delete_buttons(self.builder.pipeline_gui.modules[event.module_id])
+        await self.builder.pipeline_gui.check_all_deletable()
         self.builder.pipeline_gui.modules[event.module_id].executing_button.visible = False
         self.builder.pipeline_gui.modules[event.module_id].waiting_button.visible = False
         self.builder.pipeline_gui.modules[event.module_id].executing_button.update()
@@ -151,7 +151,7 @@ class ModuleStartedListener(EventListener):
         self.builder.page.run_task(self._update,event)
 
     async def _update(self, event: ModuleStartedEvent) -> None:
-        self.builder.pipeline_gui.modules[event.module_id].set_running()
+        await self.builder.pipeline_gui.modules[event.module_id].set_running()
         self.builder.category_icon.color = self.builder.pipeline_gui.modules[event.module_id].module.gui_config().category.value
         self.builder.category_icon.update()
         self.builder.running_module.value = self.builder.pipeline_gui.modules[event.module_id].module.gui_config().name
@@ -276,7 +276,7 @@ class ModuleErrorListener(EventListener):
                 self.builder.pipeline_gui.pipeline.executing].module_container.border = ft.Border.all(4,
                                                                                                       ERROR_COLOR)
             self.builder.pipeline_gui.modules[self.builder.pipeline_gui.pipeline.executing].module_container.update()
-            self.builder.pipeline_gui.enables_all_stuck_in_running()
+            await self.builder.pipeline_gui.enables_all_stuck_in_running()
             self.builder.info_text.value = ""
             self.builder.info_text.spans = [
             ft.TextSpan("Error: ", style=ft.TextStyle(weight=ft.FontWeight.BOLD, color=ERROR_COLOR)),
@@ -310,7 +310,7 @@ class PipelineCancelListener(EventListener):
         self.builder.info_text.spans = []
         self.builder.info_text.value = "Idle, waiting for start."
         self.builder.info_text.update()
-        self.builder.pipeline_gui.enables_all_stuck_in_running()
+        await self.builder.pipeline_gui.enables_all_stuck_in_running()
         self.builder.running_module.value = "Module"
         self.builder.running_module.update()
         self.builder.category_icon.color = SUCCESS_COLOR
@@ -348,7 +348,7 @@ class PipelineErrorListener(EventListener):
             ft.TextSpan("Error: ", style=ft.TextStyle(weight=ft.FontWeight.BOLD, color=ERROR_COLOR)),
             ft.TextSpan(event.error_msg, style=ft.TextStyle(color=ft.Colors.WHITE60)), ]
         self.builder.info_text.update()
-        self.builder.pipeline_gui.enables_all_stuck_in_running()
+        await self.builder.pipeline_gui.enables_all_stuck_in_running()
         self.builder.running_module.value = "Pipeline"
         self.builder.running_module.update()
         self.builder.category_icon.color = ERROR_COLOR

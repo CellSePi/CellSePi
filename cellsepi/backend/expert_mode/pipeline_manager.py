@@ -48,7 +48,7 @@ class PipelineManager:
         Creates a module of the given class with the given module_id and adds it to the pipeline.
         """
         if not module_id.startswith(module_class.gui_config().name):
-            raise ValueError(f"Invalid module id '{module_id}' for the module_class '{module_class.gui_config().name}'")
+            raise ValueError(f"Invalid module id {module_id} for the module_class {module_class.gui_config().name}")
         module = module_class(module_id=module_id)
         module.occupy()
         return self._add_module(module,module_class)
@@ -67,7 +67,7 @@ class PipelineManager:
         Gets a new module id for the module with the given module_id_old.
         """
         if not module_id_old in self.module_map:
-            raise ValueError(f"Module id '{module_id_old}' doesen't exists")
+            raise ValueError(f"Module id {module_id_old} doesent exists")
         self.module_map[module_id_old].free_id_number(self.module_map[module_id_old].get_id_number())
         module_id_new = self.module_map[module_id_old].get_new_id()
         self.module_map[module_id_old].module_id = module_id_new
@@ -88,7 +88,7 @@ class PipelineManager:
         if module in self.modules:
             if not self.is_disconnected(module.module_id):
                 raise RuntimeError(
-                    f"Cannot remove module '{module.module_id}' from pipeline while connections to other modules still exists.")
+                    f"Cannot remove module {module.module_id} from pipeline while connections to other modules still exists.")
             self.modules.remove(module)
             del self.module_map[module.module_id]
             del self.pipes_in[module.module_id]
@@ -96,7 +96,7 @@ class PipelineManager:
             module.destroy()
             self.event_manager.notify(OnPipelineChangeEvent(f"Removed module {module.gui_config().name}"))
         else:
-            raise ValueError(f"Module '{module.module_id}' does not exist in the pipeline.")
+            raise ValueError(f"Module {module.module_id} does not exist in the pipeline.")
 
     def is_disconnected(self, module_name: str) -> bool:
         """
@@ -112,7 +112,7 @@ class PipelineManager:
         """
         pipe = self.get_pipe(source_id, target_id)
         if pipe is None:
-            raise ValueError(f"Pipe between source module '{source_id}' and target module '{target_id}' does not exist.")
+            raise ValueError(f"Pipe between source module {source_id} and target module {target_id} does not exist.")
 
         for port in pipe.port_names:
             pipe.target_module.inputs[port].clear()
@@ -138,12 +138,12 @@ class PipelineManager:
             ValueError: If a pipe between the target and source module exists already in the pipeline.
         """
         if pipe.source_module not in self.modules:
-            raise ModuleNotFoundError(f"Source module '{pipe.source_module.module_id}' not found in the pipeline.")
+            raise ModuleNotFoundError(f"Source module {pipe.source_module.module_id} not found in the pipeline.")
         if pipe.target_module not in self.modules:
-            raise ModuleNotFoundError(f"Target module '{pipe.target_module.module_id}' not found in the pipeline.")
+            raise ModuleNotFoundError(f"Target module {pipe.target_module.module_id} not found in the pipeline.")
 
         if self.check_connections(pipe.source_module.module_id, pipe.target_module.module_id) is not None:
-                raise ValueError(f"Pipe between source module '{pipe.source_module.module_id}' and target module '{pipe.target_module.module_id}' already exists.")
+                raise ValueError(f"Pipe between source module {pipe.source_module.module_id} and target module {pipe.target_module.module_id} already exists.")
 
         self.pipes_in[pipe.target_module.module_id].append(pipe)
         self.pipes_out[pipe.source_module.module_id].append(pipe)
@@ -196,7 +196,7 @@ class PipelineManager:
 
     def get_run_order(self) -> deque[str]:
         """
-        Get the topologic orders with Kahn's algorithm.
+        Get the topologic orders with Kahn’s algorithm.
         For this, the algorithm uses the graph given by the pipes of the pipeline.
         """
         topological_order: deque[str] = deque()
@@ -222,7 +222,7 @@ class PipelineManager:
         Checks if every module input is satisfied.
         """
         for module in self.modules:
-            if module.module_id in ignore:
+            if ignore is not None and module.module_id in ignore:
                 continue
             if not self.check_module_satisfied(module.module_id):
                 return False
@@ -289,8 +289,8 @@ class PipelineManager:
                             return
                         if result["status"] == "error":
                             error = result["error"]
-                            e_type = getattr(error, 'error_type', 'System Error')
-                            e_desc = getattr(error, 'description', str(error))
+                            e_type = getattr(error, "error_type", "System Error")
+                            e_desc = getattr(error, "description", str(error))
                             self.running = False
                             self.event_manager.notify(PipelineStateChangeEvent(PipelineStates.IDLE))
                             self.event_manager.notify(ErrorEvent(e_type, e_desc, error))

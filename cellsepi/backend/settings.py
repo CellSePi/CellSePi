@@ -7,6 +7,7 @@ import anyio
 from pydantic import BaseModel, Field
 
 from backend.constants import DownscaleMode
+from backend.error_manager import ErrorManager
 
 # Setup individual settings
 class DataPersistenceConfig(BaseModel):
@@ -85,7 +86,7 @@ class SettingsManager:
                     data = json.load(f)
                 settings = AppSettings.model_validate(data)
             except Exception as e:
-                print(f"Invalid settings file ({e}). Falling back to defaults.")
+                ErrorManager().log_and_show("Invalid settings file. Falling back to defaults.",e)
                 settings = AppSettings()
         else:
             settings = AppSettings()
