@@ -132,7 +132,17 @@ class LinesGUI(cv.Canvas):
                 ),
             )
 
-        port_str = ", ".join(ports)
+        display_ports = []
+        for p in ports:
+            if isinstance(p, tuple):
+                port_name = p[0]
+                tag = p[1]
+                display_ports.append(f"{port_name} [{tag}]")
+            else:
+                display_ports.append(p)
+
+        port_str = ", ".join(display_ports)
+
         port_txt = None
         if self.pipeline_gui.show_ports:
             port_txt = cv.Text(

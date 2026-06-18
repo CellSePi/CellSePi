@@ -468,9 +468,8 @@ class Training(ft.Container):
         else:
             sgd_value = False
 
-        ctx = multiprocessing.get_context("spawn")
-        self.log_queue = ctx.Queue()
-        self.training_process = ctx.Process(
+        self.log_queue = queue.Queue()
+        self.training_process = multiprocessing.Process(
             target=run_cellpose_training,
             args=(
                 self.log_queue,
@@ -488,6 +487,7 @@ class Training(ft.Container):
                 self.diameter
             )
         )
+        self.training_process.daemon = True
 
         self.training_process.start()
 

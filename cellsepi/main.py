@@ -1,3 +1,5 @@
+import sys
+
 import multiprocessing
 
 import flet as ft

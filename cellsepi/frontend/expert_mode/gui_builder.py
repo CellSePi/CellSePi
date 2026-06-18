@@ -505,7 +505,7 @@ class Builder:
                 self.save_as_button.icon_color = MAIN_ACTIVE_COLOR
                 self.page.update()
                 return
-            self.page.run_task(self.pipeline_storage.save_as_pipeline,dir)
+            await self.pipeline_storage.save_as_pipeline(dir)
             self.pipeline_gui.page.show_dialog(ft.SnackBar(ft.Text(f"Pipeline saved at {dir}",color=ft.Colors.WHITE),bgcolor=SUCCESS_COLOR))
             self.pipeline_gui.page.update()
             self.page.title = f"CellSePi - {self.pipeline_gui.pipeline_name}"

@@ -1,5 +1,5 @@
 from collections import deque
-from typing import List
+from typing import List, Union, Tuple
 
 from backend.constants import SUCCESS_COLOR
 from backend.expert_mode.listener import OnPipelineChangeEvent
@@ -27,7 +27,7 @@ class PipelineGUI(ft.Stack):
         self.source_module: str = ""
         self.show_ports:bool = False
         self.show_delete_button:bool = False
-        self.transmitting_ports: List[str] = []
+        self.transmitting_ports: List[Union[str,Tuple[str,str]]] = []
         self.lines_gui = LinesGUI(self)
         self.controls.append(self.lines_gui)
         self.show_room_container = None
@@ -67,7 +67,7 @@ class PipelineGUI(ft.Stack):
         for pipe in self.pipeline_dict["pipes"]:
             source = pipe["source"]
             target = pipe["target"]
-            ports= pipe["ports"]
+            ports = [tuple(p) if isinstance(p, list) else p for p in pipe["ports"]]
             self.add_connection(self.modules[source],self.modules[target],ports)
 
         offset_x = self.pipeline_dict["view"]["offset_x"]
@@ -103,7 +103,7 @@ class PipelineGUI(ft.Stack):
 
         return all(not(pipe.target_module.module_id in self.pipeline.run_order or pipe.target_module.module_id == self.pipeline.executing) for pipe in self.pipeline.pipes_out[module.module_id])
 
-    def add_connection(self,source_module_gui,target_module_gui,ports: List[str]):
+    def add_connection(self,source_module_gui,target_module_gui,ports: List[Union[str,Tuple[str,str]]]):
         """
         Adds a connection to the pipeline.
         """
@@ -113,7 +113,7 @@ class PipelineGUI(ft.Stack):
         self.lines_gui.update_gui()
         self.update_all_port_icons()
 
-    def expand_connection(self,pipe:Pipe,ports:List[str]):
+    def expand_connection(self,pipe:Pipe,ports:List[Union[str, Tuple[str, str]]]):
         """
         Expands a connection, so its connection also tranferes the given ports.
         """
@@ -271,7 +271,7 @@ class PipelineGUI(ft.Stack):
                     self.source_module, target_module_gui.module_id) if self.source_module != "" else None
                 if existing_pipe is None:
                     valid = True
-                elif any(port in existing_pipe.ports for port in self.transmitting_ports) or existing_pipe.source_module.module_id != self.source_module or existing_pipe.target_module.module_id != target_module_gui.module_id:
+                elif any(port in existing_pipe.port_names for port in self.transmitting_ports) or existing_pipe.source_module.module_id != self.source_module or existing_pipe.target_module.module_id != target_module_gui.module_id:
                     valid = False
                 if all(k in target_module_gui.module.inputs for k in
                        self.transmitting_ports) and self.transmitting_ports != [] and valid and not (

@@ -11,7 +11,7 @@ from backend.expert_mode.listener import ErrorEvent, OnPipelineChangeEvent, Modu
     PipelineStates
 from backend.expert_mode.module import Module
 from backend.expert_mode.pipe import Pipe
-from typing import List, Dict, Type
+from typing import List, Dict, Type, Union, Tuple
 
 
 def run_module(m):
@@ -114,8 +114,8 @@ class PipelineManager:
         if pipe is None:
             raise ValueError(f"Pipe between source module '{source_id}' and target module '{target_id}' does not exist.")
 
-        for port in pipe.ports:
-            pipe.target_module.inputs[port].data = None
+        for port in pipe.port_names:
+            pipe.target_module.inputs[port].clear()
 
         self.pipes_in[target_id].remove(pipe)
         self.pipes_out[source_id].remove(pipe)
@@ -150,7 +150,7 @@ class PipelineManager:
 
         self.event_manager.notify(OnPipelineChangeEvent(f"Added connection between {pipe.target_module.module_id} and {pipe.source_module.module_id}"))
 
-    def expand_connection(self,pipe:Pipe, ports: List[str]) -> None:
+    def expand_connection(self,pipe:Pipe, ports: List[Union[str, Tuple[str, str]]]) -> None:
         """
         Expands the ports tranfered with the pipe between the source and target modules with the given ports.
         """
@@ -171,10 +171,18 @@ class PipelineManager:
         """
         Checks if the given module ports are occupied by existing pipes.
         """
-        for port in ports:
+        target_module = self.module_map[module_id]
+        for port_name in ports:
+            in_port = target_module.inputs.get(port_name)
+            if in_port is None:
+                continue
+            if in_port.mode in ("multi_tagged", "multi_list"):
+                continue
+
             for pipe in self.pipes_in[module_id]:
-                if port in pipe.ports:
+                if port_name in pipe.port_names:
                     return True
+
         return False
 
     def setup_incoming_degree(self) -> Dict[str, int]:
@@ -225,7 +233,7 @@ class PipelineManager:
         Checks if a modules inputs are satisfied.
         """
         module_pipes = self.pipes_in[module_id]
-        delivered_ports = set(chain.from_iterable(pipe.ports for pipe in module_pipes))
+        delivered_ports = set(chain.from_iterable(pipe.port_names for pipe in module_pipes))
         if not all(port_name in delivered_ports for port_name in self.module_map[module_id].get_mandatory_inputs()):
             return False
         else:
