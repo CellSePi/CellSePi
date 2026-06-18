@@ -38,13 +38,13 @@ class PipelineGUI(ft.Stack):
         self.controls.append(self.delete_stack)
         self.expand = True
 
-    def reset(self):
+    async def reset(self):
         """
         Resets the PipelineGUI, so a other pipeline can be loaded into.
         """
         self.loading = True
         for module in list(self.modules.values()):
-            module.remove_module()
+           await module.remove_module()
         self.pipeline.run_order = deque()
         self.pipeline.executing = ""
         self.pipeline.running = False
@@ -68,7 +68,7 @@ class PipelineGUI(ft.Stack):
             source = pipe["source"]
             target = pipe["target"]
             ports = [tuple(p) if isinstance(p, list) else p for p in pipe["ports"]]
-            self.add_connection(self.modules[source],self.modules[target],ports)
+            await self.add_connection(self.modules[source],self.modules[target],ports)
 
         offset_x = self.pipeline_dict["view"]["offset_x"]
         offset_y = self.pipeline_dict["view"]["offset_y"]
@@ -81,7 +81,7 @@ class PipelineGUI(ft.Stack):
         self.loading = False
         self.pipeline.event_manager.notify(OnPipelineChangeEvent(f"Pipeline {self.pipeline_name} loaded."))
 
-    def check_all_deletable(self):
+    async def check_all_deletable(self):
         """
         Checks for all modules if their delete_button can be maked visible.
         This is the case if the pipeline is no longer executing or all direct connection of a module are executed.
@@ -103,37 +103,38 @@ class PipelineGUI(ft.Stack):
 
         return all(not(pipe.target_module.module_id in self.pipeline.run_order or pipe.target_module.module_id == self.pipeline.executing) for pipe in self.pipeline.pipes_out[module.module_id])
 
-    def add_connection(self,source_module_gui,target_module_gui,ports: List[Union[str,Tuple[str,str]]]):
+    async def add_connection(self,source_module_gui,target_module_gui,ports: List[Union[str,Tuple[str,str]]]):
         """
         Adds a connection to the pipeline.
         """
         ports_copy = list(ports)
         self.pipeline.add_connection(pipe=Pipe(source_module_gui.module, target_module_gui.module, ports_copy))
-        self.lines_gui.update_line(source_module_gui, target_module_gui,ports)
-        self.lines_gui.update_gui()
-        self.update_all_port_icons()
+        await self.lines_gui.update_line(source_module_gui, target_module_gui,ports)
+        await self.lines_gui.update_gui()
+        await self.update_all_port_icons()
 
-    def expand_connection(self,pipe:Pipe,ports:List[Union[str, Tuple[str, str]]]):
+    async def expand_connection(self,pipe:Pipe,ports:List[Union[str, Tuple[str, str]]]):
         """
         Expands a connection, so its connection also tranferes the given ports.
         """
         ports_copy = list(ports)
         self.pipeline.expand_connection(pipe,ports_copy)
-        self.lines_gui.update_line(self.modules[pipe.source_module.module_id], self.modules[pipe.target_module.module_id], pipe.ports)
-        self.lines_gui.update_gui()
-        self.update_all_port_icons()
+        await self.lines_gui.update_line(self.modules[pipe.source_module.module_id], self.modules[pipe.target_module.module_id], pipe.ports)
+        await self.lines_gui.update_gui()
+        await self.update_all_port_icons()
 
-    def remove_connection(self,source_module_gui,target_module_gui):
+    async def remove_connection(self,source_module_id,target_module_id):
         """
         Removes a connection from the pipeline.
         """
-        self.pipeline.remove_connection(source_module_gui.module_id,target_module_gui.module_id)
-        self.lines_gui.remove_line(source_module_gui, target_module_gui)
-        self.update_all_port_icons()
-        self.check_for_valid_all_modules()
+        print("hey!")
+        self.pipeline.remove_connection(source_module_id,target_module_id)
+        await self.lines_gui.remove_line(self.modules[source_module_id], self.modules[target_module_id])
+        await self.update_all_port_icons()
+        await self.check_for_valid_all_modules()
 
 
-    def refill_show_room(self,module_gui:ModuleGUI,visible:bool=True,index:int=None,show_room_id:int=None):
+    async def refill_show_room(self,module_gui:ModuleGUI,visible:bool=True,index:int=None,show_room_id:int=None):
         """
         To refill the show room after a module has been added to the pipeline.
 
@@ -146,7 +147,7 @@ class PipelineGUI(ft.Stack):
         new_module_gui = ModuleGUI(self, module_gui.module_type, x=SPACING_X + SHOWROOM_PADDING_X / 2, y=module_gui.show_offset_y, show_mode=True, visible=visible, index=index,id_number=show_room_id)
         self.page_stack.controls.insert(3,new_module_gui)
         self.page_stack.update()
-        self.update_all_port_icons()
+        await self.update_all_port_icons()
 
     def build_show_room(self,page_stack:ft.Stack):
         """
@@ -171,7 +172,7 @@ class PipelineGUI(ft.Stack):
             _add_show_room_module(module_type,x,y_module,visible,-1)
             _add_show_room_module(module_type,x,y_module,visible,-2)
 
-    def change_show_room_page(self,page_number:int):
+    async def change_show_room_page(self,page_number:int):
         """
         Changes the page of the show_room to the given page number.
         """
@@ -215,7 +216,7 @@ class PipelineGUI(ft.Stack):
                 self.controls.insert(2, module_gui)
             self.update()
 
-    def remove_module(self,module_id: str):
+    async def remove_module(self,module_id: str):
         """
         Removes a module from the pipeline.
         """
@@ -225,7 +226,7 @@ class PipelineGUI(ft.Stack):
         del gui_module
         self.update()
 
-    def toggle_all_module_detection(self,module_id: str):
+    async def toggle_all_module_detection(self,module_id: str):
         """
         Toggles whether all modules can only be moved and are ready to be clicked to connect connections or
         are in the 'normal' mode where any tool is available.
@@ -234,15 +235,15 @@ class PipelineGUI(ft.Stack):
         self.transmitting_ports = []
         for module in self.modules.values():
             if module.module_id != module_id:
-                module.toggle_detection()
+                await module.toggle_detection()
                 self.update()
 
-    def enables_all_stuck_in_running(self):
+    async def enables_all_stuck_in_running(self):
         """
         Disables the waiting/execution mode for all modules when some event happens that the pipeline terminated early.
         """
         for module in self.modules.values():
-            self.lines_gui.update_delete_buttons(module)
+            await self.lines_gui.update_delete_buttons(module)
             module.enable_tools()
             module.delete_button.visible = True
             module.delete_button.update()
@@ -250,16 +251,16 @@ class PipelineGUI(ft.Stack):
             module.executing_button.update()
             module.waiting_button.visible = False
             module.waiting_button.update()
-        self.check_for_valid_all_modules()
+        await self.check_for_valid_all_modules()
 
-    def check_for_valid_all_modules(self):
+    async def check_for_valid_all_modules(self):
         """
         Checks all modules if its valid to build a connection to the currently selected source module.
         """
         for target_module_gui in self.modules.values():
-            self.check_for_valid(target_module_gui.module_id)
+            await self.check_for_valid(target_module_gui.module_id)
 
-    def check_for_valid(self,module_id: str):
+    async def check_for_valid(self,module_id: str):
         """
         Checks for a module associated with the given module_id if its valid to build a connection to the currently selected source module.
         """
@@ -276,13 +277,13 @@ class PipelineGUI(ft.Stack):
                 if all(k in target_module_gui.module.inputs for k in
                        self.transmitting_ports) and self.transmitting_ports != [] and valid and not (
                 self.pipeline.check_ports_occupied(target_module_gui.module_id, self.transmitting_ports)):
-                    target_module_gui.set_valid()
+                    await target_module_gui.set_valid()
                 else:
-                    target_module_gui.set_invalid()
+                    await target_module_gui.set_invalid()
 
-    def update_all_port_icons(self):
+    async def update_all_port_icons(self):
         """
         Updates for all modules the port icons.
         """
         for module_gui in self.modules.values():
-            module_gui.update_port_icons()
+            await module_gui.update_port_icons()

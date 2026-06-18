@@ -1,9 +1,9 @@
 import math
 import time
-from threading import RLock
+import asyncio
 
 import flet as ft
-from typing import List, Dict, Any, cast
+from typing import List, Dict, Any, cast, Union, Tuple
 
 import flet.canvas as cv
 
@@ -84,10 +84,10 @@ class LinesGUI(cv.Canvas):
         self.connections: Dict[tuple[str, str],Dict[str, Any]] = {}
         self.pipeline_gui = pipeline_gui
         self.expand = True
-        self._lock = RLock()
+        self._lock = asyncio.Lock()
         self._last_update_per_module = {}
 
-    def update_line(self,source_module_gui: ModuleGUI ,target_module_gui: ModuleGUI,ports: List[str]):
+    async def update_line(self,source_module_gui: ModuleGUI ,target_module_gui: ModuleGUI,ports: List[Union[str,Tuple[str,str]]]):
         """
         Adds a line between two modules or updates them if it already exists.
         """
@@ -151,16 +151,20 @@ class LinesGUI(cv.Canvas):
                 alignment=ft.Alignment.CENTER
             )
 
-        def dummy():
-            pass
+
         disabled = False
         opacity = 1
         if (source_module_gui.module_id in self.pipeline_gui.pipeline.run_order or target_module_gui.module_id in self.pipeline_gui.pipeline.run_order or source_module_gui.module_id == self.pipeline_gui.pipeline.executing or target_module_gui.module_id == self.pipeline_gui.pipeline.executing) and self.pipeline_gui.pipeline.running:
             disabled = True
             opacity = 0.4
-        delete_button = ft.GestureDetector(top=port_y-20,left=port_x-20,on_hover=lambda e:dummy(),content=ft.IconButton(
-            icon=ft.Icons.CLOSE,tooltip="Delete Connection",hover_color=VALID_COLOR,icon_color=ft.Colors.WHITE,bgcolor=ERROR_COLOR,opacity=opacity,on_click=lambda e,source=source_module_gui,target=target_module_gui:self.pipeline_gui.remove_connection(source,target)
-            ),visible=self.pipeline_gui.show_delete_button,disabled=disabled)
+
+        async def delete():
+            source = source_module_gui.module_id
+            target = target_module_gui.module_id
+            await self.pipeline_gui.remove_connection(source, target)
+
+        delete_button = ft.Container(top=port_y-20,left=port_x-20,content=ft.IconButton(
+            icon=ft.Icons.CLOSE,tooltip="Delete Connection",hover_color=VALID_COLOR,icon_color=ft.Colors.WHITE,bgcolor=ERROR_COLOR,opacity=opacity,on_click=delete,visible=self.pipeline_gui.show_delete_button,disabled=disabled))
 
         self.connections[key] = {
             "edge": edge,
@@ -169,7 +173,7 @@ class LinesGUI(cv.Canvas):
             "delete_button": delete_button,
         }
 
-    def update_delete_button(self,source_module_gui: ModuleGUI, target_module_gui: ModuleGUI,set_all: bool = False):
+    async def update_delete_button(self,source_module_gui: ModuleGUI, target_module_gui: ModuleGUI,set_all: bool = False):
         """
         Checks and updates the delete button for the connection between the source module and the target module.
         """
@@ -185,23 +189,23 @@ class LinesGUI(cv.Canvas):
             delete_button.content.disabled = disabled
             delete_button.content.update()
 
-    def update_delete_buttons(self,module_gui: ModuleGUI,set_all: bool = False):
+    async def update_delete_buttons(self,module_gui: ModuleGUI,set_all: bool = False):
         """
         Updates all delete buttons that are connected to the given module.
         """
         for pipe in self.pipeline_gui.pipeline.pipes_in[module_gui.module.module_id]:
-            self.update_delete_button(self.pipeline_gui.modules[pipe.source_module.module_id], module_gui,set_all)
+            await self.update_delete_button(self.pipeline_gui.modules[pipe.source_module.module_id], module_gui,set_all)
         for pipe in self.pipeline_gui.pipeline.pipes_out[module_gui.module.module_id]:
-            self.update_delete_button(module_gui, self.pipeline_gui.modules[pipe.target_module.module_id],set_all)
+            await self.update_delete_button(module_gui, self.pipeline_gui.modules[pipe.target_module.module_id],set_all)
 
-    def remove_line(self, source_module_gui: ModuleGUI, target_module_gui: ModuleGUI):
+    async def remove_line(self, source_module_gui: ModuleGUI, target_module_gui: ModuleGUI):
         """
         Removes a line between two modules.
         """
         key = (source_module_gui.module_id, target_module_gui.module_id)
         conn = self.connections.pop(key, None)
         if conn is not None:
-            with self._lock:
+            async with self._lock:
                 self.shapes.remove(conn["edge"])
                 self.shapes.remove(conn["arrow"])
                 if conn["port_txt"] is not None:
@@ -210,16 +214,16 @@ class LinesGUI(cv.Canvas):
                 self.update()
                 self.pipeline_gui.delete_stack.update()
 
-    def _update_lines(self,module_gui: ModuleGUI):
+    async def _update_lines(self,module_gui: ModuleGUI):
         """
         Updates all lines that are connected to the given module.
         """
         for pipe in self.pipeline_gui.pipeline.pipes_in[module_gui.module_id]:
-            self.update_line(self.pipeline_gui.modules[pipe.source_module.module_id],module_gui,pipe.ports)
+            await self.update_line(self.pipeline_gui.modules[pipe.source_module.module_id],module_gui,pipe.ports)
         for pipe in self.pipeline_gui.pipeline.pipes_out[module_gui.module_id]:
-            self.update_line(module_gui,self.pipeline_gui.modules[pipe.target_module.module_id],pipe.ports)
+            await self.update_line(module_gui,self.pipeline_gui.modules[pipe.target_module.module_id],pipe.ports)
 
-    def update_lines(self,module_gui: ModuleGUI):
+    async def update_lines(self,module_gui: ModuleGUI):
         """
         Updates all lines connected to the given module,
         but only if enough time has passed since the last update
@@ -229,15 +233,15 @@ class LinesGUI(cv.Canvas):
         last = self._last_update_per_module.get(module_gui.module_id, 0)
         if now - last > THROTTLE_UPDATE_LINES:
             self._last_update_per_module[module_gui.module_id] = now
-            self._update_lines(module_gui)
-            self.update_gui()
+            await self._update_lines(module_gui)
+            await self.update_gui()
 
-    def update_gui(self):
+    async def update_gui(self):
         """
         Updates the GUI to reflect the current connections.
         Uses a lock to ensure thread-safety while rebuilding the newest state.
         """
-        with self._lock:
+        async with self._lock:
             self.shapes.clear()
             self.pipeline_gui.delete_stack.controls.clear()
             for key, data in self.connections.copy().items():
@@ -249,10 +253,10 @@ class LinesGUI(cv.Canvas):
             self.update()
             self.pipeline_gui.delete_stack.update()
 
-    def update_all(self):
+    async def update_all(self):
         """
         Updates all connections for every module in the pipeline.
         """
         for module in self.pipeline_gui.modules.values():
-            self._update_lines(module)
-        self.update_gui()
+            await self._update_lines(module)
+        await self.update_gui()

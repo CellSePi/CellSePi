@@ -1,4 +1,5 @@
 import asyncio
+import inspect
 from typing import Any
 
 import flet as ft
@@ -77,7 +78,9 @@ class PageOverlay(ft.Stack):
                 if self.dismiss:
                     self.close()
                     if self.on_dismiss is not None:
-                        self.on_dismiss(e)
+                        result = self.on_dismiss(e)
+                        if inspect.isawaitable(result):
+                            await result
 
         background = ft.GestureDetector(
             mouse_cursor=ft.MouseCursor.BASIC,
