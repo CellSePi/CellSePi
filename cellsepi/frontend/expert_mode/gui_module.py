@@ -25,6 +25,7 @@ class ModuleGUI(ft.GestureDetector):
                  visible=True, index: int = None, id_number: int = None, module_dict: dict = None):
         super().__init__()
         self.pipeline_gui = pipeline_gui
+        self.error_manager = ErrorManager(self.pipeline_gui.page)
         self.detection: bool = True
         self.module_type = module_type
         self.mouse_cursor = ft.MouseCursor.MOVE
@@ -625,7 +626,7 @@ class ModuleGUI(ft.GestureDetector):
                         selected_tag = dropdowns[port_name].value
                         if not selected_tag:
                             self.pipeline_gui.page.show_dialog(
-                                ft.SnackBar(ft.Text(f"Please select a tag for {port_name}!"), bgcolor=ERROR_COLOR)
+                                ft.SnackBar(ft.Text(f"Please select a tag for {port_name}!",color=ft.Colors.WHITE), bgcolor=ERROR_COLOR)
                             )
                             return
                         final_ports.append((port_name, selected_tag))
@@ -1204,7 +1205,6 @@ class ModuleGUI(ft.GestureDetector):
         Update user_attributes with a module dict.
         """
         has_load_errors = False
-        error_manager = ErrorManager(self.pipeline_gui.page)
         for attr in module_dict.get("user_attributes", []):
             user_attributes = self.module.get_user_attributes
             attr_name = attr["name"]
@@ -1234,7 +1234,7 @@ class ModuleGUI(ft.GestureDetector):
                         setattr(self.module, attr_name, casted_value)
                 except ValueError as e:
                     has_load_errors = True
-                    error_manager.log(e)
+                    self.error_manager.log(e)
 
         if has_load_errors:
-            error_manager.show(f"An error occurred during updating the user attributes of the module: {self.module.gui_config().name}")
+            self.error_manager.show(f"An error occurred during updating the user attributes of the module: {self.module.gui_config().name}")
