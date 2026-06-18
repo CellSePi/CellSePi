@@ -107,7 +107,7 @@ def test_open_log_file_linux(mock_app_dir):
 
 def test_open_log_file_bare_except(mock_app_dir):
     em = ErrorManager()
-    with patch("sys.platform", "win32"), patch("os.startfile", side_effect=Exception("Berechtigung verweigert"),
+    with patch("sys.platform", "win32"), patch("os.startfile", side_effect=Exception("Not allowed, to do that"),
                                                create=True):
         em.open_log_file()
 
