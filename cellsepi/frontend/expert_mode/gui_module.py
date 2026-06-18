@@ -154,7 +154,7 @@ class ModuleGUI(ft.GestureDetector):
                                   border_radius=ft.BorderRadius.all(45)), ft.Container(
                         ft.IconButton(ft.Icons.WARNING_ROUNDED, icon_size=35, disabled=True,
                                       hover_color=ft.Colors.TRANSPARENT, icon_color=ERROR_COLOR,
-                                      tooltip=f"Port '{port.name}' is mandatory and has no incoming pipe!"), bottom=-3,
+                                      tooltip=f"Port {port.name} is mandatory and has no incoming pipe!"), bottom=-3,
                         right=-5)], alignment=ft.Alignment.CENTER,
                     visible=not self.pipeline_gui.pipeline.check_ports_occupied(self.module_id, [port.name]), width=40,
                     height=40)
@@ -162,7 +162,7 @@ class ModuleGUI(ft.GestureDetector):
                     [ft.Container(bgcolor=SUCCESS_COLOR, width=30, height=30, border_radius=ft.BorderRadius.all(45)),
                      ft.IconButton(ft.Icons.CHECK, disabled=True, hover_color=ft.Colors.TRANSPARENT,
                                    icon_color=ft.Colors.WHITE,
-                                   tooltip=f"Port '{port.name}' is mandatory and is satisfied.")],
+                                   tooltip=f"Port {port.name} is mandatory and is satisfied.")],
                     alignment=ft.Alignment.CENTER,
                     visible=self.pipeline_gui.pipeline.check_ports_occupied(self.module_id, [port.name]), width=40,
                     height=40)
@@ -172,7 +172,7 @@ class ModuleGUI(ft.GestureDetector):
                                   border_radius=ft.BorderRadius.all(45)), ft.Container(
                         ft.IconButton(ft.Icons.WARNING_ROUNDED, icon_size=35, disabled=True,
                                       hover_color=ft.Colors.TRANSPARENT, icon_color=ERROR_COLOR,
-                                      tooltip=f"Port '{port.name}' is optional and has no incoming pipe!"), bottom=-3,
+                                      tooltip=f"Port {port.name} is optional and has no incoming pipe!"), bottom=-3,
                         right=-5)], alignment=ft.Alignment.CENTER,
                     visible=not self.pipeline_gui.pipeline.check_ports_occupied(self.module_id, [port.name]),
                     opacity=0.2, width=40, height=40)
@@ -180,7 +180,7 @@ class ModuleGUI(ft.GestureDetector):
                     [ft.Container(bgcolor=SUCCESS_COLOR, width=30, height=30, border_radius=ft.BorderRadius.all(45)),
                      ft.IconButton(ft.Icons.CHECK, disabled=True, hover_color=ft.Colors.TRANSPARENT,
                                    icon_color=ft.Colors.WHITE,
-                                   tooltip=f"Port '{port.name}' is optional and is satisfied.")],
+                                   tooltip=f"Port {port.name} is optional and is satisfied.")],
                     alignment=ft.Alignment.CENTER, opacity=0.2,
                     visible=self.pipeline_gui.pipeline.check_ports_occupied(self.module_id, [port.name]), width=40,
                     height=40)
@@ -274,6 +274,18 @@ class ModuleGUI(ft.GestureDetector):
         self.page_overlay = None  # PageOverlay(self.pipeline_gui.page,self.module.settings,self.close_options)
         self._ports_lock = asyncio.Lock()
 
+    def is_port_connected(self, port_name: str) -> bool:
+        """
+        Check if an import port has a connection.
+        """
+        if self.module_id not in self.pipeline_gui.pipeline.pipes_in:
+            return False
+
+        for pipe in self.pipeline_gui.pipeline.pipes_in[self.module_id]:
+            if port_name in pipe.port_names:
+                return True
+        return False
+
     def disable_tools(self):
         """
         Disable the tools of the modules.
@@ -347,7 +359,7 @@ class ModuleGUI(ft.GestureDetector):
         Updates all ports_Icons of the show ports tab.
         """
         for port in self.module.inputs.keys():
-            if self.pipeline_gui.pipeline.check_ports_occupied(self.module_id, [port]):
+            if self.is_port_connected(port):
                 self.in_ports_Icons[port].visible = False
                 self.in_ports_Icons_occupied[port].visible = True
             else:
@@ -549,18 +561,105 @@ class ModuleGUI(ft.GestureDetector):
             self.connection_ports.visible = False
             self.connect_button.update()
 
-    def add_connection(self):
+    def add_connection(self, e=None):
         """
         Handles the last step of the adding event when the target gets selected.
+        Opens a tag selection dialog if the target port requires it.
         """
         if self.pipeline_gui.source_module is not None and self.pipeline_gui.transmitting_ports is not None and not self.detection and self.valid:
-            current_pipe = self.pipeline_gui.pipeline.get_pipe(self.pipeline_gui.source_module, self.module_id)
-            if current_pipe is None:
-                self.pipeline_gui.add_connection(self.pipeline_gui.modules[self.pipeline_gui.source_module], self,
-                                                 self.pipeline_gui.transmitting_ports)
-            else:
-                self.pipeline_gui.expand_connection(current_pipe, self.pipeline_gui.transmitting_ports)
-            self.pipeline_gui.check_for_valid_all_modules()
+
+            source_id = self.pipeline_gui.source_module
+            transmitting_ports = self.pipeline_gui.transmitting_ports
+
+            ports_needing_tags = []
+            for port_name in transmitting_ports:
+                in_port = self.module.inputs.get(port_name)
+                if in_port is not None and in_port.mode == "multi_tagged":
+                    ports_needing_tags.append((port_name, in_port))
+
+            if not ports_needing_tags:
+                self._execute_connection(source_id, transmitting_ports)
+                return
+
+            dropdowns = {}
+            for port_name, in_port in ports_needing_tags:
+                dropdowns[port_name] = ft.Dropdown(
+                    label=f"Tag for {port_name}",
+                    border_color=MAIN_COLOR,
+                    options=[ft.dropdown.Option(tag) for tag in in_port.allowed_tags],
+                    width=300,
+                    autofocus=True
+                )
+
+            dialog_title = ft.Column(
+                controls=[
+                    ft.Text("Select Tags", weight=ft.FontWeight.BOLD),
+                    ft.Text("Please select a tag for the connections:", size=14, weight=ft.FontWeight.NORMAL),
+                ],
+                tight=True,
+                spacing=5
+            )
+
+            dialog_content = ft.Column(
+                controls=[ft.Container(height=4)] + list(dropdowns.values()),
+                tight=True,
+                scroll=ft.ScrollMode.AUTO
+            )
+
+            def on_cancel(e):
+                dialog.open = False
+                self.pipeline_gui.page.update()
+                self.pipeline_gui.check_for_valid_all_modules()
+
+            dialog = ft.AlertDialog(
+                title=dialog_title,
+                content=dialog_content,
+                on_dismiss=on_cancel,
+                actions_alignment=ft.MainAxisAlignment.END,
+            )
+
+            def on_confirm(e):
+                final_ports = []
+                for port_name in transmitting_ports:
+                    if port_name in dropdowns:
+                        selected_tag = dropdowns[port_name].value
+                        if not selected_tag:
+                            self.pipeline_gui.page.show_dialog(
+                                ft.SnackBar(ft.Text(f"Please select a tag for {port_name}!"), bgcolor=ERROR_COLOR)
+                            )
+                            return
+                        final_ports.append((port_name, selected_tag))
+                    else:
+                        final_ports.append(port_name)
+
+                dialog.open = False
+                self.pipeline_gui.page.update()
+
+                self._execute_connection(source_id, final_ports)
+
+            dialog.actions = [
+                ft.Button("Connect", on_click=on_confirm)
+            ]
+
+            self.pipeline_gui.page.show_dialog(dialog)
+            dialog.open = True
+            self.pipeline_gui.page.update()
+
+    def _execute_connection(self, source_id: str, ports_list: list):
+        """
+        Helper method to finalize the connection setup.
+        """
+        current_pipe = self.pipeline_gui.pipeline.get_pipe(source_id, self.module_id)
+        if current_pipe is None:
+            self.pipeline_gui.add_connection(
+                self.pipeline_gui.modules[source_id],
+                self,
+                ports_list
+            )
+        else:
+            self.pipeline_gui.expand_connection(current_pipe, ports_list)
+
+        self.pipeline_gui.check_for_valid_all_modules()
 
     def remove_module(self):
         """
