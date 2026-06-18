@@ -43,15 +43,16 @@ def test_save_and_load_settings(mock_dir_manager):
 
 
 def test_load_corrupted_settings(mock_dir_manager, capsys):
+    from backend.error_manager import ErrorManager
+
     file_path = mock_dir_manager / "corrupted_settings.json"
-    file_path.write_text("{ kaputtes json ]")
+    file_path.write_text("{ broken json ]")
 
-    manager = SettingsManager(filename="corrupted_settings.json")
+    with patch.object(ErrorManager, 'log') as mock_log:
+        manager = SettingsManager(filename="corrupted_settings.json")
 
-    assert manager.settings.cache.cutoff == 3
-
-    captured = capsys.readouterr()
-    assert "Invalid settings file" in captured.out
+        assert manager.settings.cache.cutoff == 3
+        mock_log.assert_called_once()
 
 
 def test_rest_settings(mock_dir_manager):
