@@ -25,7 +25,6 @@ class ModuleGUI(ft.GestureDetector):
                  visible=True, index: int = None, id_number: int = None, module_dict: dict = None):
         super().__init__()
         self.pipeline_gui = pipeline_gui
-        self.error_manager = ErrorManager(self.pipeline_gui.page)
         self.detection: bool = True
         self.module_type = module_type
         self.mouse_cursor = ft.MouseCursor.MOVE
