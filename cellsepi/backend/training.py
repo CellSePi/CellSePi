@@ -142,7 +142,14 @@ def run_cellpose_training(q, model_type, working_dir, mask_filter, weight, sgd_v
                     model_type="cyto3" if model_type == ModelType.CP_CYTO else "nuclei",
                     gpu=gpu_flag
                 )
-            trainV3.train_seg(model.net, train_data=images, train_labels=labels, channels=[0, 0], normalize=True,
+
+            # handling for 3D images -> they need to be transformed into [Y, X] format for Cellpose V3
+            if images[0].ndim == 3:
+                images, labels = flatten_3d_to_slices(images, labels)
+                if test_images:
+                    test_images, test_labels = flatten_3d_to_slices(test_images, test_labels)
+
+            trainV3.train_seg(model.net, train_data=images, train_labels=labels, channels=[0,0], normalize=True,
                               test_data=test_images, test_labels=test_labels, weight_decay=weight, SGD=sgd_value,
                               learning_rate=learning_rate, n_epochs=epochs, model_name=model_name, min_train_masks=1,
                               save_path=save_path)
@@ -152,3 +159,15 @@ def run_cellpose_training(q, model_type, working_dir, mask_filter, weight, sgd_v
     except Exception:
         error_trace = traceback.format_exc()
         q.put({"type": "error", "text": "Something went wrong while training! Pls look into the logs.", "error_trace": error_trace})
+
+def flatten_3d_to_slices(images, labels):
+    flat_imgs, flat_lbls = [], []
+    for img, lbl in zip(images, labels):
+        if img.ndim == 3: # convert [Z, Y, X] to individual [Y, X] slices
+            for z in range(img.shape[0]):
+                flat_imgs.append(img[z])
+                flat_lbls.append(lbl[z])
+        else: # incase already in [Y, X] format
+            flat_imgs.append(img)
+            flat_lbls.append(lbl)
+    return flat_imgs, flat_lbls
