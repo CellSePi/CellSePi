@@ -14,21 +14,22 @@ class PageOverlay(ft.Stack):
         page: the page of Flet
         content: the content which gets viewed in front of the background
         on_dismiss: callback when the overlay gets dismissed
-        modal: Whether this bottom sheet can be dismissed/closed by clicking the area outside of it.
+        modal: if True, the overlay is blocking and cannot be dismissed by clicking the background.
     """
 
     @property
     def page(self):
         return self._page
 
-    def __init__(self, page: ft.Page, content: ft.Stack = None, on_dismiss=None,dismiss=True, modal=False):
+    def __init__(self, page: ft.Page, content: ft.Control = None, on_dismiss=None, modal=False):
         super().__init__()
         self.page = page
         self.controls = []
-        self._content: ft.Stack | None = None
+        self._content: ft.Control | None = None
+        self._content_wrapper: ft.Column | None = None
         self.on_dismiss: Any | None = on_dismiss
-        self.dismiss: bool = dismiss
         self.modal = modal
+        self.expand = True
         self._background = self.create_background()
         self.content = content
 
@@ -36,20 +37,36 @@ class PageOverlay(ft.Stack):
                                       animate_opacity=ft.Animation(duration=300,
                                                                    curve=ft.AnimationCurve.LINEAR_TO_EASE_OUT),
                                       animate=ft.Animation(duration=300, curve=ft.AnimationCurve.LINEAR_TO_EASE_OUT),
-                                      visible=False, opacity=0.0)
+                                      visible=False, opacity=0.0,
+                                      expand=True)
         page.overlay.append(self.container)
         page.update()
 
     @property
-    def content(self) -> ft.Stack | None:
+    def content(self) -> ft.Control | None:
         return self._content
 
     @content.setter
-    def content(self, new_content: ft.Stack):
+    def content(self, new_content: ft.Control | None):
         if new_content is not None:
-            if self._content is not None:
-                self.controls.remove(self._content)
-            self.controls.append(new_content)
+            if self._content_wrapper is not None and self._content_wrapper in self.controls:
+                self.controls.remove(self._content_wrapper)
+
+            self._content_wrapper = ft.Column(
+                controls=[
+                    ft.Row(
+                        controls=[new_content],
+                        alignment=ft.MainAxisAlignment.CENTER,
+                        vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                        expand=True
+                    )
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                expand=True,
+            )
+
+            self.controls.append(self._content_wrapper)
             self._content = new_content
 
     def open(self):
@@ -75,12 +92,11 @@ class PageOverlay(ft.Stack):
     def create_background(self):
         async def bg_click(e):
             if not self.modal:
-                if self.dismiss:
-                    self.close()
-                    if self.on_dismiss is not None:
-                        result = self.on_dismiss(e)
-                        if inspect.isawaitable(result):
-                            await result
+                self.close()
+                if self.on_dismiss is not None:
+                    result = self.on_dismiss(e)
+                    if inspect.isawaitable(result):
+                        await result
 
         background = ft.GestureDetector(
             mouse_cursor=ft.MouseCursor.BASIC,

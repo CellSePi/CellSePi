@@ -42,7 +42,7 @@ class Review(Module, ABC):
         Review._instances.append(self)
 
     @property
-    def settings(self) -> ft.Stack:
+    def settings(self) -> ft.Control:
         if self._settings is None:
             self._text_field_segmentation_channel = ft.TextField(
                 border_color=ft.Colors.WHITE60,
@@ -89,13 +89,8 @@ class Review(Module, ABC):
             self._canvas.mask_color = self.mask_color
             self._canvas.outline_color = self.outline_color
             self._canvas.mask_opacity = self.mask_opacity
-            self._settings: ft.Stack = ft.Stack(
-                [
-                    ft.Column(
-                        [
-                            ft.Row(
-                                [
-                                    self._canvas,
+            self._settings: ft.Control = ft.Row(
+                                [self._canvas,
                                     ft.Card(
                                         content=ft.Column(
                                             [
@@ -110,10 +105,7 @@ class Review(Module, ABC):
                                                 ),
                                                 self._control_menu
                                             ], spacing=0, expand=True, width=640)),
-                                ], height=700, expand=True, margin=20)
-                        ], alignment=ft.MainAxisAlignment.CENTER,
-                        horizontal_alignment=ft.CrossAxisAlignment.CENTER)
-                ])
+                                ], expand=True, margin=20)
         return self._settings
 
     def finished(self):

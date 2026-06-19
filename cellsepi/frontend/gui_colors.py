@@ -51,17 +51,25 @@ class ColorSelection:
         self.color_icon_mask = ft.Icon(icon=ft.Icons.BRIGHTNESS_1_ROUNDED, color=color_mask, disabled=True)
         self.color_icon_outline = ft.Icon(icon=ft.Icons.BRIGHTNESS_1_ROUNDED, color=color_outline, disabled=True)
         self.color_type = None
-        self.dialog = PageOverlay(self.gui.page, ft.Stack([ft.Row([
-            ft.Column([ft.Card(content=ft.Stack([ft.Container(ft.Column(
-                [self.picker_container,
-                 ft.Container(ft.Row([ft.Button("Save", on_click=self.change_color)
-                                      ], alignment=ft.MainAxisAlignment.END))
-                 ]
-            ), padding=20, alignment=ft.Alignment.CENTER)]), height=385, width=700)],
-                horizontal_alignment=ft.CrossAxisAlignment.CENTER, alignment=ft.MainAxisAlignment.CENTER)],
-            alignment=ft.MainAxisAlignment.CENTER)]),
-                                  on_dismiss=self.close_dialog,
-                                  )
+        _dialog_content = ft.Card(
+                content=ft.Stack([
+                    ft.Container(
+                        ft.Column(
+                            [self.picker_container,
+                    ft.Container(
+                        ft.Row(
+                            [ft.Button("Save", on_click=self.change_color)
+                            ], alignment=ft.MainAxisAlignment.END)
+                    )
+                ]
+                ), padding=20, alignment=ft.Alignment.CENTER)]
+            ), height=385, width=700
+        )
+
+        self.dialog = PageOverlay(self.gui.page,
+            content=_dialog_content,
+            on_dismiss=self.close_dialog,
+            )
 
     async def open_color_picker_mask(self, e):
         self.picker_container.content = ColorPicker(

@@ -197,7 +197,7 @@ class Module(ABC):
         self.event_manager: EventManager | None = None
         self.inputs: Dict[str,InputPort] = {}
         self.outputs: Dict[str,OutputPort] = {}
-        self._settings: ft.Stack | None = None
+        self._settings: ft.Control | None = None
         self._on_settings_dismiss: Callable[[], None] | None = lambda : None
         """
         User-defined attributes convention:        
@@ -302,7 +302,7 @@ class Module(ABC):
         return mandatory_inputs
 
     @property
-    def settings(self) -> ft.Stack|None:
+    def settings(self) -> ft.Control |None:
         """
         The settings overlay of the module in the gui.
         If it is None it gets generated automatically if the modules has user_attributes.
