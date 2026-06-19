@@ -1,3 +1,5 @@
+import traceback
+
 import sys
 import logging
 
@@ -147,5 +149,6 @@ def run_cellpose_training(q, model_type, working_dir, mask_filter, weight, sgd_v
 
         q.put({"type": "finished", "text": "Finished Training"})
 
-    except Exception as e:
-        q.put({"type": "error", "text": "Something went wrong while training! Pls look into the logs.", "error_obj": str(e)})
+    except Exception:
+        error_trace = traceback.format_exc()
+        q.put({"type": "error", "text": "Something went wrong while training! Pls look into the logs.", "error_trace": error_trace})

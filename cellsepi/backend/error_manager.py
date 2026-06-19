@@ -1,3 +1,5 @@
+from typing import Union
+
 import logging
 import flet as ft
 from flet import SnackBarAction
@@ -72,12 +74,15 @@ class ErrorManager:
             )
             self.page.update()
 
-    def log_and_show(self, user_message: str, ex: Exception):
+    def log_and_show(self, user_message: str, ex: Union[Exception, str]):
         if self.page is None:
             self.log(ex)
             return
 
-        self.logger.error(f"User Message: {user_message}", exc_info=ex)
+        if isinstance(ex, str):
+            self.logger.error(f"User Message: {user_message}\n{ex}")
+        else:
+            self.logger.error(f"User Message: {user_message}", exc_info=ex)
 
         self.page.show_dialog(
             ft.SnackBar(
@@ -88,8 +93,11 @@ class ErrorManager:
         )
         self.page.update()
 
-    def log(self, ex: Exception):
-        self.logger.error("Error logged", exc_info=ex)
+    def log(self,ex: Union[Exception, str]):
+        if isinstance(ex, str):
+            self.logger.error(f"Error logged\n{ex}")
+        else:
+            self.logger.error("Error logged", exc_info=ex)
 
     def open_log_file(self, e=None):
         path = str(self.log_path)
