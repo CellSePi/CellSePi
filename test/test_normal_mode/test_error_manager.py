@@ -32,7 +32,6 @@ def test_singleton_and_init(mock_app_dir):
     assert em2.page is mock_page
     assert (mock_app_dir / "logs").exists()
 
-
 def test_log_method(mock_app_dir):
     em = ErrorManager()
     test_error = ValueError("Simulated error")
@@ -42,6 +41,14 @@ def test_log_method(mock_app_dir):
     assert "Simulated error" in log_content
     assert "ValueError" in log_content
 
+def test_log_method_with_string(mock_app_dir):
+    em = ErrorManager()
+    test_traceback_str = "Traceback (most recent call last):\nValueError: Simulated string error"
+    em.log(test_traceback_str)
+
+    log_content = em.log_path.read_text()
+    assert "Error logged" in log_content
+    assert "Simulated string error" in log_content
 
 def test_show_methods(mock_app_dir):
     mock_page = MagicMock(spec=ft.Page)
@@ -73,6 +80,19 @@ def test_log_and_show_with_page(mock_app_dir):
     mock_page.show_dialog.assert_called_once()
     log_content = em.log_path.read_text()
     assert "User test message" in log_content
+    assert "Crash" in log_content
+
+def test_log_and_show_with_string(mock_app_dir):
+    mock_page = MagicMock(spec=ft.Page)
+    em = ErrorManager(page=mock_page)
+
+    test_traceback_str = "Traceback (most recent call last):\nValueError: Multiprocess string crash"
+    em.log_and_show("String test message", test_traceback_str)
+
+    mock_page.show_dialog.assert_called_once()
+    log_content = em.log_path.read_text()
+    assert "String test message" in log_content
+    assert "Multiprocess string crash" in log_content
 
 
 def test_log_and_show_no_page(mock_app_dir):
@@ -82,7 +102,6 @@ def test_log_and_show_no_page(mock_app_dir):
         ex = ValueError("Crash")
         em.log_and_show("User test message", ex)
         mock_log.assert_called_once_with(ex)
-
 
 def test_open_log_file_windows(mock_app_dir):
     em = ErrorManager()
@@ -110,4 +129,3 @@ def test_open_log_file_bare_except(mock_app_dir):
     with patch("sys.platform", "win32"), patch("os.startfile", side_effect=Exception("Not allowed, to do that"),
                                                create=True):
         em.open_log_file()
-

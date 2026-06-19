@@ -496,10 +496,10 @@ class Training(ft.Container):
 
     async def update_terminal(self,msg):
         if msg["type"] == "error":
-            if  not msg["error_obj"]:
+            if not msg["error_trace"]:
                 self.gui.error_manager.show_without_button(msg["text"])
             else:
-                self.gui.error_manager.log_and_show(msg["text"], msg["error_obj"])
+                self.gui.error_manager.log_and_show(msg["text"], msg["error_trace"])
             self.training_error_terminal(msg["text"])
 
         elif msg["type"] == "finished":
