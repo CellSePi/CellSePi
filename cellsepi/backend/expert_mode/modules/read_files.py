@@ -24,7 +24,7 @@ class ReadFiles(Module,ABC):
         self.user_mask_suffix: str = "_seg"
 
     @property
-    def settings(self) -> ft.Stack | None:
+    def settings(self) -> ft.Control | None:
         if self._settings is not None and self.update_suffix() is None:
             self.on_change_user_file_type = self.update_suffix
             self.user_file_path.suffix = self.user_file_type.value.extensions

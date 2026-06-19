@@ -581,69 +581,85 @@ class ModuleGUI(ft.GestureDetector):
                 await self._execute_connection(source_id, transmitting_ports)
                 return
 
+            async def valid(e):
+                e.control.border_color = MAIN_COLOR
+                e.control.update()
+
+
             dropdowns = {}
             for port_name, in_port in ports_needing_tags:
                 dropdowns[port_name] = ft.Dropdown(
                     label=f"Tag for {port_name}",
                     border_color=MAIN_COLOR,
                     options=[ft.dropdown.Option(tag) for tag in in_port.allowed_tags],
-                    width=300,
+                    on_select=valid,
+                    expand=True,
                     autofocus=True
                 )
 
-            dialog_title = ft.Column(
-                controls=[
-                    ft.Text("Select Tags", weight=ft.FontWeight.BOLD),
-                    ft.Text("Please select a tag for the connections:", size=14, weight=ft.FontWeight.NORMAL),
-                ],
-                tight=True,
-                spacing=5
-            )
-
-            dialog_content = ft.Column(
-                controls=[ft.Container(height=4)] + list(dropdowns.values()),
-                tight=True,
-                scroll=ft.ScrollMode.AUTO
-            )
-
             async def on_cancel(e):
-                dialog.open = False
-                self.pipeline_gui.page.update()
+                overlay.close()
                 await self.pipeline_gui.check_for_valid_all_modules()
-
-            dialog = ft.AlertDialog(
-                title=dialog_title,
-                content=dialog_content,
-                on_dismiss=on_cancel,
-                actions_alignment=ft.MainAxisAlignment.END,
-            )
 
             async def on_confirm(e):
                 final_ports = []
+                not_selected= False
                 for port_name in transmitting_ports:
                     if port_name in dropdowns:
                         selected_tag = dropdowns[port_name].value
                         if not selected_tag:
-                            self.pipeline_gui.page.show_dialog(
-                                ft.SnackBar(ft.Text(f"Please select a tag for {port_name}!",color=ft.Colors.WHITE), bgcolor=ERROR_COLOR)
-                            )
-                            return
+                            dropdowns[port_name].border_color=ERROR_COLOR
+                            dropdowns[port_name].update()
+                            not_selected = True
+
                         final_ports.append((port_name, selected_tag))
                     else:
                         final_ports.append(port_name)
 
-                dialog.open = False
-                self.pipeline_gui.page.update()
+                if not_selected:
+                    ErrorManager().show_without_button(f"Please select a tag for every given port!")
+                    return
 
+                overlay.close()
                 await self._execute_connection(source_id, final_ports)
 
-            dialog.actions = [
-                ft.Button("Connect", on_click=on_confirm)
-            ]
+            dialog_card = ft.Card(
+                    width=380,
+                    height=500,
+                    content=ft.Container(
+                        padding=20,
+                        content=ft.Column(
+                            tight=True,
+                            controls=[
+                                ft.Column(
+                                    controls=[
+                                        ft.Text("Select Tags", weight=ft.FontWeight.BOLD, size=36),
+                                        ft.Text("Please select a tag for the connections:", size=14),
+                                    ],
+                                    tight=True,
+                                    spacing=5,
+                                ),
+                                ft.ListView(
+                                    controls=[ft.Container(height=4)] + list(dropdowns.values()),
+                                    expand=True,
+                                    spacing=10,
+                                ),
+                                ft.Row(
+                                    alignment=ft.MainAxisAlignment.END,
+                                    controls=[ft.Button("Connect", on_click=on_confirm)]
+                                )
+                            ]
+                        )
+                    )
+                )
+            overlay = PageOverlay(
+                page=self.pipeline_gui.page,
+                on_dismiss = on_cancel,
+                content= dialog_card,
+            )
+            overlay.open()
 
-            self.pipeline_gui.page.show_dialog(dialog)
-            dialog.open = True
-            self.pipeline_gui.page.update()
+
 
     async def _execute_connection(self, source_id: str, ports_list: list):
         """
@@ -793,7 +809,7 @@ class ModuleGUI(ft.GestureDetector):
             self.delete_button.visible = True
             if self.pipeline_gui.source_module != "":
                 await self.toggle_detection()
-                self.pipeline_gui.check_for_valid_all_modules()
+                await self.pipeline_gui.check_for_valid_all_modules()
             self.pipeline_gui.update()
 
         if self.show_mode:
@@ -814,29 +830,15 @@ class ModuleGUI(ft.GestureDetector):
         height = element_height * len(user_attributes) + spacing * (len(user_attributes) - 1)
         limit_reached = len(user_attributes) > USER_OPTIONS_LIMIT
         if len(user_attributes) != 0:
-            return ft.Stack(
-                [
-                    ft.Row(
-                        [
-                            ft.Column(
-                                [
-                                    ft.Card(
-                                        content=ft.Column(
-                                            [
-                                                ft.Container(
-                                                    ft.ListView(
-                                                        controls=self.create_attribute_list(user_attributes),
-                                                        width=500,
-                                                        spacing=spacing,
-                                                        height=(element_height * (USER_OPTIONS_LIMIT + 1) + spacing * ((
-                                                                                                                               USER_OPTIONS_LIMIT + 1) - 1)) - 30 if limit_reached else height,
-                                                    ), padding=padding)
-                                            ]
-                                        )
-                                    )
-                                ], alignment=ft.MainAxisAlignment.CENTER)
-                        ], alignment=ft.MainAxisAlignment.CENTER)
-                ], alignment=ft.Alignment.CENTER)
+            return ft.Card(content= ft.Container(
+                            ft.ListView(
+                                controls=self.create_attribute_list(user_attributes),
+                                width=500,
+                                spacing=spacing,
+                                height=(element_height * (USER_OPTIONS_LIMIT + 1) + spacing * ((USER_OPTIONS_LIMIT + 1) - 1)) - 30 if limit_reached else height,
+                            ), padding=padding)
+            )
+
         else:
             return None
 
@@ -961,9 +963,7 @@ class ModuleGUI(ft.GestureDetector):
                     disabled=True,
                     expand=True
                 )
-                attr = getattr(self.module, attribute_name)
                 file_picker = ft.FilePicker()
-                self.pipeline_gui._page.services.append(file_picker)
                 ref = ft.Ref[ft.Stack]()
                 file_stack = ft.Stack(
                         [
@@ -1204,7 +1204,7 @@ class ModuleGUI(ft.GestureDetector):
         Update user_attributes with a module dict.
         """
         has_load_errors = False
-        error_manager = ErrorManager(self.pipeline_gui.page)
+        error_manager = ErrorManager()
         for attr in module_dict.get("user_attributes", []):
             user_attributes = self.module.get_user_attributes
             attr_name = attr["name"]

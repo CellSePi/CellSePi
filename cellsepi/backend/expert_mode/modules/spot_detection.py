@@ -61,7 +61,7 @@ class SpotDetectionModule(Module, ABC):
         self.limit_user_spot_radius_z_nm = Limit(min_val=1.0)
 
     @property
-    def settings(self) -> ft.Stack | None:
+    def settings(self) -> ft.Control | None:
         if self._settings is not None and self.on_change_user_use_log_kernel_and_minimum_distance() is None:
             self.on_change_user_use_log_kernel_and_minimum_distance = self.update_disable_kernel_distance
             self.on_change_user_use_threshold = self.update_disable_threshold

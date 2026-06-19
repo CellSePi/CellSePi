@@ -29,7 +29,7 @@ class ImageSegmentationModule(Module, ABC):
         self.user_overwrite_existing_masks: bool = False
 
     @property
-    def settings(self) -> ft.Stack | None:
+    def settings(self) -> ft.Control | None:
         if self._settings is not None and self.on_change_user_model_type() is None:
             self.on_change_user_model_type = self.update_model_path_activation
             self.ref_user_model_path.animate_opacity=600

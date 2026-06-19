@@ -51,60 +51,41 @@ class GUISettings:
         self.overlay.update()
 
     def build(self):
-        self.overlay.content = ft.Stack(
-            [
-                ft.Row(
-                    [
-                        ft.Column(
-                            [
-                                ft.Card(
-                                    content=ft.Container(
-                                        content=ft.Column(
-                                            controls=[
-                                                ft.Text("Settings", size=20, weight=ft.FontWeight.BOLD),
-                                                ft.ListView(
-                                                    controls=self.build_list_items(),
-                                                    # height=self.calc_height(),
-                                                    expand=True,
-                                                    width=self.calc_width(),
-                                                    spacing=10,
-                                                    padding=10,
-                                                ),
-                                                ft.Row([
-                                                ft.Button(
-                                                    ft.Text("Reset", color=ERROR_COLOR),
-                                                    on_click=self._reset,
-                                                ),
-                                                ft.Row(
-                                                    controls=[
-
-                                                        #ft.Button(
-                                                        #    "Cancel",
-                                                        #    on_click=self._cancel,
-                                                        #),
-                                                        ft.Button(
-                                                            "Save",
-                                                            on_click=self._save
-                                                        )
-                                                    ],
-                                                    alignment=ft.MainAxisAlignment.END,
-                                                    spacing=10
-                                                ),],alignment=ft.MainAxisAlignment.SPACE_BETWEEN, width=self.calc_width()
-                                                )
-                                            ],
-                                            # horizontal_alignment=ft.CrossAxisAlignment.STRETCH
-                                        ),
-                                        expand=True,
-                                        padding=15
-                                    ),
-                                    height=self.calc_height()  # + 120
+        self.overlay.content = ft.Card(
+            content=ft.Container(
+                content=ft.Column(
+                    controls=[
+                        ft.Text("Settings", size=20, weight=ft.FontWeight.BOLD),
+                        ft.ListView(
+                            controls=self.build_list_items(),
+                            # height=self.calc_height(),
+                            expand=True,
+                            width=self.calc_width(),
+                            spacing=10,
+                            padding=10,
+                        ),
+                        ft.Row([
+                        ft.Button(
+                            ft.Text("Reset", color=ERROR_COLOR),
+                            on_click=self._reset,
+                        ),
+                        ft.Row(
+                            controls=[
+                                ft.Button(
+                                    "Save",
+                                    on_click=self._save
                                 )
                             ],
-                            alignment=ft.MainAxisAlignment.CENTER,
+                            alignment=ft.MainAxisAlignment.END,
+                            spacing=10
+                        ),],alignment=ft.MainAxisAlignment.SPACE_BETWEEN, width=self.calc_width()
                         )
                     ],
-                    alignment=ft.MainAxisAlignment.CENTER),
-            ]
+                ),
+                expand=True,
+                padding=15
+            ),
+            height=self.calc_height()  # + 120
         )
         return self.overlay
 
