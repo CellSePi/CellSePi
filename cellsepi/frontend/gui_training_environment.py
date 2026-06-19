@@ -1,7 +1,7 @@
 import queue
 
-import multiprocessing
 import pathlib
+import threading
 
 import flet as ft
 import torch
@@ -28,7 +28,7 @@ class Training(ft.Container):
         super().__init__()
         self.gui = gui
         self.log_queue = None
-        self.training_process = None
+        self.training_thread = None
         self.epoch_bar_control = None
         self.last_tqdm_control = None
         self.text = ft.Text("Go To Training")
@@ -59,16 +59,16 @@ class Training(ft.Container):
             visible=True,
             on_click=lambda e: e.page.run_task(self.start_training),
         )
-        self.cancel_button = ft.Button(
-            content="Cancel",
-            icon=ft.Icons.CANCEL,
-            icon_color=ERROR_COLOR,
-            color= ERROR_COLOR,
-            tooltip="Cancel the running training",
-            disabled=True,
-            visible=False,
-            on_click=lambda e: e.page.run_task(self.cancel_training),
-        )
+        #self.cancel_button = ft.Button(
+        #    content="Cancel",
+        #    icon=ft.Icons.CANCEL,
+        #    icon_color=ERROR_COLOR,
+        #    color= ERROR_COLOR,
+        #    tooltip="Cancel the running training",
+        #    disabled=True,
+        #    visible=False,
+        #    on_click=lambda e: e.page.run_task(self.cancel_training),
+        #)
 
         self.model = "nuclei"
         self.batch_size = 100
@@ -370,7 +370,9 @@ class Training(ft.Container):
             [
                 ft.Container(content=ft.Row([self.progress_ring, self.progress_bar_text]), padding=5),
                 ft.Container(
-                    content=ft.Row([self.start_button,self.cancel_button]), padding=5),
+                    content=ft.Row([self.start_button,
+                                    #self.cancel_button
+                                    ]), padding=5),
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN
         )
         test_container = ft.Container(
@@ -398,9 +400,9 @@ class Training(ft.Container):
         self.start_button.disabled = True
         self.start_button.visible = False
         self.start_button.update()
-        self.cancel_button.disabled = False
-        self.cancel_button.visible = True
-        self.cancel_button.update()
+        #self.cancel_button.disabled = False
+        #self.cancel_button.visible = True
+        #self.cancel_button.update()
         self.re_train_model_chooser.disabled = True
         self.re_train_model_chooser.update()
         self.gui.directory.disable_path_choosing()
@@ -430,8 +432,8 @@ class Training(ft.Container):
                 self.gui.directory.enable_path_choosing()
                 self.start_button.disabled = False
                 self.start_button.visible = True
-                self.cancel_button.disabled = True
-                self.cancel_button.visible = False
+                #self.cancel_button.disabled = True
+                #self.cancel_button.visible = False
                 self.re_train_model_chooser.disabled = False
                 self.progress_ring.visible = False
                 self.progress_bar_text.value = ""
@@ -449,8 +451,8 @@ class Training(ft.Container):
                 self.gui.directory.enable_path_choosing()
                 self.start_button.disabled = False
                 self.start_button.visible = True
-                self.cancel_button.disabled = True
-                self.cancel_button.visible = False
+                #self.cancel_button.disabled = True
+                #self.cancel_button.visible = False
                 self.re_train_model_chooser.disabled = False
                 self.progress_ring.visible = False
                 self.progress_bar_text.value = ""
@@ -468,9 +470,8 @@ class Training(ft.Container):
         else:
             sgd_value = False
 
-        ctx = multiprocessing.get_context("spawn")
-        self.log_queue = ctx.Queue()
-        self.training_process = ctx.Process(
+        self.log_queue = queue.Queue()  
+        self.training_thread = threading.Thread(
             target=run_cellpose_training,
             args=(
                 self.log_queue,
@@ -488,9 +489,9 @@ class Training(ft.Container):
                 self.diameter
             )
         )
-        self.training_process.daemon = True
+        self.training_thread.daemon = True
 
-        self.training_process.start()
+        self.training_thread.start()
 
         self.gui.page.run_thread(self.queue_listener)
 
@@ -534,9 +535,9 @@ class Training(ft.Container):
         self.start_button.visible = True
         self.start_button.update()
 
-        self.cancel_button.disabled = True
-        self.cancel_button.visible = False
-        self.cancel_button.update()
+        #self.cancel_button.disabled = True
+        #self.cancel_button.visible = False
+        #self.cancel_button.update()
 
         self.re_train_model_chooser.disabled = False
         self.re_train_model_chooser.update()
@@ -554,12 +555,12 @@ class Training(ft.Container):
             if msg["type"] == "error" or msg["type"] == "finished" or msg["type"] == "cancel":
                 break
 
-        if self.training_process:
-            self.training_process.join(timeout=1.0)
+        if self.training_thread:
+            self.training_thread.join(timeout=1.0)
 
-            if self.training_process.is_alive():
-                self.training_process.terminate()
-                self.training_process.join(timeout=0.5)
+            if self.training_thread.is_alive():
+                self.training_thread.terminate()
+                self.training_thread.join(timeout=0.5)
 
         while not self.log_queue.empty():
             try:
@@ -606,21 +607,21 @@ class Training(ft.Container):
         self.terminal_list.controls.append(self.epoch_bar_control)
         self.terminal_list.update()
 
-    async def cancel_training(self):
-        if self.training_process and self.training_process.is_alive():
-            self.training_process.terminate()
-
-            self.terminal_list.controls.append(
-                create_terminal_text(">>> Training cancelled.",is_bold=True, color=ERROR_COLOR)
-            )
-            self.terminal_list.update()
-
-            self.log_queue.put({"type": "cancel", "text": "cancelled"})
-
-            self.cancel_button.disabled = True
-            self.cancel_button.update()
-            self.epoch_bar_control = None
-            self.last_tqdm_control = None
+    #async def cancel_training(self):
+    #    if self.training_thread and self.training_thread.is_alive():
+    #        self.training_thread.terminate()
+    #
+    #        self.terminal_list.controls.append(
+    #            create_terminal_text(">>> Training cancelled.",is_bold=True, color=ERROR_COLOR)
+    #        )
+    #        self.terminal_list.update()
+    #
+    #        self.log_queue.put({"type": "cancel", "text": "cancelled"})
+    #
+    #        self.cancel_button.disabled = True
+    #       self.cancel_button.update()
+    #        self.epoch_bar_control = None
+    #        self.last_tqdm_control = None
 
     def training_finished_terminal(self):
             self.terminal_list.controls.append(

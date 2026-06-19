@@ -320,7 +320,7 @@ class GUI:
                 self.cancel_segmentation()
                 await asyncio.to_thread(self.cancel_event.wait)
             if self.csp.training_running:
-                self.page.run_task(self.training_environment.cancel_training)
+                #self.page.run_task(self.training_environment.cancel_training)
                 await asyncio.to_thread(self.training_event.wait)
             if self.csp.readout_running:
                 await asyncio.to_thread(self.readout_event.wait)
