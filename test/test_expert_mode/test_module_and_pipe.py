@@ -2,6 +2,7 @@ from backend.expert_mode.module import Module, Port
 from test.test_expert_mode.dummy_modules import *
 from backend.expert_mode.pipe import Pipe, copy_data, IMMUTABLES
 import flet as ft
+import threading
 import pytest
 
 @pytest.fixture(autouse=True)
@@ -359,3 +360,50 @@ def test_pipe_port_names_property_with_tuples():
     names = pipe.port_names
 
     assert names == ["port_normal", "port_tagged"], "Pipe.port_names failed to extract names from tuples!"
+
+def test_is_cancelled_default_false():
+    """
+    A freshly created module has no cancel_event attached (None),
+    so is_cancelled() must return False.
+    """
+    mod1 = DummyModule1()
+    assert mod1._cancel_event is None, "Module should have no cancel_event by default"
+    assert mod1.is_cancelled() is False, "is_cancelled() should be False when no cancel_event is set"
+    mod1.destroy()
+
+def test_is_cancelled_event_not_set():
+    """
+    If a cancel_event is attached but not set, is_cancelled() must return False.
+    """
+    mod1 = DummyModule1()
+    mod1._cancel_event = threading.Event()
+    assert mod1.is_cancelled() is False, "is_cancelled() should be False when cancel_event is not set"
+    mod1.destroy()
+
+def test_is_cancelled_event_set():
+    """
+    If the attached cancel_event is set, is_cancelled() must return True.
+    """
+    mod1 = DummyModule1()
+    mod1._cancel_event = threading.Event()
+    mod1._cancel_event.set()
+    assert mod1.is_cancelled() is True, "is_cancelled() should be True when cancel_event is set"
+    mod1.destroy()
+
+def test_is_cancelled_reflects_external_changes():
+    """
+    Since the module only holds a reference to the pipeline's cancel_event,
+    setting/clearing the event from outside must be reflected immediately.
+    """
+    mod1 = DummyModule1()
+    shared_event = threading.Event()
+    mod1._cancel_event = shared_event
+
+    assert mod1.is_cancelled() is False
+
+    shared_event.set()
+    assert mod1.is_cancelled() is True, "is_cancelled() should reflect external set() on the same event"
+
+    shared_event.clear()
+    assert mod1.is_cancelled() is False, "is_cancelled() should reflect external clear() on the same event"
+    mod1.destroy()
