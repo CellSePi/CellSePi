@@ -600,7 +600,7 @@ class Training(ft.Container):
         bar_length = 30
         filled_length = int(bar_length * percent)
         bar = '█' * filled_length + '░' * (bar_length - filled_length)
-        info = f" {current}/{total}" if current is not None and total is not None else ""
+        info = f"{current}/{total}" if current is not None and total is not None else ""
         time_info = f"{elapsed}" if elapsed else ""
         bar_text = f"Progress: [{bar}] {percent:.0%} {info} {time_info}"
 

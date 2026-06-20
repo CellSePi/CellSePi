@@ -54,8 +54,10 @@ class QueueLogHandler(logging.Handler):
                 self.last_epoch_logged = True
         elif "saving network parameters" in log_msg and self.last_epoch_logged:
             total_time = time.time() - self.start_time
+            time_per_epoch = total_time / self.total_epochs
+            time_info = f"[{format_time(total_time)}<00:00, {time_per_epoch:.2f}s/epoch]"
             self.q.put({"type": "epoch", "text": f"epochs {self.total_epochs}/{self.total_epochs}, {log_msg}",
-                        "percent": 1.0,"current": self.total_epochs, "total": self.total_epochs,"elapsed": format_time(total_time)})
+                        "percent": 1.0,"current": self.total_epochs, "total": self.total_epochs,"elapsed": time_info})
         else:
             self.q.put({"type": "log", "text": log_msg})
 
