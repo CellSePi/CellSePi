@@ -406,7 +406,6 @@ class BatchImageSegmentation(Notifier):
 
         if event_manager is None:
             self._call_completion_listeners()
-            self.cleanup_backups()
         else:
             event_manager.notify(ProgressEvent(percent=100, process=f"All images segmented."))
         # reset variables

@@ -199,7 +199,7 @@ class GUISegmentation:
 
             async def flow():
                 print("mask paths:",self.gui.csp.mask_paths)
-                if self.gui.csp.mask_paths:
+                if any(self.gui.csp.mask_paths.values()):
 
                     dialog = ChoiceDialog(
                         page=self.gui.page,
@@ -213,15 +213,21 @@ class GUISegmentation:
                     delete = (result == 0)
 
                     if delete:
-                        for img in self.gui.csp.mask_paths:
-                            path = self.gui.csp.mask_paths[img][self.gui.csp.config.get_bf_channel()]
-                            if os.path.exists(path):
+                        bf_channel = self.gui.csp.config.get_bf_channel()
+
+                        for img in list(self.gui.csp.mask_paths.keys()):
+                            mask_data = self.gui.csp.mask_paths.get(img, {})
+                            path = mask_data.get(bf_channel)
+
+                            if path and os.path.exists(path):
                                 os.remove(path)
-                            self.gui.csp.mask_paths[img].pop(self.gui.csp.config.get_bf_channel(), None)
+
+                            self.gui.csp.mask_paths[img].pop(bf_channel, None)
                             self.gui.directory.update_mask_check(img)
-                            self.gui.page.run_task(self.gui.directory.check_masks)
                             self.gui.average_diameter.remove_image_from_cache(img)
-                            self.gui.page.run_task(self.gui.average_diameter.get_avg_diameter)
+
+                        self.gui.page.run_task(self.gui.directory.check_masks)
+                        self.gui.page.run_task(self.gui.average_diameter.get_avg_diameter)
                         await self.gui.canvas.update_mask_image(True)
 
                 def threaded_segmentation_runner():
