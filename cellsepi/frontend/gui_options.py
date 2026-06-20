@@ -26,6 +26,9 @@ class Options(ft.Container):
         )
         self.color_selection = ColorSelection(gui)
         self.color_opacity = ColorOpacity(gui)
+        cuda_built = torch.version.cuda is not None
+        mps_built = hasattr(torch.backends, "mps") and torch.backends.mps.is_built()
+        software_supports_gpu = cuda_built or mps_built
         gpu_available = torch.cuda.is_available() or torch.mps.is_available()
         self.slider = ft.CupertinoSlidingSegmentedButton(
             selected_index=1 if gpu_available else 0,
@@ -38,7 +41,6 @@ class Options(ft.Container):
                 ft.Text("GPU")
             ],
         )
-        cuda_compiled = torch.version.cuda is not None
         self.slider_blocker = ft.Container(
             width=80,
             height=30,
@@ -51,12 +53,30 @@ class Options(ft.Container):
             self.slider.on_change = None
             self.slider.thumb_color = ft.Colors.GREY_400
             self.slider_blocker.visible = True
-            if cuda_compiled:
-                self.slider_blocker.tooltip = f"GPU acceleration is unavailable.\n" \
-                                              f"Use a CUDA-compatible NVIDIA card for faster segmentation,\n" \
-                                              f"and ensure the required drivers are installed."
+            if software_supports_gpu:
+                if sys.platform == "darwin":
+                    self.slider_blocker.tooltip = (
+                        "GPU acceleration is unavailable.\n"
+                        "Please ensure your macOS is updated."
+                    )
+                else:
+                    self.slider_blocker.tooltip = (
+                        "GPU acceleration is unavailable.\n"
+                        "Use a CUDA-compatible NVIDIA card and\n"
+                        "ensure the required drivers are installed."
+                    )
             else:
-                self.slider_blocker.tooltip = f"GPU acceleration is unavailable."
+                if sys.platform == "darwin":
+                    self.slider_blocker.tooltip = (
+                        "GPU acceleration is unavailable.\n"
+                        "The application installation seems to be corrupted or modified."
+                    )
+                else:
+                    self.slider_blocker.tooltip = (
+                        "GPU acceleration is unavailable.\n"
+                        "You are using a CPU-only version of this software.\n"
+                        "If your system has a compatible NVIDIA GPU, please download the GPU release."
+                    )
             for control in self.slider.controls:
                 control.color = ft.Colors.GREY_700
         else:
