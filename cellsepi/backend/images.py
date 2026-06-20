@@ -155,7 +155,11 @@ class BatchImageSegmentation(Notifier):
             segmentation_model = model_path
             event_manager.notify(ProgressEvent(0, f"Segmenting Images: 0/{n_images}"))
 
-        device = torch.device("cuda" if self.GPU else "cpu")  # converts string to device object
+        if self.GPU:
+            device = torch.device(
+                "cuda" if torch.cuda.is_available() else ("mps" if torch.mps.is_available() else "cpu"))
+        else:
+            device = torch.device("cpu")
 
         if event_manager is None:
             model_type = self.gui.csp.model_type

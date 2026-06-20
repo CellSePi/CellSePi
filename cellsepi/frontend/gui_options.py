@@ -26,10 +26,11 @@ class Options(ft.Container):
         )
         self.color_selection = ColorSelection(gui)
         self.color_opacity = ColorOpacity(gui)
+        gpu_available = torch.cuda.is_available() or torch.mps.is_available()
         self.slider = ft.CupertinoSlidingSegmentedButton(
-            selected_index=1 if torch.cuda.is_available() else 0,
+            selected_index=1 if gpu_available else 0,
             thumb_color=MAIN_COLOR,
-            disabled=True if not torch.cuda.is_available() else False,
+            disabled=True if not gpu_available else False,
             on_change=self.gpu_slider_change,
             padding=ft.Padding.symmetric(vertical=0,horizontal=0),
             controls=[
@@ -45,7 +46,7 @@ class Options(ft.Container):
             on_click=None,
             visible=False
         )
-        if not torch.cuda.is_available():
+        if not gpu_available:
             self.gui.csp.gpu = False
             self.slider.on_change = None
             self.slider.thumb_color = ft.Colors.GREY_400

@@ -121,10 +121,15 @@ def run_cellpose_training(q, model_type_str, working_dir, mask_filter, weight, s
         if pretrained_path:
             q.put({"type": "log", "text": ">>> Validating pretrained model..."})
             try:
+                if gpu_flag:
+                    dev_str = "cuda" if torch.cuda.is_available() else ("mps" if torch.mps.is_available() else "cpu")
+                else:
+                    dev_str = "cpu"
+
                 state_dict = torch.load(
                     pretrained_path,
                     weights_only=False,
-                    map_location=torch.device("cuda" if gpu_flag else "cpu")
+                    map_location=torch.device(dev_str)
                 )
                 w2_data = state_dict.get('W2', None)
 
