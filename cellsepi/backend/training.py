@@ -96,7 +96,6 @@ def run_cellpose_training(q, model_type_str, working_dir, mask_filter, weight, s
             q.put({"type": "error", "text": f"Model type {model_type_str} not supported!", "error_trace": ""})
             return
 
-        # 2. DAS MODELL VALIDIEREN (Dein w2_data Check)
         if pretrained_path:
             q.put({"type": "log", "text": ">>> Validating pretrained model..."})
             try:
@@ -113,8 +112,8 @@ def run_cellpose_training(q, model_type_str, working_dir, mask_filter, weight, s
                     model_type = ModelType.CP_SAM
 
             except Exception as e:
-                q.put({"type": "error", "text": "Failed to load pretrained model!",
-                       "error_trace": traceback.format_exc()})
+                q.put({"type": "error", "text": "The input for the retrained model is invalid!",
+                       "error_trace": ""})
                 return
 
 
@@ -135,13 +134,13 @@ def run_cellpose_training(q, model_type_str, working_dir, mask_filter, weight, s
                 look_one_level_down=False
             )
         else:
-            q.put({"type": "error", "text": "Custom Model not supported yet!", "error_obj": ""})
+            q.put({"type": "error", "text": "Custom Model not supported yet!", "error_trace": ""})
             return
 
         images, labels, image_names, test_images, test_labels, image_names_test = output
 
         if len(images) == 0 or len(labels) == 0:
-            q.put({"type": "error", "text": "You need images and suitable masks to train a model!", "error_obj": ""})
+            q.put({"type": "error", "text": "You need images and suitable masks to train a model!", "error_trace": ""})
             return
 
         q.put({"type": "log", "text": f">>> Loaded {len(images)} images and {len(labels)} masks, starting training..."})
