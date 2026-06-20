@@ -1,3 +1,7 @@
+import ctypes
+
+import threading
+
 import multiprocessing
 
 import queue
@@ -28,7 +32,7 @@ class Training(ft.Container):
         super().__init__()
         self.gui = gui
         self.log_queue = None
-        self.training_process = None
+        self.training_thread = None
         self.epoch_bar_control = None
         self.last_tqdm_control = None
         self.text = ft.Text("Go To Training")
@@ -426,8 +430,8 @@ class Training(ft.Container):
             sgd_value = False
 
         model_type_str = self.model_dropdown.value
-        self.log_queue = multiprocessing.Queue()
-        self.training_process = multiprocessing.Process(
+        self.log_queue = queue.Queue()
+        self.training_thread = threading.Thread(
             target=run_cellpose_training,
             args=(
                 self.log_queue,
@@ -445,9 +449,9 @@ class Training(ft.Container):
                 float(self.diameter) if self.diameter is not None else None
             )
         )
-        self.training_process.daemon = True
+        self.training_thread.daemon = True
 
-        self.training_process.start()
+        self.training_thread.start()
 
         self.gui.page.run_thread(self.queue_listener)
 
@@ -511,12 +515,14 @@ class Training(ft.Container):
             if msg["type"] == "error" or msg["type"] == "finished" or msg["type"] == "cancel":
                 break
 
-        if self.training_process:
-            self.training_process.join(timeout=1.0)
+        if self.training_thread:
+            self.training_thread.join(timeout=1.0)
 
-            if self.training_process.is_alive():
-                self.training_process.terminate()
-                self.training_process.join(timeout=0.5)
+            if self.training_thread.is_alive():
+                self._terminate_training()
+                self.training_thread.join(timeout=2.0)
+                if self.training_thread.is_alive():
+                    self.gui.page.run_task(self._show_zombie_thread_warning)
 
         while not self.log_queue.empty():
             try:
@@ -526,6 +532,42 @@ class Training(ft.Container):
 
         self.gui.page.run_task(self.finish_training)
 
+    async def _show_zombie_thread_warning(self):
+        msg = (">>> Warning: Training could not be fully cancelled. "
+               "The process may still be running in the background and "
+               "could affect the next training run.")
+        self.terminal_list.controls.append(
+            create_terminal_text(msg, is_bold=True, color=ERROR_COLOR)
+        )
+        self.terminal_list.update()
+        self.gui.error_manager.show_without_button(
+            "Training cancel did not complete cleanly. Background process may still be active."
+        )
+
+    def _terminate_training(self):
+        thread = self.training_thread
+        if not thread or not thread.is_alive():
+            return
+
+        thread_id = thread.ident
+        res = ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(thread_id), ctypes.py_object(SystemExit))
+
+        if res == 0:
+            ui_msg = "Error: Training could not be cancelled completely."
+            log_msg = f"Training Termination Error: Invalid Thread-ID ({thread_id})."
+            self.gui.page.run_task(self.gui.error_manager.log_and_show, ui_msg, log_msg)
+        elif res > 1:
+            ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(thread_id), 0)
+            ui_msg = "Error: Training could not be cancelled completely."
+            log_msg = "Training Termination Error: Error during termination of Training (Revert executed)."
+            self.gui.page.run_task(self.gui.error_manager.log_and_show, ui_msg, log_msg)
+        else:
+            try:
+                import torch
+                if self.gui.csp.gpu:
+                    torch.cuda.empty_cache()
+            except ImportError:
+                pass
 
     def update_tqdm_ui(self, text, percent=None, current=None, total=None, elapsed=None):
         if percent is not None:
@@ -564,8 +606,8 @@ class Training(ft.Container):
         self.terminal_list.update()
 
     async def cancel_training(self):
-        if self.training_process and self.training_process.is_alive():
-            self.training_process.terminate()
+        if self.training_thread and self.training_thread.is_alive():
+            self._terminate_training()
 
             self.terminal_list.controls.append(
                 create_terminal_text(">>> Training cancelled.",is_bold=True, color=ERROR_COLOR)

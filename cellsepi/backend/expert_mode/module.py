@@ -1,3 +1,5 @@
+import threading
+
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Callable, Union, Set
@@ -195,6 +197,7 @@ class Module(ABC):
     def __init__(self,module_id: str = None):
         self.module_id:str = self.get_new_id() if module_id is None else module_id
         self.event_manager: EventManager | None = None
+        self._cancel_event: threading.Event | None = None
         self.inputs: Dict[str,InputPort] = {}
         self.outputs: Dict[str,OutputPort] = {}
         self._settings: ft.Control | None = None
@@ -290,6 +293,13 @@ class Module(ABC):
             self.free_id_number(number)
         else:
             raise ValueError("module_id doesn't contain a number!")
+
+    def is_cancelled(self) -> bool:
+        """
+        Returns True if the pipeline has requested a cancel.
+        Modules with long-running internal loops should check this periodically.
+        """
+        return self._cancel_event is not None and self._cancel_event.is_set()
 
     def get_mandatory_inputs(self) -> List[str]:
         """

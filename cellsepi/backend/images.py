@@ -55,6 +55,17 @@ class BatchImageSegmentation(Notifier):
         self.progress_lock = threading.Lock()
         self.progress = 0
 
+    def _is_cancelled(self, cancel_event=None) -> bool:
+        """
+        Checks both cancel sources: the legacy GUI flag (cancel_now) and an
+        optionally injected threading.Event from a pipeline module.
+        """
+        if self.cancel_now:
+            return True
+        if cancel_event is not None and cancel_event.is_set():
+            return True
+        return False
+
     def get_contour_from_labeled_mask(label_mask):
         outlines = np.zeros_like(label_mask, dtype=np.uint16)
         obj_ids = np.unique(label_mask)
@@ -102,7 +113,7 @@ class BatchImageSegmentation(Notifier):
         self.resume_now = True
 
     def run(self, event_manager: EventManager = None, image_paths=None, mask_paths=None, model_path=None,
-            model_type=None):
+            model_type=None,cancel_event=None):
         """
         Applies the segmentation model to every image and stores the resulting masks.
         """
@@ -116,16 +127,16 @@ class BatchImageSegmentation(Notifier):
                 self.segmentation_channel = self.gui.csp.config.get_bf_channel()
                 self.diameter = self.gui.csp.config.get_diameter()
                 self.suffix = self.gui.csp.current_mask_suffix
-            if self.cancel_now:
-                self.cancel_now = False
-                self.num_seg_images = 0
-                return
-            elif self.pause_now:
-                self.pause_now = False
-                return
-            elif self.resume_now:
-                self.resume_now = False
-                self.segmentation.is_resuming()
+        if self._is_cancelled(cancel_event):
+            self.cancel_now = False
+            self.num_seg_images = 0
+            return
+        elif event_manager is None and self.pause_now:
+            self.pause_now = False
+            return
+        elif event_manager is None and self.resume_now:
+            self.resume_now = False
+            self.segmentation.is_resuming()
 
         if event_manager is None:
             self._call_start_listeners()
@@ -188,17 +199,16 @@ class BatchImageSegmentation(Notifier):
             diameter = self.diameter
             if (segmentation_channel in image_paths[image_id]
                     and os.path.isfile(image_paths[image_id][segmentation_channel])):
-                if event_manager is None:
-                    if self.cancel_now:
-                        self.cancel_now = False
-                        self.num_seg_images = 0
-                        return
-                    elif self.pause_now:
-                        self.pause_now = False
-                        return
-                    elif self.resume_now:
-                        self.resume_now = False
-                        self.segmentation.is_resuming()
+                if self._is_cancelled(cancel_event):
+                    self.cancel_now = False
+                    self.num_seg_images = 0
+                    return
+                elif event_manager is None and self.pause_now:
+                    self.pause_now = False
+                    return
+                elif event_manager is None and self.resume_now:
+                    self.resume_now = False
+                    self.segmentation.is_resuming()
 
                 if mask_paths and image_id in mask_paths and mask_paths[image_id] is not None and segmentation_channel in mask_paths[image_id]:
                     if mask_paths[image_id][segmentation_channel] is not None:

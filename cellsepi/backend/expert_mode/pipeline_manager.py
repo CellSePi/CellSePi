@@ -57,6 +57,7 @@ class PipelineManager:
         self.modules.append(module)
         self.module_map[module.module_id] = module
         module.event_manager = self.event_manager
+        module._cancel_event = self._cancel_event
         self.pipes_in[module.module_id] = []
         self.pipes_out[module.module_id] = []
         self.event_manager.notify(OnPipelineChangeEvent(f"Added module {module_class.gui_config().name}"))

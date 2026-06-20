@@ -37,6 +37,11 @@ class Project3dTo2d(Module, ABC):
         n_series = len(images)
         self.event_manager.notify(ProgressEvent(percent=0, process=f"Projecting Series: Starting"))
         for iN, series in enumerate(images):
+            if self.is_cancelled():
+                self.outputs["image_paths"].data = outputs_images
+                self.event_manager.notify(
+                    ProgressEvent(percent=int((iN) / n_series * 100), process="Projection: Cancelled"))
+                return
             outputs_images[series] = {}
             for channel in images[series]:
                 image_path = images[series][channel]

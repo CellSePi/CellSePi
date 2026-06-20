@@ -109,6 +109,11 @@ class SpotDetectionModule(Module, ABC):
         n_series = len(list(image_paths))
         self.event_manager.notify(ProgressEvent(percent=0, process=f"Spot detection: Starting"))
         for iN, image_id in enumerate(list(image_paths)):
+            if self.is_cancelled():
+                self.outputs["mask_paths"].data = mask_paths
+                self.event_manager.notify(
+                    ProgressEvent(percent=int((iN) / n_series * 100), process="Spot detection: Cancelled"))
+                return
             if self.user_segmentation_channel in image_paths[image_id] and os.path.isfile(
                     self.inputs["image_paths"].data[image_id][self.user_segmentation_channel]):
                 image_path = self.inputs["image_paths"].data[image_id][self.user_segmentation_channel]

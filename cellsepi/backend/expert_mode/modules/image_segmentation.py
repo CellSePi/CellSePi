@@ -60,7 +60,7 @@ class ImageSegmentationModule(Module, ABC):
                     masks[img].pop(self.user_segmentation_channel, None)
 
         try:
-            BatchImageSegmentation(segmentation_channel=self.user_segmentation_channel,diameter=self.user_diameter,suffix=self.user_mask_suffix).run(self.event_manager,self.inputs["image_paths"].data,self.inputs["mask_paths"].data,self.user_model_path.path,model_type=self.user_model_type)
+            BatchImageSegmentation(segmentation_channel=self.user_segmentation_channel,diameter=self.user_diameter,suffix=self.user_mask_suffix).run(self.event_manager,self.inputs["image_paths"].data,self.inputs["mask_paths"].data,self.user_model_path.path,model_type=self.user_model_type,cancel_event=self._cancel_event)
         except pickle.UnpicklingError as ex:
             raise PipelineRunningException("Segmentation Error", "Invalid or corrupted file. Please select a valid model.")
 
