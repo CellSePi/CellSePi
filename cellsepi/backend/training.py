@@ -2,6 +2,7 @@ import traceback
 
 import sys
 import logging
+import torch
 
 from backend.constants import ModelType
 
@@ -75,7 +76,7 @@ class QueueTqdmStream:
         pass
 
 
-def run_cellpose_training(q, model_type, working_dir, mask_filter, weight, sgd_value, learning_rate,
+def run_cellpose_training(q, model_type_str, working_dir, mask_filter, weight, sgd_value, learning_rate,
                           epochs, model_name, save_path, gpu_flag, pretrained_path, diameter):
     cellpose_logger = logging.getLogger()
     cellpose_logger.handlers.clear()
@@ -85,6 +86,38 @@ def run_cellpose_training(q, model_type, working_dir, mask_filter, weight, sgd_v
     sys.stderr = QueueTqdmStream(q)
 
     try:
+        model_type = None
+        for elem in ModelType:
+            if elem.value.name == model_type_str:
+                model_type = elem
+                break
+
+        if model_type is None:
+            q.put({"type": "error", "text": f"Model type {model_type_str} not supported!", "error_trace": ""})
+            return
+
+        # 2. DAS MODELL VALIDIEREN (Dein w2_data Check)
+        if pretrained_path:
+            q.put({"type": "log", "text": ">>> Validating pretrained model..."})
+            try:
+                state_dict = torch.load(
+                    pretrained_path,
+                    weights_only=False,
+                    map_location=torch.device("cuda" if gpu_flag else "cpu")
+                )
+                w2_data = state_dict.get('W2', None)
+
+                if w2_data is None:
+                    model_type = ModelType.CP_CYTO
+                else:
+                    model_type = ModelType.CP_SAM
+
+            except Exception as e:
+                q.put({"type": "error", "text": "Failed to load pretrained model!",
+                       "error_trace": traceback.format_exc()})
+                return
+
+
         q.put({"type": "log", "text": ">>> Loading images and masks..."})
 
         if model_type == ModelType.CP_CYTO or model_type == ModelType.CP_NUCLEI:

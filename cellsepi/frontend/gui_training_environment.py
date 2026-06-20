@@ -1,10 +1,10 @@
+import multiprocessing
+
 import queue
 
 import pathlib
-import threading
 
 import flet as ft
-import torch
 import os
 
 from backend.constants import ModelType, FILTER_INT, FILTER_SCIENTIFIC_FLOAT, FILTER_FLOAT, MAIN_COLOR, ERROR_COLOR, \
@@ -28,7 +28,7 @@ class Training(ft.Container):
         super().__init__()
         self.gui = gui
         self.log_queue = None
-        self.training_thread = None
+        self.training_process = None
         self.epoch_bar_control = None
         self.last_tqdm_control = None
         self.text = ft.Text("Go To Training")
@@ -59,16 +59,16 @@ class Training(ft.Container):
             visible=True,
             on_click=lambda e: e.page.run_task(self.start_training),
         )
-        #self.cancel_button = ft.Button(
-        #    content="Cancel",
-        #    icon=ft.Icons.CANCEL,
-        #    icon_color=ERROR_COLOR,
-        #    color= ERROR_COLOR,
-        #    tooltip="Cancel the running training",
-        #    disabled=True,
-        #    visible=False,
-        #    on_click=lambda e: e.page.run_task(self.cancel_training),
-        #)
+        self.cancel_button = ft.Button(
+            content="Cancel",
+            icon=ft.Icons.CANCEL,
+            icon_color=ERROR_COLOR,
+            color= ERROR_COLOR,
+            tooltip="Cancel the running training",
+            disabled=True,
+            visible=False,
+            on_click=lambda e: e.page.run_task(self.cancel_training),
+        )
 
         self.model = "nuclei"
         self.batch_size = 100
@@ -371,7 +371,7 @@ class Training(ft.Container):
                 ft.Container(content=ft.Row([self.progress_ring, self.progress_bar_text]), padding=5),
                 ft.Container(
                     content=ft.Row([self.start_button,
-                                    #self.cancel_button
+                                    self.cancel_button
                                     ]), padding=5),
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN
         )
@@ -400,9 +400,9 @@ class Training(ft.Container):
         self.start_button.disabled = True
         self.start_button.visible = False
         self.start_button.update()
-        #self.cancel_button.disabled = False
-        #self.cancel_button.visible = True
-        #self.cancel_button.update()
+        self.cancel_button.disabled = False
+        self.cancel_button.visible = True
+        self.cancel_button.update()
         self.re_train_model_chooser.disabled = True
         self.re_train_model_chooser.update()
         self.gui.directory.disable_path_choosing()
@@ -415,51 +415,6 @@ class Training(ft.Container):
         self.epoch_bar_control = None
         self.last_tqdm_control = None
         self.disable_switch_environment()
-
-        if self.re_train_model.value:
-            try:
-                state_dict = torch.load(self.gui.csp.re_train_model_path,weights_only=False,
-                                        map_location=torch.device("cuda" if self.gui.csp.gpu else "cpu"))
-                w2_data = state_dict.get('W2', None)
-                if w2_data is None:
-                    model_type = ModelType.CP_CYTO
-                else:
-                    model_type = ModelType.CP_SAM
-            except Exception as ex:
-                msg= f"The input for the retrained model is invalid!"
-                self.gui.error_manager.show_without_button(msg)
-                self.training_error_terminal(msg)
-                self.gui.directory.enable_path_choosing()
-                self.start_button.disabled = False
-                self.start_button.visible = True
-                #self.cancel_button.disabled = True
-                #self.cancel_button.visible = False
-                self.re_train_model_chooser.disabled = False
-                self.progress_ring.visible = False
-                self.progress_bar_text.value = ""
-                self.enable_switch_environment()
-                self.page.update()
-                return
-        else:
-            model_type = self.model_dropdown.value
-            try:
-                model_type = [elem for elem in ModelType if elem.value.name == model_type][0]
-            except IndexError:
-                msg = f"Model type {model_type} not supported!"
-                self.gui.error_manager.show_without_button(msg)
-                self.training_error_terminal(msg)
-                self.gui.directory.enable_path_choosing()
-                self.start_button.disabled = False
-                self.start_button.visible = True
-                #self.cancel_button.disabled = True
-                #self.cancel_button.visible = False
-                self.re_train_model_chooser.disabled = False
-                self.progress_ring.visible = False
-                self.progress_bar_text.value = ""
-                self.enable_switch_environment()
-                self.page.update()
-                return
-
         self.gui.csp.training_running = True
         self.gui.training_event.clear()
 
@@ -470,30 +425,31 @@ class Training(ft.Container):
         else:
             sgd_value = False
 
-        self.log_queue = queue.Queue()  
-        self.training_thread = threading.Thread(
+        model_type_str = self.model_dropdown.value
+        self.log_queue = multiprocessing.Queue()
+        self.training_process = multiprocessing.Process(
             target=run_cellpose_training,
             args=(
                 self.log_queue,
-                model_type,
+                model_type_str,
                 str(self.gui.csp.working_directory),
                 mask_filter,
-                self.weight,
-                sgd_value,
-                self.learning_rate,
-                self.epochs,
-                self.model_name,
+                float(self.weight),
+                bool(sgd_value),
+                float(self.learning_rate),
+                int(self.epochs),
+                str(self.model_name),
                 str(os.path.dirname(self.model_directory)),
-                self.gui.csp.gpu,
-                self.gui.csp.re_train_model_path if self.re_train_model.value else None,
-                self.diameter
+                bool(self.gui.csp.gpu),
+                str(self.gui.csp.re_train_model_path) if self.re_train_model.value else None,
+                float(self.diameter) if self.diameter is not None else None
             )
         )
-        self.training_thread.daemon = True
+        self.training_process.daemon = True
 
-        self.training_thread.start()
+        self.training_process.start()
 
-        self.gui.page.run_thread(self.queue_listener)
+        self.gui.page.run_process(self.queue_listener)
 
     async def update_terminal(self,msg):
         if msg["type"] == "error":
@@ -535,9 +491,9 @@ class Training(ft.Container):
         self.start_button.visible = True
         self.start_button.update()
 
-        #self.cancel_button.disabled = True
-        #self.cancel_button.visible = False
-        #self.cancel_button.update()
+        self.cancel_button.disabled = True
+        self.cancel_button.visible = False
+        self.cancel_button.update()
 
         self.re_train_model_chooser.disabled = False
         self.re_train_model_chooser.update()
@@ -555,12 +511,12 @@ class Training(ft.Container):
             if msg["type"] == "error" or msg["type"] == "finished" or msg["type"] == "cancel":
                 break
 
-        if self.training_thread:
-            self.training_thread.join(timeout=1.0)
+        if self.training_process:
+            self.training_process.join(timeout=1.0)
 
-            if self.training_thread.is_alive():
-                self.training_thread.terminate()
-                self.training_thread.join(timeout=0.5)
+            if self.training_process.is_alive():
+                self.training_process.terminate()
+                self.training_process.join(timeout=0.5)
 
         while not self.log_queue.empty():
             try:
@@ -607,21 +563,21 @@ class Training(ft.Container):
         self.terminal_list.controls.append(self.epoch_bar_control)
         self.terminal_list.update()
 
-    #async def cancel_training(self):
-    #    if self.training_thread and self.training_thread.is_alive():
-    #        self.training_thread.terminate()
-    #
-    #        self.terminal_list.controls.append(
-    #            create_terminal_text(">>> Training cancelled.",is_bold=True, color=ERROR_COLOR)
-    #        )
-    #        self.terminal_list.update()
-    #
-    #        self.log_queue.put({"type": "cancel", "text": "cancelled"})
-    #
-    #        self.cancel_button.disabled = True
-    #       self.cancel_button.update()
-    #        self.epoch_bar_control = None
-    #        self.last_tqdm_control = None
+    async def cancel_training(self):
+        if self.training_process and self.training_process.is_alive():
+            self.training_process.terminate()
+
+            self.terminal_list.controls.append(
+                create_terminal_text(">>> Training cancelled.",is_bold=True, color=ERROR_COLOR)
+            )
+            self.terminal_list.update()
+
+            self.log_queue.put({"type": "cancel", "text": "cancelled"})
+
+            self.cancel_button.disabled = True
+           self.cancel_button.update()
+            self.epoch_bar_control = None
+            self.last_tqdm_control = None
 
     def training_finished_terminal(self):
             self.terminal_list.controls.append(
