@@ -1,3 +1,4 @@
+import time
 import traceback
 
 import sys
@@ -13,6 +14,9 @@ def _last_logged_epoch(n):
             return i
     return 0
 
+def format_time(seconds):
+    mins, secs = divmod(int(seconds), 60)
+    return f"{mins:02d}:{secs:02d}"
 
 class QueueLogHandler(logging.Handler):
 
@@ -22,6 +26,7 @@ class QueueLogHandler(logging.Handler):
         self.total_epochs = total_epochs
         self.last_possible = _last_logged_epoch(total_epochs)
         self.last_epoch_logged = False
+        self.start_time = None
 
     def emit(self, record):
         log_msg = self.format(record)
@@ -29,13 +34,29 @@ class QueueLogHandler(logging.Handler):
         if len(parts) == 2 and parts[0].isdigit() and "train_loss" in parts[1]:
             current_epoch = int(parts[0])
             percent = current_epoch / self.total_epochs
+
+            if self.start_time is None:
+                self.start_time = time.time()
+
+            elapsed_time = time.time() - self.start_time
+
+            if current_epoch > 0:
+                time_per_epoch = elapsed_time / current_epoch
+                remaining_epochs = self.total_epochs - current_epoch
+                eta = remaining_epochs * time_per_epoch
+            else:
+                time_per_epoch = 0
+                eta = 0
+
+            time_info = f"[{format_time(elapsed_time)}<{format_time(eta)}, {time_per_epoch:.2f}s/epoch]"
             log_msg = f"epochs {current_epoch}/{self.total_epochs}, {parts[1]}"
-            self.q.put({"type": "epoch", "text": log_msg, "percent": percent})
+            self.q.put({"type": "epoch", "text": log_msg, "percent": percent,"current": current_epoch, "total": self.total_epochs, "elapsed": time_info})
             if current_epoch >= self.last_possible:
                 self.last_epoch_logged = True
         elif "saving network parameters" in log_msg and self.last_epoch_logged:
+            total_time = time.time() - self.start_time
             self.q.put({"type": "epoch", "text": f"epochs {self.total_epochs}/{self.total_epochs}, {log_msg}",
-                        "percent": 1.0})
+                        "percent": 1.0,"current": self.total_epochs, "total": self.total_epochs,"elapsed": format_time(total_time)})
         else:
             self.q.put({"type": "log", "text": log_msg})
 

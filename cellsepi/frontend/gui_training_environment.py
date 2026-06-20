@@ -479,7 +479,13 @@ class Training(ft.Container):
                                 elapsed=msg.get("elapsed"))
 
         elif msg["type"] == "epoch":
-            self.update_epoch_ui(msg["text"], msg["percent"])
+            self.update_epoch_ui(
+                text=msg["text"],
+                percent=msg["percent"],
+                elapsed=msg.get("elapsed"),
+                current=msg.get("current"),
+                total=msg.get("total")
+            )
 
         elif msg["type"] == "log":
             self.terminal_list.controls.append(
@@ -576,8 +582,8 @@ class Training(ft.Container):
             bar = '█' * filled + '░' * (bar_length - filled)
 
             info = f"{current}/{total}" if current and total else ""
-            time_info = f" [{elapsed}]" if elapsed else ""
-            display_text = f"Progress: [{bar}] {percent:.0%}  {info}{time_info}"
+            time_info = f"[{elapsed}]" if elapsed else ""
+            display_text = f"Progress: [{bar}] {percent:.0%} {info} {time_info}"
         else:
             display_text = text
 
@@ -590,11 +596,13 @@ class Training(ft.Container):
             self.terminal_list.controls.append(self.last_tqdm_control)
         self.terminal_list.update()
 
-    def update_epoch_ui(self, text, percent):
+    def update_epoch_ui(self, text, percent, current=None, total=None, elapsed=None):
         bar_length = 30
         filled_length = int(bar_length * percent)
         bar = '█' * filled_length + '░' * (bar_length - filled_length)
-        bar_text = f"Progress: [{bar}] {percent:.0%}"
+        info = f" {current}/{total}" if current is not None and total is not None else ""
+        time_info = f"{elapsed}" if elapsed else ""
+        bar_text = f"Progress: [{bar}] {percent:.0%} {info} {time_info}"
 
         if self.epoch_bar_control in self.terminal_list.controls:
             self.terminal_list.controls.remove(self.epoch_bar_control)
