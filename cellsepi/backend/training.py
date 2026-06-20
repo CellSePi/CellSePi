@@ -44,11 +44,10 @@ class QueueLogHandler(logging.Handler):
                 time_per_epoch = elapsed_time / current_epoch
                 remaining_epochs = self.total_epochs - current_epoch
                 eta = remaining_epochs * time_per_epoch
+                time_info = f"[{format_time(elapsed_time)}<{format_time(eta)}, {time_per_epoch:.2f}s/epoch]"
             else:
-                time_per_epoch = 0
-                eta = 0
+                time_info = f"[{format_time(elapsed_time)}<?, ?s/epoch]"
 
-            time_info = f"[{format_time(elapsed_time)}<{format_time(eta)}, {time_per_epoch:.2f}s/epoch]"
             log_msg = f"epochs {current_epoch}/{self.total_epochs}, {parts[1]}"
             self.q.put({"type": "epoch", "text": log_msg, "percent": percent,"current": current_epoch, "total": self.total_epochs, "elapsed": time_info})
             if current_epoch >= self.last_possible:
