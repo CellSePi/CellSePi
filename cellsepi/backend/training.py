@@ -1,6 +1,6 @@
 import time
 import traceback
-
+import json
 import sys
 import logging
 import torch
@@ -18,11 +18,10 @@ def format_time(seconds):
     mins, secs = divmod(int(seconds), 60)
     return f"{mins:02d}:{secs:02d}"
 
-class QueueLogHandler(logging.Handler):
 
-    def __init__(self, q, total_epochs):
+class JsonLogHandler(logging.Handler):
+    def __init__(self, total_epochs):
         super().__init__()
-        self.q = q
         self.total_epochs = total_epochs
         self.last_possible = _last_logged_epoch(total_epochs)
         self.last_epoch_logged = False
@@ -49,63 +48,57 @@ class QueueLogHandler(logging.Handler):
                 time_info = f"[{format_time(elapsed_time)}<?, ?s/epoch]"
 
             log_msg = f"epochs {current_epoch}/{self.total_epochs}, {parts[1]}"
-            self.q.put({"type": "epoch", "text": log_msg, "percent": percent,"current": current_epoch, "total": self.total_epochs, "elapsed": time_info})
+            print(json.dumps({"type": "epoch", "text": log_msg, "percent": percent, "current": current_epoch,
+                              "total": self.total_epochs, "elapsed": time_info}), flush=True)
+
             if current_epoch >= self.last_possible:
                 self.last_epoch_logged = True
         elif "saving network parameters" in log_msg and self.last_epoch_logged:
             total_time = time.time() - self.start_time
             time_per_epoch = total_time / self.total_epochs
             time_info = f"[{format_time(total_time)}<00:00, {time_per_epoch:.2f}s/epoch]"
-            self.q.put({"type": "epoch", "text": f"epochs {self.total_epochs}/{self.total_epochs}, {log_msg}",
-                        "percent": 1.0,"current": self.total_epochs, "total": self.total_epochs,"elapsed": time_info})
+            print(json.dumps({"type": "epoch", "text": f"epochs {self.total_epochs}/{self.total_epochs}, {log_msg}",
+                              "percent": 1.0, "current": self.total_epochs, "total": self.total_epochs,
+                              "elapsed": time_info}), flush=True)
         else:
-            self.q.put({"type": "log", "text": log_msg})
+            print(json.dumps({"type": "log", "text": log_msg}), flush=True)
 
 
-class QueueTqdmStream:
-    def __init__(self, q):
-        self.q = q
-        self.original_stderr = sys.__stderr__
+def _parse_tqdm(text):
+    import re
+    result = {"percent": None, "current": None, "total": None, "elapsed": None}
+    match = re.search(r'(\d+)%\|.*?\|\s*(\d+)/(\d+)\s*\[([^\]]+)\]', text)
+    if match:
+        result["percent"] = int(match.group(1)) / 100
+        result["current"] = int(match.group(2))
+        result["total"] = int(match.group(3))
+        result["elapsed"] = match.group(4)
+    return result
 
-    def write(self, text):
-        if self.original_stderr:
-            try:
-                self.original_stderr.write(text)
-                self.original_stderr.flush()
-            except AttributeError:
-                pass
 
-        clean_text = text.replace('\r', '').replace('\n', '').strip()
-        if clean_text:
-            if "%" in text or "it/" in text:
-                parsed = self._parse_tqdm(clean_text)
-                self.q.put({"type": "tqdm", "text": clean_text, **parsed})
-            else:
-                self.q.put({"type": "log", "text": clean_text})
-
-    def _parse_tqdm(self, text):
-        import re
-        result = {"percent": None, "current": None, "total": None, "elapsed": None}
-        match = re.search(r'(\d+)%\|.*?\|\s*(\d+)/(\d+)\s*\[([^\]]+)\]', text)
-        if match:
-            result["percent"] = int(match.group(1)) / 100
-            result["current"] = int(match.group(2))
-            result["total"] = int(match.group(3))
-            result["elapsed"] = match.group(4)
-        return result
-
-    def flush(self):
+class JsonTqdmStream:
+    def __init__(self):
         pass
 
+    def write(self, text):
+        clean_text = text.replace('\r', '').replace('\n', '').strip()
 
-def run_cellpose_training(q, model_type_str, working_dir, mask_filter, weight, sgd_value, learning_rate,
+        if clean_text:
+            if "%" in text or "it/" in text:
+                parsed = _parse_tqdm(clean_text)
+                print(json.dumps({"type": "tqdm", "text": clean_text, **parsed}), flush=True)
+            else:
+                print(json.dumps({"type": "log", "text": clean_text}), flush=True)
+
+
+def run_cellpose_training(model_type_str, working_dir, mask_filter, weight, sgd_value, learning_rate,
                           epochs, model_name, save_path, gpu_flag, pretrained_path, diameter):
     cellpose_logger = logging.getLogger()
     cellpose_logger.handlers.clear()
-    log_handler = QueueLogHandler(q, epochs)
+    log_handler = JsonLogHandler(epochs)
     cellpose_logger.addHandler(log_handler)
     cellpose_logger.setLevel(logging.INFO)
-    sys.stderr = QueueTqdmStream(q)
+    sys.stderr = JsonTqdmStream()
 
     try:
         model_type = None
@@ -115,11 +108,11 @@ def run_cellpose_training(q, model_type_str, working_dir, mask_filter, weight, s
                 break
 
         if model_type is None:
-            q.put({"type": "error", "text": f"Model type {model_type_str} not supported!", "error_trace": ""})
+            print(json.dumps({"type": "error", "text": f"Model type {model_type_str} not supported!", "error_trace": ""}), flush=True)
             return
 
         if pretrained_path:
-            q.put({"type": "log", "text": ">>> Validating pretrained model..."})
+            print(json.dumps({"type": "log", "text": ">>> Validating pretrained model..."}), flush=True)
             try:
                 if gpu_flag:
                     dev_str = "cuda" if torch.cuda.is_available() else ("mps" if torch.mps.is_available() else "cpu")
@@ -139,12 +132,12 @@ def run_cellpose_training(q, model_type_str, working_dir, mask_filter, weight, s
                     model_type = ModelType.CP_SAM
 
             except Exception as e:
-                q.put({"type": "error", "text": "The input for the retrained model is invalid!",
-                       "error_trace": ""})
+                print(json.dumps({"type": "error", "text": "The input for the retrained model is invalid!",
+                       "error_trace": ""}), flush=True)
                 return
 
 
-        q.put({"type": "log", "text": ">>> Loading images and masks..."})
+        print(json.dumps({"type": "log", "text": ">>> Loading images and masks..."}), flush=True)
 
         if model_type == ModelType.CP_CYTO or model_type == ModelType.CP_NUCLEI:
             from backend.CellposeV3 import ioV3, modelsV3, trainV3
@@ -161,16 +154,16 @@ def run_cellpose_training(q, model_type_str, working_dir, mask_filter, weight, s
                 look_one_level_down=False
             )
         else:
-            q.put({"type": "error", "text": "Custom Model not supported yet!", "error_trace": ""})
+            print(json.dumps({"type": "error", "text": "Custom Model not supported yet!", "error_trace": ""}), flush=True)
             return
 
         images, labels, image_names, test_images, test_labels, image_names_test = output
 
         if len(images) == 0 or len(labels) == 0:
-            q.put({"type": "error", "text": "You need images and suitable masks to train a model!", "error_trace": ""})
+            print(json.dumps({"type": "error", "text": "You need images and suitable masks to train a model!", "error_trace": ""}), flush=True)
             return
 
-        q.put({"type": "log", "text": f">>> Loaded {len(images)} images and {len(labels)} masks, starting training..."})
+        print(json.dumps({"type": "log", "text": f">>> Loaded {len(images)} images and {len(labels)} masks, starting training..."}), flush=True)
 
         if model_type == ModelType.CP_SAM:
             from cellpose import models, train
@@ -213,11 +206,10 @@ def run_cellpose_training(q, model_type_str, working_dir, mask_filter, weight, s
                               learning_rate=learning_rate, n_epochs=epochs, model_name=model_name, min_train_masks=1,
                               save_path=save_path)
 
-        q.put({"type": "finished", "text": "Finished Training"})
-
+        print(json.dumps({"type": "finished", "text": "Finished Training"}), flush=True)
     except Exception:
         error_trace = traceback.format_exc()
-        q.put({"type": "error", "text": "Something went wrong while training! Pls look into the logs.", "error_trace": error_trace})
+        print(json.dumps({"type": "error", "text": "Something went wrong while training! Pls look into the logs.","error_trace": error_trace}), flush=True)
 
 def flatten_3d_to_slices(images, labels):
     flat_imgs, flat_lbls = [], []
@@ -230,3 +222,9 @@ def flatten_3d_to_slices(images, labels):
             flat_imgs.append(img)
             flat_lbls.append(lbl)
     return flat_imgs, flat_lbls
+
+if __name__ == "__main__":
+    import sys
+    if len(sys.argv) > 1:
+        config = json.loads(sys.argv[1])
+        run_cellpose_training(**config)

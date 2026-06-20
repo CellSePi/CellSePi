@@ -1,19 +1,12 @@
-import ctypes
-
-import threading
-
-import multiprocessing
-
-import queue
-
+import sys
+import subprocess
+import json
 import pathlib
-
 import flet as ft
 import os
 
 from backend.constants import ModelType, FILTER_INT, FILTER_SCIENTIFIC_FLOAT, FILTER_FLOAT, MAIN_COLOR, ERROR_COLOR, \
     SUCCESS_COLOR
-from backend.training import run_cellpose_training
 from frontend.gui_directory import format_directory_path, copy_to_clipboard
 
 
@@ -26,13 +19,25 @@ def create_terminal_text(text, is_bold=False,color=None):
         weight=ft.FontWeight.BOLD if is_bold else ft.FontWeight.NORMAL,
     )
 
+
+def get_worker_command():
+    base_path = pathlib.Path(__file__).parent.parent
+    worker_exe = base_path / "assets" / "bin" / ("training.exe" if os.name == "nt" else "training")
+    
+    if worker_exe.exists():
+        return [str(worker_exe)]
+    else:
+        worker_script = base_path / "backend" / "training.py"
+        return [sys.executable, str(worker_script)]
+
+
 class Training(ft.Container):
 
     def __init__(self, gui):
         super().__init__()
         self.gui = gui
         self.log_queue = None
-        self.training_thread = None
+        self.training_process = None
         self.epoch_bar_control = None
         self.last_tqdm_control = None
         self.text = ft.Text("Go To Training")
@@ -423,37 +428,35 @@ class Training(ft.Container):
         self.gui.training_event.clear()
 
         mask_filter = f"{self.gui.csp.current_mask_suffix}.npy"
-
-        if self.re_train_model.value:
-            sgd_value = True
-        else:
-            sgd_value = False
-
+        sgd_value = True if self.re_train_model.value else False
         model_type_str = self.model_dropdown.value
-        self.log_queue = queue.Queue()
-        self.training_thread = threading.Thread(
-            target=run_cellpose_training,
-            args=(
-                self.log_queue,
-                model_type_str,
-                str(self.gui.csp.working_directory),
-                mask_filter,
-                float(self.weight),
-                bool(sgd_value),
-                float(self.learning_rate),
-                int(self.epochs),
-                str(self.model_name),
-                str(os.path.dirname(self.model_directory)),
-                bool(self.gui.csp.gpu),
-                str(self.gui.csp.re_train_model_path) if self.re_train_model.value else None,
-                float(self.diameter) if self.diameter is not None else None
-            )
+        config = {
+            "model_type_str": model_type_str,
+            "working_dir": str(self.gui.csp.working_directory),
+            "mask_filter": mask_filter,
+            "weight": float(self.weight),
+            "sgd_value": bool(sgd_value),
+            "learning_rate": float(self.learning_rate),
+            "epochs": int(self.epochs),
+            "model_name": str(self.model_name),
+            "save_path": str(os.path.dirname(self.model_directory)),
+            "gpu_flag": bool(self.gui.csp.gpu),
+            "pretrained_path": str(self.gui.csp.re_train_model_path) if self.re_train_model.value else None,
+            "diameter": float(self.diameter) if self.diameter is not None else None
+        }
+
+        cmd = get_worker_command()
+        cmd.append(json.dumps(config))
+
+        self.training_process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,
+            encoding='utf-8'
         )
-        self.training_thread.daemon = True
-
-        self.training_thread.start()
-
-        self.gui.page.run_thread(self.queue_listener)
+        self.gui.page.run_thread(self.stdout_listener)
 
     async def update_terminal(self,msg):
         if msg["type"] == "error":
@@ -514,66 +517,20 @@ class Training(ft.Container):
         self.gui.csp.training_running = False
         self.gui.training_event.set()
 
-    def queue_listener(self):
-        while True:
-            msg = self.log_queue.get()
-            self.gui.page.run_task(self.update_terminal,msg)
-            if msg["type"] == "error" or msg["type"] == "finished" or msg["type"] == "cancel":
+    def stdout_listener(self):
+        for line in iter(self.training_process.stdout.readline, ''):
+            if not line:
                 break
 
-        if self.training_thread:
-            self.training_thread.join(timeout=1.0)
-
-            if self.training_thread.is_alive():
-                self._terminate_training()
-                self.training_thread.join(timeout=2.0)
-                if self.training_thread.is_alive():
-                    self.gui.page.run_task(self._show_zombie_thread_warning)
-
-        while not self.log_queue.empty():
             try:
-                self.log_queue.get_nowait()
-            except queue.Empty:
-                break
+                msg = json.loads(line)
+                self.gui.page.run_task(self.update_terminal, msg)
+            except json.JSONDecodeError:
+                self.gui.page.run_task(self.update_terminal, {"type": "log", "text": line.strip()})
+
+        self.training_process.wait()
 
         self.gui.page.run_task(self.finish_training)
-
-    async def _show_zombie_thread_warning(self):
-        msg = (">>> Warning: Training could not be fully cancelled. "
-               "The process may still be running in the background and "
-               "could affect the next training run.")
-        self.terminal_list.controls.append(
-            create_terminal_text(msg, is_bold=True, color=ERROR_COLOR)
-        )
-        self.terminal_list.update()
-        self.gui.error_manager.show_without_button(
-            "Training cancel did not complete cleanly. Background process may still be active."
-        )
-
-    def _terminate_training(self):
-        thread = self.training_thread
-        if not thread or not thread.is_alive():
-            return
-
-        thread_id = thread.ident
-        res = ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(thread_id), ctypes.py_object(SystemExit))
-
-        if res == 0:
-            ui_msg = "Error: Training could not be cancelled completely."
-            log_msg = f"Training Termination Error: Invalid Thread-ID ({thread_id})."
-            self.gui.page.run_task(self.gui.error_manager.log_and_show, ui_msg, log_msg)
-        elif res > 1:
-            ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(thread_id), 0)
-            ui_msg = "Error: Training could not be cancelled completely."
-            log_msg = "Training Termination Error: Error during termination of Training (Revert executed)."
-            self.gui.page.run_task(self.gui.error_manager.log_and_show, ui_msg, log_msg)
-        else:
-            try:
-                import torch
-                if self.gui.csp.gpu:
-                    torch.cuda.empty_cache()
-            except ImportError:
-                pass
 
     def update_tqdm_ui(self, text, percent=None, current=None, total=None, elapsed=None):
         if percent is not None:
@@ -614,15 +571,16 @@ class Training(ft.Container):
         self.terminal_list.update()
 
     async def cancel_training(self):
-        if self.training_thread and self.training_thread.is_alive():
-            self._terminate_training()
+        if self.training_process and self.training_process.poll() is None:
+            self.training_process.terminate()
 
             self.terminal_list.controls.append(
-                create_terminal_text(">>> Training cancelled.",is_bold=True, color=ERROR_COLOR)
+                create_terminal_text(">>> Training cancelled.", is_bold=True, color=ERROR_COLOR)
             )
             self.terminal_list.update()
 
-            self.log_queue.put({"type": "cancel", "text": "cancelled"})
+            self.progress_bar_text.value = "Cancelled"
+            self.progress_bar_text.update()
 
             self.cancel_button.disabled = True
             self.cancel_button.update()

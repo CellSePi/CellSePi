@@ -115,6 +115,7 @@ jobs:
               gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 \
               gstreamer1.0-qt5 gstreamer1.0-pulseaudio pkg-config libsecret-1-0 libsecret-1-dev
             sudo apt-get clean
+
       - name: Extract Global App Variables
         shell: bash
         run: |
@@ -168,6 +169,13 @@ jobs:
           print(f"Set dependencies for {os_target} ({accelerator}):")
           print(toml_append)
           '
+      - name: Build Backend Worker (PyInstaller)
+        shell: bash
+        run: |
+          poetry run pip install pyinstaller
+          poetry run pyinstaller --onefile --noconsole --distpath cellsepi/bin --clean cellsepi/backend/training.py
+          
+          ls -la cellsepi/assets/bin/
 
       - name: Build app
         shell: bash
