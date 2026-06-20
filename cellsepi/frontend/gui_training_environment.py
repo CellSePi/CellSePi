@@ -449,7 +449,7 @@ class Training(ft.Container):
 
         self.training_process.start()
 
-        self.gui.page.run_process(self.queue_listener)
+        self.gui.page.run_thread(self.queue_listener)
 
     async def update_terminal(self,msg):
         if msg["type"] == "error":
@@ -575,7 +575,7 @@ class Training(ft.Container):
             self.log_queue.put({"type": "cancel", "text": "cancelled"})
 
             self.cancel_button.disabled = True
-           self.cancel_button.update()
+            self.cancel_button.update()
             self.epoch_bar_control = None
             self.last_tqdm_control = None
 

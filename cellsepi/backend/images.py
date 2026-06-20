@@ -6,11 +6,8 @@ import threading
 
 import pandas as pd
 
-import torch
-import torchvision.transforms as T
 import numpy as np
 from PIL import Image
-from cellpose import models, io
 from scipy.ndimage import binary_erosion
 from tifffile import tifffile
 
@@ -19,7 +16,6 @@ from backend.data_util import load_image_to_numpy, export_dataframe_to_pdf
 from backend.expert_mode.event_manager import EventManager
 from backend.expert_mode.listener import ProgressEvent
 from backend.notifier import Notifier
-from backend.CellposeV3 import modelsV3, ioV3
 
 from backend.image_utils import normalize_image, rescale_image
 from backend.settings import SettingsManager, DownscaleMode
@@ -59,14 +55,6 @@ class BatchImageSegmentation(Notifier):
         self.progress_lock = threading.Lock()
         self.progress = 0
 
-    def _is_cellpose_model(self, model_path):
-        try:
-            from cellpose import models
-            _ = models.CellposeModel(pretrained_model=model_path, gpu=self.GPU)
-            return True
-        except Exception:
-            return False
-
     def get_contour_from_labeled_mask(label_mask):
         outlines = np.zeros_like(label_mask, dtype=np.uint16)
         obj_ids = np.unique(label_mask)
@@ -90,47 +78,6 @@ class BatchImageSegmentation(Notifier):
 
         return label_mask
 
-    def cleanup_backups(self):
-        """
-        Deletes the .backup files from disk after a successful run.
-        """
-        if self.prev_masks_exist:
-            for image_id, channels in self.masks_backup.items():
-                for segmentation_channel, backup_file_path in channels.items():
-                    if backup_file_path is not None and os.path.exists(backup_file_path):
-                        try:
-                            os.remove(backup_file_path)
-                        except OSError as e:
-                            print(f"Error removing backup {backup_file_path}: {e}")
-
-        self.masks_backup = {}
-        self.prev_masks_exist = False
-
-    def backup_masks(self):
-        """
-        This method creates a backup of the previously generated masks.
-        """
-        self.prev_masks_exist = False
-        self.masks_backup = {}
-
-        for image_id, channels in self.gui.csp.mask_paths.items():
-            for segmentation_channel, path in channels.items():
-                if segmentation_channel == self.segmentation_channel:
-                    if os.path.exists(path):
-                        # needed to add error catches to handle listener with ui thread (can not update page ui in listener thread in version 0.84)
-                        backup_path = path + ".backup"
-                        shutil.copy2(path, backup_path)
-
-                        self.masks_backup[image_id] = {}
-                        self.masks_backup[image_id][segmentation_channel] = backup_path
-                        self.prev_masks_exist = True
-
-        if self.prev_masks_exist:
-            for image_id in self.gui.csp.image_paths:
-                if image_id not in self.masks_backup:
-                    self.masks_backup[image_id] = {}
-                    self.masks_backup[image_id][self.segmentation_channel] = None
-
     def delete_mask(self, path, channels_to_delete, image_id, segmentation_channel):
         if os.path.exists(path):
             channels_to_delete.append((image_id, segmentation_channel))
@@ -139,41 +86,6 @@ class BatchImageSegmentation(Notifier):
                     self.gui.canvas.reset_mask()
                     return
             os.remove(path)
-
-    def restore_backup(self):
-        """
-        This method restores the previously generated masks and deletes the old ones.
-        """
-        channels_to_delete = []
-        if self.prev_masks_exist:
-            for image_id, channels in self.masks_backup.items():
-                if image_id not in self.gui.csp.mask_paths:
-                    self.gui.csp.mask_paths[image_id] = {}
-                for segmentation_channel, backup_path in channels.items():
-                    if backup_path is not None:
-                        original_path = self.gui.csp.mask_paths[image_id].get(segmentation_channel)
-                        if original_path:
-                            shutil.move(backup_path, original_path)
-                            if image_id == self.gui.csp.image_id and segmentation_channel == self.gui.csp.config.get_bf_channel():  # refreshes or delete the current generated mask
-                                self.gui.page.run_task(self.gui.canvas.update_mask_image, True)
-                                self.gui.page.run_task(self.gui._mask_update_async,image_id, True)
-                    else:
-                        if segmentation_channel in self.gui.csp.mask_paths[image_id]:
-                            path = self.gui.csp.mask_paths[image_id][segmentation_channel]
-                            self.delete_mask(path, channels_to_delete, image_id, segmentation_channel)
-        else:  # case where no masks for this bf_channel existed before
-            for image_id, channels in list(self.gui.csp.mask_paths.items()):
-                for segmentation_channel, path in list(channels.items()):
-                    if segmentation_channel == self.segmentation_channel:
-                        self.delete_mask(path, channels_to_delete, image_id, segmentation_channel)
-
-        for image_id, segmentation_channel in channels_to_delete:
-            if image_id in self.gui.csp.mask_paths and segmentation_channel in self.gui.csp.mask_paths[image_id]:
-                del self.gui.csp.mask_paths[image_id][segmentation_channel]
-
-        for image_id, channel in channels_to_delete:
-            if image_id in self.gui.csp.mask_paths:
-                del self.gui.csp.mask_paths[image_id]
 
     # the following methods handle the different actions and handle accordingly
     def cancel_action(self):
@@ -194,18 +106,19 @@ class BatchImageSegmentation(Notifier):
         """
         Applies the segmentation model to every image and stores the resulting masks.
         """
+        import torch
+        import torchvision.transforms as T
+        from cellpose import models, io
+        from backend.CellposeV3 import modelsV3, ioV3
         if event_manager is None:
             print("event_manager is None")
             if self.num_seg_images == 0:  # shouldn't backup again, if it was paused and now resuming
                 self.segmentation_channel = self.gui.csp.config.get_bf_channel()
                 self.diameter = self.gui.csp.config.get_diameter()
                 self.suffix = self.gui.csp.current_mask_suffix
-                #self.backup_masks()
             if self.cancel_now:
                 self.cancel_now = False
-                #self.restore_backup()
                 self.num_seg_images = 0
-                #self.cleanup_backups()
                 return
             elif self.pause_now:
                 self.pause_now = False
@@ -278,9 +191,7 @@ class BatchImageSegmentation(Notifier):
                 if event_manager is None:
                     if self.cancel_now:
                         self.cancel_now = False
-                        #self.restore_backup()
                         self.num_seg_images = 0
-                        #self.cleanup_backups()
                         return
                     elif self.pause_now:
                         self.pause_now = False
