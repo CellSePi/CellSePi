@@ -46,6 +46,7 @@ class Options(ft.Container):
             visible=False
         )
         if not torch.cuda.is_available():
+            self.gui.csp.gpu = False
             self.slider.on_change = None
             self.slider.thumb_color = ft.Colors.GREY_400
             self.slider_blocker.visible = True
@@ -58,6 +59,7 @@ class Options(ft.Container):
             for control in self.slider.controls:
                 control.color = ft.Colors.GREY_700
         else:
+            self.gui.csp.gpu = True
             self.slider.on_change = self.gpu_slider_change
             self.slider.thumb_color = MAIN_COLOR
             self.slider_blocker.visible = False
