@@ -173,14 +173,15 @@ jobs:
         shell: bash
         run: |
           poetry run pip install pyinstaller
+          mkdir -p external_worker_build
           
           if [ "${{ matrix.target }}" == "windows" ]; then
-            poetry run pyinstaller --onefile --noconsole --distpath cellsepi/assets/bin --clean cellsepi/backend/training.py
+            poetry run pyinstaller --onefile --noconsole --distpath external_worker_build --clean cellsepi/backend/worker.py
           else
-            poetry run pyinstaller --onefile --distpath cellsepi/assets/bin --clean cellsepi/backend/training.py
+            poetry run pyinstaller --onefile --distpath external_worker_build --clean cellsepi/backend/worker.py
           fi
           
-          ls -la cellsepi/assets/bin/
+          ls -la external_worker_build/
 
       - name: Build app
         shell: bash
@@ -194,6 +195,21 @@ jobs:
               export PIP_EXTRA_INDEX_URL="https://download.pytorch.org/whl/cu124"
             fi
             poetry run flet build ${{ matrix.target }} --template https://github.com/CellSePi/CellSePiTemplate --yes --verbose
+          fi
+
+      - name: Inject Worker into App Folder
+        shell: bash
+        run: |
+          if [ "${{ matrix.target }}" == "windows" ]; then
+            cp external_worker_build/worker.exe ${{ matrix.artifact_path }}/
+            
+          elif [ "${{ matrix.target }}" == "macos" ]; then
+            cp external_worker_build/worker ${{ matrix.artifact_path }}/*.app/Contents/MacOS/
+            chmod +x ${{ matrix.artifact_path }}/*.app/Contents/MacOS/worker
+            
+          else
+            cp external_worker_build/worker ${{ matrix.artifact_path }}/
+            chmod +x ${{ matrix.artifact_path }}/worker
           fi
 
       - name: Setup Icon and install script for portable Linux archive

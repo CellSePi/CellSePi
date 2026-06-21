@@ -222,9 +222,3 @@ def flatten_3d_to_slices(images, labels):
             flat_imgs.append(img)
             flat_lbls.append(lbl)
     return flat_imgs, flat_lbls
-
-if __name__ == "__main__":
-    import sys
-    if len(sys.argv) > 1:
-        config = json.loads(sys.argv[1])
-        run_cellpose_training(**config)

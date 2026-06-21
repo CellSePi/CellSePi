@@ -21,9 +21,11 @@ def create_terminal_text(text, is_bold=False,color=None):
 
 
 def get_worker_command():
+    exe_name = "worker.exe" if os.name == "nt" else "worker"
     base_path = pathlib.Path(__file__).parent.parent
-    worker_exe = base_path / "assets" / "bin" / ("training.exe" if os.name == "nt" else "training")
-    
+    exe_dir = pathlib.Path(sys.executable).parent
+    worker_exe = exe_dir / exe_name
+
     if worker_exe.exists():
         return [str(worker_exe)]
     else:
@@ -446,6 +448,7 @@ class Training(ft.Container):
         }
 
         cmd = get_worker_command()
+        cmd.append("train")
         cmd.append(json.dumps(config))
 
         self.training_process = subprocess.Popen(
