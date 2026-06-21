@@ -16,6 +16,6 @@ if __name__ == "__main__":
             from backend.training import run_cellpose_training
             run_cellpose_training(**config)
 
-        #elif mode == "eval":
-        #    from backend.evaluation_logic import run_cellpose_evaluation
-        #    run_cellpose_evaluation(**config)
+        elif mode == "eval":
+            from backend.evaluation_logic import run_cellpose_evaluation
+            run_cellpose_evaluation(**config)

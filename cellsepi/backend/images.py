@@ -1,25 +1,31 @@
-import cv2
+import pickle
+
+import sys
+import subprocess
+import json
 import os
 import pathlib
-import shutil
 import threading
-
 import pandas as pd
-
 import numpy as np
-from PIL import Image
-from scipy.ndimage import binary_erosion
-from tifffile import tifffile
 
-from backend.constants import ExportFileType, ModelType
+from scipy.ndimage import binary_erosion
+from backend.constants import ExportFileType
 from backend.data_util import load_image_to_numpy, export_dataframe_to_pdf
 from backend.expert_mode.event_manager import EventManager
 from backend.expert_mode.listener import ProgressEvent
 from backend.notifier import Notifier
+from backend.settings import SettingsManager
 
-from backend.image_utils import normalize_image, rescale_image
-from backend.settings import SettingsManager, DownscaleMode
+def get_multi_worker_command():
+    base_path = pathlib.Path(__file__).parent.parent
+    worker_exe = base_path / "assets" / "bin" / ("worker.exe" if os.name == "nt" else "worker")
 
+    if worker_exe.exists():
+        return [str(worker_exe)]
+    else:
+        worker_script = base_path / "backend" / "worker.py"
+        return [sys.executable, str(worker_script)]
 
 class BatchImageSegmentation(Notifier):
     """
@@ -47,67 +53,33 @@ class BatchImageSegmentation(Notifier):
 
         self.masks_backup = {}
         self.prev_masks_exist = False
-        self.num_seg_images = 0
         self.cancel_now = False
         self.pause_now = False
         self.resume_now = False
         self.executor = None
-        self.progress_lock = threading.Lock()
-        self.progress = 0
-
-    def _is_cancelled(self, cancel_event=None) -> bool:
-        """
-        Checks both cancel sources: the legacy GUI flag (cancel_now) and an
-        optionally injected threading.Event from a pipeline module.
-        """
-        if self.cancel_now:
-            return True
-        if cancel_event is not None and cancel_event.is_set():
-            return True
-        return False
-
-    def get_contour_from_labeled_mask(label_mask):
-        outlines = np.zeros_like(label_mask, dtype=np.uint16)
-        obj_ids = np.unique(label_mask)
-        obj_ids = obj_ids[obj_ids != 0]
-
-        for obj_id in obj_ids:
-            mask = label_mask == obj_id
-            eroded = binary_erosion(mask)
-            outline = mask & (~eroded)
-            outlines[outline] = 255
-
-        return outlines
-
-    def masks_to_label_mask(self, masks):
-        N, H, W = masks.shape
-        label_mask = np.zeros((H, W), dtype=np.int32)
-
-        for i in range(N):
-            mask = masks[i].astype(bool)
-            label_mask[mask] = i + 1
-
-        return label_mask
-
-    def delete_mask(self, path, channels_to_delete, image_id, segmentation_channel):
-        if os.path.exists(path):
-            channels_to_delete.append((image_id, segmentation_channel))
-            if image_id == self.gui.csp.image_id:
-                if self.segmentation_channel == segmentation_channel:
-                    self.gui.canvas.reset_mask()
-                    return
-            os.remove(path)
 
     # the following methods handle the different actions and handle accordingly
     def cancel_action(self):
         self.cancel_now = True
-        if self.executor is not None:
-            self.executor.shutdown(wait=True)
+        if self.executor is not None and self.executor.poll() is None:
+            if os.name == "nt":
+                subprocess.run(
+                    ["taskkill", "/F", "/T", "/PID", str(self.executor.pid)],
+                    capture_output=True
+                )
+            else:
+                self.executor.terminate()
 
     def pause_action(self):
         self.pause_now = True
-        if self.executor is not None:
-            self.executor.shutdown(wait=True)
+        if self.executor is not None and self.executor.poll() is None:
+            if os.name == "nt":
+                subprocess.run(
+                    ["taskkill", "/F", "/T", "/PID", str(self.executor.pid)],
+                    capture_output=True
+                )
+            else:
+                self.executor.terminate()
 
     def resume_action(self):
         self.resume_now = True
@@ -117,304 +89,124 @@ class BatchImageSegmentation(Notifier):
         """
         Applies the segmentation model to every image and stores the resulting masks.
         """
-        import torch
-        import torchvision.transforms as T
-        from cellpose import models, io
-        from backend.CellposeV3 import modelsV3, ioV3
-        if event_manager is None:
-            print("event_manager is None")
-            if self.num_seg_images == 0:  # shouldn't backup again, if it was paused and now resuming
-                self.segmentation_channel = self.gui.csp.config.get_bf_channel()
-                self.diameter = self.gui.csp.config.get_diameter()
-                self.suffix = self.gui.csp.current_mask_suffix
-        if self._is_cancelled(cancel_event):
-            self.cancel_now = False
-            self.num_seg_images = 0
-            return
-        elif event_manager is None and self.pause_now:
-            self.pause_now = False
-            return
-        elif event_manager is None and self.resume_now:
-            self.resume_now = False
-            self.segmentation.is_resuming()
-
-        if event_manager is None:
-            self._call_start_listeners()
         if event_manager is None:
             image_paths = self.gui.csp.image_paths
             mask_paths = self.gui.csp.mask_paths
-
-        segmentation_channel = self.segmentation_channel
-        suffix = self.suffix
-
-        n_images = len(image_paths)
-
-        if event_manager is None:
-            segmentation_model = self.gui.csp.model_path
+            model_path = self.gui.csp.model_path
+            model_type = self.gui.csp.model_type.value.name
+            n_images = len(image_paths)
+            current_done_count = sum(
+                1 for img_id in mask_paths
+                if self.segmentation_channel in mask_paths[img_id] and mask_paths[img_id][self.segmentation_channel] is not None
+            )
+            percent = int((current_done_count / n_images) * 100)
+            self._call_start_listeners(f"{percent} %")
         else:
-            segmentation_model = model_path
-            event_manager.notify(ProgressEvent(0, f"Segmenting Images: 0/{n_images}"))
+            event_manager.notify(ProgressEvent(percent=0, process="Segmentation started."))
+            model_type = model_type.value.name
 
-        if self.GPU:
-            device = torch.device(
-                "cuda" if torch.cuda.is_available() else ("mps" if torch.mps.is_available() else "cpu"))
-        else:
-            device = torch.device("cpu")
-
-        if event_manager is None:
-            model_type = self.gui.csp.model_type
-
-        if model_type == ModelType.CUSTOM:
-            state_dict = torch.load(segmentation_model, map_location=device, weights_only=True)
-            w2_data = state_dict.get('W2', None)
-            if w2_data is None:
-                model = modelsV3.CellposeModel(pretrained_model=segmentation_model, gpu=self.GPU)
-                ioV3.logger_setup()
-                model_type = ModelType.CP_CYTO
-            else:
-                model = models.CellposeModel(pretrained_model=segmentation_model, gpu=self.GPU)
-                io.logger_setup()
-                model_type = ModelType.CP_SAM
-        elif model_type == ModelType.CP_CYTO:
-            model = modelsV3.CellposeModel(model_type="cyto3", gpu=self.GPU)
-            ioV3.logger_setup()
-        elif model_type == ModelType.CP_NUCLEI:
-            model = modelsV3.CellposeModel(model_type="nuclei", gpu=self.GPU)
-            ioV3.logger_setup()
-        elif model_type == ModelType.CP_SAM:
-            model = models.CellposeModel(gpu=self.GPU)
-            io.logger_setup()
-
-        """else:
-            model_type = 'pytorch'
-            model = maskrcnn_resnet50_fpn(weights="DEFAULT")
-            in_features = model.roi_heads.box_predictor.cls_score.in_features
-            model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes=2)
-            in_features_mask = model.roi_heads.mask_predictor.conv5_mask.in_channels
-            model.roi_heads.mask_predictor = MaskRCNNPredictor(in_features_mask, 256,num_classes=2)
-
-            model.load_state_dict(torch.load(segmentation_model, map_location=self.device))
-            model.to(self.device)
-            model.eval()"""
-
-        start_index = self.num_seg_images
         settings_manager = SettingsManager()
-        for iN, image_id in enumerate(list(image_paths)[start_index:], start=start_index):
-            diameter = self.diameter
-            if (segmentation_channel in image_paths[image_id]
-                    and os.path.isfile(image_paths[image_id][segmentation_channel])):
-                if self._is_cancelled(cancel_event):
-                    self.cancel_now = False
-                    self.num_seg_images = 0
-                    return
-                elif event_manager is None and self.pause_now:
-                    self.pause_now = False
-                    return
-                elif event_manager is None and self.resume_now:
-                    self.resume_now = False
-                    self.segmentation.is_resuming()
 
-                if mask_paths and image_id in mask_paths and mask_paths[image_id] is not None and segmentation_channel in mask_paths[image_id]:
-                    if mask_paths[image_id][segmentation_channel] is not None:
-                        print("skip image, mask already exists")
-                        percent = round((iN + 1) / n_images * 100)
-                        progress = str(percent) + " %"
+        config = {
+            "image_paths": image_paths,
+            "mask_paths": mask_paths,
+            "model_path": model_path,
+            "model_type_str": model_type,
+            "segmentation_channel": self.segmentation_channel,
+            "diameter": self.diameter,
+            "suffix": self.suffix,
+            "gpu_flag": self.GPU,
+            "delete_small_masks": settings_manager.settings.segmentation.delete_small_masks,
+            "mask_deletion_diameter": settings_manager.settings.segmentation.mask_deletion_diameter,
+            "rescale_settings": settings_manager.settings.performance.segmentation_downscaling.model_dump(mode="json")
+        }
+
+        cmd = get_multi_worker_command()
+        cmd.append("eval")
+        cmd.append(json.dumps(config))
+
+        self.executor = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,
+            encoding='utf-8'
+        )
+
+        woke_synthetically = threading.Event()
+
+        def cancel_listener():
+            cancel_event.wait()
+            if woke_synthetically.is_set():
+                return
+            if self.executor is not None and self.executor.poll() is None:
+                self.cancel_action()
+
+        thread = None
+        if cancel_event:
+            thread = threading.Thread(target=cancel_listener, daemon=True)
+            thread.start()
+
+        self.stdout_listener(event_manager, cancel_event)
+
+        if cancel_event:
+            was_real_cancel = cancel_event.is_set()
+            if not was_real_cancel:
+                woke_synthetically.set()
+                cancel_event.set()
+            thread.join()
+            if not was_real_cancel:
+                cancel_event.clear()
+
+    def stdout_listener(self, event_manager,cancel_event):
+        pending_error = None
+        for line in iter(self.executor.stdout.readline, ''):
+            if not line: break
+            try:
+                msg = json.loads(line)
+
+                if msg["type"] == "progress":
+                    img_id = msg["image_id"]
+                    percent = msg["percent"]
+
+                    if not msg["skipped"]:
                         if event_manager is None:
-                            current_image = {"image_id": image_id, "path": None}
-                            self._call_update_listeners(progress, current_image)
-                        else:
-                            event_manager.notify(ProgressEvent(percent=percent,
-                                                               process=f"Segmenting Images: {iN + 1}/{n_images} (Latest Image: {image_id})"))
-                        self.num_seg_images = self.num_seg_images + 1
-                        continue
+                            if img_id not in self.gui.csp.mask_paths:
+                                self.gui.csp.mask_paths[img_id] = {}
+                            self.gui.csp.mask_paths[img_id][self.segmentation_channel] = msg["new_path"]
+                            self.gui.directory.update_mask_check(img_id)
+                            self.gui.page.run_task(self.gui.average_diameter.get_avg_diameter, img_id)
 
-                image_path = image_paths[image_id][segmentation_channel]
-                image = tifffile.imread(image_path)
-
-                original_shape = image.shape
-                original_image = image.copy()
-                # print(f"Original Shape: {original_shape}")
-
-                # Normalization
-                image = image.astype(np.float32)
-                image = normalize_image(image)
-
-                # Rescaling
-                rescale_settings = settings_manager.settings.performance.segmentation_downscaling
-                image = rescale_image(image, rescale_settings=rescale_settings)
-                factor = np.max(image.shape[-2:]) / np.max(original_shape[-2:])
-                diameter = diameter * factor
-                # print(f"Rescaled Shape: {image.shape}")
-
-                # model evaluates image
-                if model_type == ModelType.CP_NUCLEI or model_type == ModelType.CP_CYTO:
-                    if image.ndim == 3:  # z, y, x dimensions
-                        res = model.eval(image, diameter=diameter, channels=[0, 0], z_axis=0, do_3D=False,
-                                         stitch_threshold=0.5)
+                    if event_manager is None:
+                        self._call_update_listeners(f"{percent} %", {"image_id": img_id})
                     else:
-                        res = model.eval(image, diameter=diameter, channels=[0, 0])
-                    mask, flow, style = res[:3]
+                        event_manager.notify(ProgressEvent(percent=percent, process=f"Segmenting: {img_id}"))
 
-                elif model_type == ModelType.CP_SAM:
-                    if image.ndim == 3:  # z, y, x dimensions
-                        res = model.eval(image, diameter=diameter, z_axis=0, do_3D=False, stitch_threshold=0.5)
-                    else:
-                        res = model.eval(image, diameter=diameter)
-                    mask, flow, style = res[:3]
+                elif msg["type"] == "error":
+                    pending_error = msg
 
-                elif model_type == 'pytorch':
-                    # PyTorch models expect tensor with shape [C, H, W], normalized
-                    if image.ndim == 2:  # grayscale
-                        image = np.stack([image] * 3, axis=-1)
-                    elif image.shape[2] == 1:
-                        image = np.concatenate([image] * 3, axis=-1)
+            except json.JSONDecodeError:
+                print("Worker Log:", line.strip())
 
-                    pil_img = Image.fromarray((image * 65535).astype(np.uint16))
-                    transform = T.ToTensor()
-                    img_tensor = transform(pil_img).to(device)
+        self.executor.wait()
 
-                    with torch.no_grad():
-                        prediction = model([img_tensor])[0]
-
-                    if 'masks' not in prediction or len(prediction['masks']) == 0:
-                        mask = np.zeros_like(image[..., 0], dtype=np.uint16)
-                    else:
-                        masks = prediction['masks'] > 0.5
-                        mask = masks.squeeze(1).cpu().numpy()
-
-                        mask = self.masks_to_label_mask(mask)
-
-                    flow, style = None, None
-
-                # print(f"Original Mask Shape: {mask.shape}")
-                # Restore the original image shape and adapt the masks and flows accordingly
-                if mask is not None:
-                    mask = rescale_image(mask, target_shape=original_shape,interpolation=cv2.INTER_NEAREST)
-                if flow is not None:
-                    fraction_y = original_shape[-2] / flow[0].shape[-3]
-                    fraction_x = original_shape[-1] / flow[0].shape[-2]
-
-                    flow[0] = np.stack(
-                        [rescale_image(flow[0][..., iD], target_shape=original_shape)
-                         for iD in range(flow[0].shape[-1])],
-                        axis=-1
-                    )
-
-                    flow[1] = np.stack(
-                        [rescale_image(flow[1][z], target_shape=original_shape)
-                         for z in range(flow[1].shape[0])],
-                        axis=0
-                    )
-                    flow[1][-2] = flow[1][-2] * fraction_y
-                    flow[1][-1] = flow[1][-1] * fraction_x
-
-                    flow[2] = rescale_image(
-                        flow[2],
-                        target_shape=original_shape,
-                        interpolation=cv2.INTER_NEAREST
-                    )
-
-                # delete small masks below user defined diameter
-                if settings_manager.settings.segmentation.delete_small_masks and mask is not None:
-
-                    threshold = settings_manager.settings.segmentation.mask_deletion_diameter
-
-                    counts = np.bincount(mask.ravel())
-
-                    for cell_id, size in enumerate(counts[1:], start=1):
-
-                        if size == 0:
-                            continue
-
-                        if mask.ndim == 3:
-                            # equivalent sphere diameter
-                            diameter = 2 * ((3 * size) / (4 * np.pi)) ** (1 / 3)
-                        else:
-                            # equivalent circle diameter
-                            diameter = 2 * np.sqrt(size / np.pi)
-                        if diameter < threshold:
-                            mask[mask == cell_id] = 0
-
-                image = original_image
-
-                # Generate the output filename directly using the suffix attribute
-                directory, filename = os.path.split(image_path)
-                name, _ = os.path.splitext(filename)
-                new_filename = f"{name}{suffix}.npy"
-                new_path = os.path.join(directory, new_filename)
-
-                default_suffix_path = os.path.splitext(image_path)[0] + '_seg.npy'
-                """
-                backup_path = None
-                if default_suffix_path != new_path:
-                    if os.path.exists(default_suffix_path):
-                        backup_path = default_suffix_path + '.backup'
-                        if os.path.exists(backup_path):
-                            os.remove(backup_path)
-                        os.rename(default_suffix_path, backup_path)
-                """
-                # Save the segmentation results directly with the default name first
-                if model_type == ModelType.CP_NUCLEI or model_type == ModelType.CP_CYTO:
-                    ioV3.masks_flows_to_seg([image], [mask], [flow], [image_path])
-                elif model_type == ModelType.CP_SAM:
-                    io.masks_flows_to_seg([image], [mask], [flow], [image_path])
-                else:
-                    H, W = image.shape[:2]
-                    flow0 = np.zeros((H, W, 3), dtype=np.uint16)
-                    flow1 = np.zeros((2, H, W), dtype=np.float32)
-                    flow2 = np.zeros((H, W), dtype=np.float32)
-                    dummy_flow = [flow0, flow1, flow2]
-                    io.masks_flows_to_seg([image], [mask], [dummy_flow], [image_path])
-
-                if default_suffix_path != new_path:
-                    if os.path.exists(default_suffix_path):
-                        if os.path.exists(new_path):
-                            os.remove(new_path)
-                        os.rename(default_suffix_path, new_path)
-                        #if backup_path is not None:
-                         #   os.rename(backup_path, default_suffix_path)
-                if event_manager is None:
-                    if image_id not in self.gui.csp.mask_paths:
-                        self.gui.csp.mask_paths[image_id] = {}
-                else:
-                    if image_id not in mask_paths:
-                        mask_paths[image_id] = {}
-
-                if event_manager is None:
-                    self.gui.csp.mask_paths[image_id][segmentation_channel] = new_path
-                else:
-                    mask_paths[image_id][segmentation_channel] = new_path
-
-                percent = round((iN + 1) / n_images * 100)
-                progress = str(percent) + " %"
-                if event_manager is None:
-                    current_image = {"image_id": image_id, "path": image_path}
-                    self._call_update_listeners(progress, current_image)
-                else:
-                    event_manager.notify(ProgressEvent(percent=percent,
-                                                       process=f"Segmenting Images: {iN + 1}/{n_images} (Latest Image: {image_id})"))
-                self.num_seg_images = self.num_seg_images + 1
-                if event_manager is None:
-                    self.gui.directory.update_mask_check(image_id)
-                    self.gui.page.run_task(self.gui.average_diameter.get_avg_diameter, image_id)
+        if pending_error is not None:
+            error_type = pending_error.get("error_type")
+            if error_type == "UnpicklingError":
+                raise pickle.UnpicklingError(pending_error["text"])
             else:
-                percent = round((iN + 1) / n_images * 100)
-                progress = str(percent) + " %"
-                if event_manager is None:
-                    current_image = {"image_id": image_id, "path": None}
-                    self._call_update_listeners(progress, current_image)
-                else:
-                    event_manager.notify(ProgressEvent(percent=percent,
-                                                       process=f"Segmenting Images: {iN + 1}/{n_images} (Latest Image: {image_id})"))
-                self.num_seg_images = self.num_seg_images + 1
+                raise RuntimeError(pending_error["text"])
 
-        if event_manager is None:
-            self._call_completion_listeners()
+        if self.cancel_now or (cancel_event and cancel_event.is_set()):
+            self.cancel_now = False
+        elif self.pause_now:
+            self.pause_now = False
         else:
-            event_manager.notify(ProgressEvent(percent=100, process=f"All images segmented."))
-        # reset variables
-        self.num_seg_images = 0
-
+            if event_manager is None:
+                self._call_completion_listeners()
+            else:
+                event_manager.notify(ProgressEvent(percent=100, process="All images segmented."))
 
 class BatchImageReadout(Notifier):
 

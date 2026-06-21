@@ -5,8 +5,7 @@ import sys
 import logging
 import torch
 
-from backend.constants import ModelType
-
+from backend.model_types import ModelType
 
 def _last_logged_epoch(n):
     for i in range(n - 1, -1, -1):

@@ -162,10 +162,7 @@ class GUISegmentation:
             This includes error handling for the case where something other than a model is chosen.
             """
             # visibility of buttons before start of segmentation (needed in case of error)
-            state_fl_control = FluorescenceReadoutControl().visible
-            state_open_button = self.gui.open_button.visible
-
-            def reset_gui_on_error(ex, user_message: str):
+            def reset_gui_on_error(ex, user_message: str, invalid=True):
                 self.gui.error_manager.log_and_show(user_message,ex)
                 self.gui.training_environment.enable_switch_environment()
                 start_button.visible = True
@@ -173,13 +170,15 @@ class GUISegmentation:
                 pause_button.visible = False
                 cancel_button.visible = False
                 model_title.disabled = False
-                model_text.color = ERROR_COLOR
                 model_chooser.disabled = False
-                FluorescenceReadoutControl().visible = state_fl_control
-                self.gui.open_button.visible = state_open_button
+                self.gui.page.run_task(self.gui.directory.check_masks)
                 self.gui.directory.enable_path_choosing()
                 self.gui.csp.segmentation_running = False
-                self.progress_bar_text.value = "Select new Model"
+                if invalid:
+                    model_text.color = ERROR_COLOR
+                    self.progress_bar_text.value = "Select new Model"
+                else:
+                    self.progress_bar_text.value = "Error occurred during segmentation"
                 self.gui.csp.model_path = None
                 self.gui.page.update()
 
@@ -198,8 +197,12 @@ class GUISegmentation:
             self.gui.page.update()
 
             async def flow():
-                print("mask paths:",self.gui.csp.mask_paths)
-                if any(self.gui.csp.mask_paths.values()):
+                bf_channel = self.gui.csp.config.get_bf_channel()
+                has_existing_masks = any(
+                    bf_channel in mask_data
+                    for mask_data in self.gui.csp.mask_paths.values()
+                )
+                if has_existing_masks:
 
                     dialog = ChoiceDialog(
                         page=self.gui.page,
@@ -213,8 +216,6 @@ class GUISegmentation:
                     delete = (result == 0)
 
                     if delete:
-                        bf_channel = self.gui.csp.config.get_bf_channel()
-
                         for img in list(self.gui.csp.mask_paths.keys()):
                             mask_data = self.gui.csp.mask_paths.get(img, {})
                             path = mask_data.get(bf_channel)
@@ -236,13 +237,15 @@ class GUISegmentation:
                     except pickle.UnpicklingError as ex:
                         reset_gui_on_error(
                             ex,
-                            user_message="Invalid or corrupted file. Please select a valid model."
+                            user_message="Invalid or corrupted file. Please select a valid model.",
+                            invalid=True,
                         )
 
                     except Exception as ex:
                         reset_gui_on_error(
                             ex,
-                            user_message="An unexpected error occurred during segmentation."
+                            user_message="An unexpected error occurred during segmentation.",
+                            invalid=False,
                         )
 
                 self.gui.page.run_thread(threaded_segmentation_runner)
@@ -261,15 +264,15 @@ class GUISegmentation:
             self.gui.diameter_display.opacity = 0.5
             if self.segmentation_currently_paused:
                 resume_button.visible = False
-                extracted_percentage = re.search(r'\d+', self.progress_bar_text.value)
-                self.progress_bar_text.value = "Cancelling: " + extracted_percentage.group(0) + " %"
+                pause_button.visible = False
+                self.progress_bar_text.value = "Cancelling..."
                 self.segmentation_currently_paused = False
                 self.gui.page.update()
-                self.segmentation.run()
+                cancelled_segmentation()
             else:
                 pause_button.visible = False
                 self.progress_bar_text.value = "Cancelling: " + self.progress_bar_text.value
-            self.gui.page.update()
+                self.gui.page.update()
 
         def pause_segmentation(e):  # called when the pause button is clicked
             """
@@ -279,7 +282,13 @@ class GUISegmentation:
             resume_button.visible = True
             resume_button.disabled = True
             cancel_button.disabled = True
-            self.progress_bar_text.value = "Pausing: " + self.progress_bar_text.value
+            import re
+            extracted_percentage = re.search(r'\d+', self.progress_bar_text.value)
+            if extracted_percentage:
+                self.progress_bar_text.value = f"Paused at: {extracted_percentage.group(0)} %"
+            else:
+                self.progress_bar_text.value = "Paused"
+            self.progress_bar_text.update()
             cancel_button.color = None
             cancel_button.icon_color = None
             self.gui.page.update()
@@ -293,16 +302,48 @@ class GUISegmentation:
             self.segmentation_currently_paused = False
             resume_button.visible = False
             pause_button.visible = True
-            pause_button.disabled = True
-            cancel_button.disabled = True
+            pause_button.disabled = False
+            cancel_button.disabled = False
+
+            import re
             extracted_percentage = re.search(r'\d+', self.progress_bar_text.value)
-            self.progress_bar_text.value = extracted_percentage.group(0) + " %"  # remove "paused at " from string
+
+            if extracted_percentage:
+                self.progress_bar_text.value = extracted_percentage.group(0) + " %"
+            else:
+                self.progress_bar_text.value = "Resuming..."
+
             cancel_button.color = None
             cancel_button.icon_color = None
             self.gui.page.update()
             self.segmentation.to_be_resumed()
             self.segmentation_resuming = True
-            self.segmentation.run()
+
+            def reset_gui_on_resume_error(ex, user_message: str):
+                self.gui.error_manager.log_and_show(user_message, ex)
+                self.gui.training_environment.enable_switch_environment()
+                start_button.visible = True
+                start_button.disabled = True
+                pause_button.visible = False
+                cancel_button.visible = False
+                model_title.disabled = False
+                model_chooser.disabled = False
+                self.gui.page.run_task(self.gui.directory.check_masks)
+                self.gui.directory.enable_path_choosing()
+                self.gui.csp.segmentation_running = False
+                self.progress_bar_text.value = "Error occurred during segmentation"
+                self.gui.csp.model_path = None
+                self.gui.page.update()
+
+            def threaded_resume_runner():
+                try:
+                    self.segmentation.run()
+                except Exception as ex:
+                    reset_gui_on_resume_error(
+                        ex,
+                        user_message="An unexpected error occurred during segmentation."
+                    )
+            self.gui.page.run_thread(threaded_resume_runner)
 
         # define behavior of buttons when they are clicked
         start_button.on_click = start_segmentation
@@ -361,8 +402,13 @@ class GUISegmentation:
             """
             resume_button.disabled = False
             cancel_button.disabled = False
+            import re
             extracted_percentage = re.search(r'\d+', self.progress_bar_text.value)
-            self.progress_bar_text.value = "Paused at: " + extracted_percentage.group(0) + " %"
+            if extracted_percentage:
+                self.progress_bar_text.value = f"Paused at: {extracted_percentage.group(0)} %"
+            else:
+                self.progress_bar_text.value = "Paused"
+            self.progress_bar_text.update()
             cancel_button.color = ERROR_COLOR
             cancel_button.icon_color = ERROR_COLOR
             self.gui.page.update()
