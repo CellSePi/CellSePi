@@ -1,5 +1,11 @@
+import os
+
 import sys
 import json
+
+base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+sys.path.insert(0, base_path)
 
 if __name__ == "__main__":
     if len(sys.argv) > 2:
