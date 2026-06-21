@@ -173,7 +173,12 @@ jobs:
         shell: bash
         run: |
           poetry run pip install pyinstaller
-          poetry run pyinstaller --onefile --noconsole --distpath cellsepi/bin --clean cellsepi/backend/training.py
+          
+          if [ "${{ matrix.target }}" == "windows" ]; then
+            poetry run pyinstaller --onefile --noconsole --distpath cellsepi/assets/bin --clean cellsepi/backend/training.py
+          else
+            poetry run pyinstaller --onefile --distpath cellsepi/assets/bin --clean cellsepi/backend/training.py
+          fi
           
           ls -la cellsepi/assets/bin/
 
