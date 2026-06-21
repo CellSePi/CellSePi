@@ -2,6 +2,7 @@ from enum import Enum, auto
 from types import SimpleNamespace
 from pathlib import Path
 from typing import Optional, Callable
+from backend.model_types import ModelType
 import flet as ft
 BIT_DEPTH = 16
 
@@ -25,12 +26,6 @@ class SourceType(Enum):
     FILE = auto()
     DIRECTORY = auto()
 
-
-class ModelType(Enum):
-    CP_SAM = SimpleNamespace(name= "CP Sam")
-    CP_CYTO = SimpleNamespace(name= "CP Cyto")
-    CP_NUCLEI = SimpleNamespace(name= "CP Nuclei")
-    CUSTOM = SimpleNamespace(name= "Custom")
 
 
 FILTER_FLOAT = r"^[0-9]*([.][0-9]*)?$"

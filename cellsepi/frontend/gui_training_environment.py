@@ -575,7 +575,13 @@ class Training(ft.Container):
 
     async def cancel_training(self):
         if self.training_process and self.training_process.poll() is None:
-            self.training_process.terminate()
+            if os.name == "nt":
+                subprocess.run(
+                    ["taskkill", "/F", "/T", "/PID", str(self.training_process.pid)],
+                    capture_output=True
+                )
+            else:
+                self.training_process.terminate()
 
             self.terminal_list.controls.append(
                 create_terminal_text(">>> Training cancelled.", is_bold=True, color=ERROR_COLOR)

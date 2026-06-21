@@ -176,9 +176,9 @@ jobs:
           mkdir -p external_worker_build
           
           if [ "${{ matrix.target }}" == "windows" ]; then
-            poetry run pyinstaller --onefile --paths cellsepi --noconsole --distpath external_worker_build --clean cellsepi/backend/worker.py
+            poetry run pyinstaller --onefile --exclude-module flet --exclude-module flet_desktop --paths cellsepi --noconsole --distpath external_worker_build --clean cellsepi/backend/worker.py
           else
-            poetry run pyinstaller --onefile --paths cellsepi --distpath external_worker_build --clean cellsepi/backend/worker.py
+            poetry run pyinstaller --onefile --exclude-module flet --exclude-module flet_desktop --paths cellsepi --distpath external_worker_build --clean cellsepi/backend/worker.py
           fi
           
           ls -la external_worker_build/
