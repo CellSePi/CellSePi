@@ -18,8 +18,10 @@ from backend.notifier import Notifier
 from backend.settings import SettingsManager
 
 def get_multi_worker_command():
+    exe_name = "worker.exe" if os.name == "nt" else "worker"
     base_path = pathlib.Path(__file__).parent.parent
-    worker_exe = base_path / "assets" / "bin" / ("worker.exe" if os.name == "nt" else "worker")
+    exe_dir = pathlib.Path(sys.executable).parent
+    worker_exe = exe_dir / exe_name
 
     if worker_exe.exists():
         return [str(worker_exe)]
