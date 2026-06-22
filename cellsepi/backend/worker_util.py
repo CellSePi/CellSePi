@@ -29,11 +29,11 @@ def get_worker_env() -> dict:
             pass
         return env
 
-    flet_paths = [p for p in sys.path if p and "flet" in p.lower()]
+    all_paths = [p for p in sys.path if p]
 
-    if flet_paths:
-        env["FLET_SITE_PACKAGES"] = json.dumps(flet_paths)
-        extra = os.pathsep.join(flet_paths)
+    if all_paths:
+        env["FLET_SITE_PACKAGES"] = json.dumps(all_paths)
+        extra = os.pathsep.join(all_paths)
         env["PATH"] = extra + os.pathsep + env.get("PATH", "")
 
     return env

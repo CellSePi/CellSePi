@@ -415,6 +415,17 @@ class Training(ft.Container):
         self.gui.csp.training_running = True
         self.gui.training_event.clear()
 
+        #######TODO: DEBUG PRINT DELETE
+        import sys
+        self.terminal_list.controls.append(
+            create_terminal_text("=== SYSTEM PATH DER GUI ===", is_bold=True, color=ft.Colors.YELLOW))
+        for p in sys.path:
+            self.terminal_list.controls.append(create_terminal_text(f" -> {p}"))
+        self.terminal_list.controls.append(
+            create_terminal_text("===========================", is_bold=True, color=ft.Colors.YELLOW))
+        self.terminal_list.update()
+        #######DEBUG END
+
         mask_filter = f"{self.gui.csp.current_mask_suffix}.npy"
         sgd_value = True if self.re_train_model.value else False
         model_type_str = self.model_dropdown.value
