@@ -12,6 +12,7 @@ import numpy as np
 
 from backend.constants import ExportFileType
 from backend.data_util import load_image_to_numpy, export_dataframe_to_pdf
+from backend.error_manager import ErrorManager
 from backend.expert_mode.event_manager import EventManager
 from backend.expert_mode.listener import ProgressEvent
 from backend.notifier import Notifier
@@ -154,6 +155,7 @@ class BatchImageSegmentation(Notifier):
 
     def stdout_listener(self, event_manager,cancel_event):
         pending_error = None
+        last_raw_line = None
 
         for line in iter(self.executor.stdout.readline, ''):
             if not line: break
@@ -181,13 +183,14 @@ class BatchImageSegmentation(Notifier):
                     pending_error = msg
 
             except json.JSONDecodeError:
-                pass
+                last_raw_line = line.strip()
 
         self.executor.wait()
         is_cancelled = self.cancel_now or (cancel_event and cancel_event.is_set())
         is_paused = self.pause_now
         if self.executor.returncode != 0 and pending_error is None and not is_cancelled and not is_paused:
-            raise RuntimeError(f"Worker crashed with Exit-Code {self.executor.returncode}")
+            error_text = last_raw_line if last_raw_line is not None else f"Unknown Worker Crash"
+            raise RuntimeError(f"Segmentation crashed (Error-Code {self.executor.returncode}): {error_text}")
 
         if pending_error is not None:
             error_type = pending_error.get("error_type")

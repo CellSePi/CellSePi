@@ -7,6 +7,7 @@ import os
 
 from backend.constants import ModelType, FILTER_INT, FILTER_SCIENTIFIC_FLOAT, FILTER_FLOAT, MAIN_COLOR, ERROR_COLOR, \
     SUCCESS_COLOR
+from backend.error_manager import ErrorManager
 from backend.worker_util import get_multi_worker_command, get_worker_env
 from frontend.gui_directory import format_directory_path, copy_to_clipboard
 
@@ -514,6 +515,7 @@ class Training(ft.Container):
 
     def stdout_listener(self):
         error_occurred = False
+        last_raw_line = None
         for line in iter(self.training_process.stdout.readline, ''):
             if not line:
                 break
@@ -524,16 +526,23 @@ class Training(ft.Container):
                     error_occurred = True
                 self.gui.page.run_task(self.update_terminal, msg)
             except json.JSONDecodeError:
-                self.gui.page.run_task(self.update_terminal, {"type": "log", "text": line.strip()})
+                last_raw_line = line.strip()
 
         self.training_process.wait()
 
         if self.training_process.returncode != 0 and not error_occurred and not self._cancel_now:
-            synthetic_error = {
-                "type": "error",
-                "text": f"Training was unexpectedly terminated (Exit-Code {self.training_process.returncode}).",
-                "error_trace": ""
-            }
+            if last_raw_line is not None:
+                synthetic_error = {
+                    "type": "error",
+                    "text": f"Training was unexpectedly terminated (Exit-Code {self.training_process.returncode}).",
+                    "error_trace": ""
+                }
+            else:
+                synthetic_error = {
+                    "type": "error",
+                    "text": f"Training was unexpectedly terminated (Exit-Code {self.training_process.returncode}).",
+                    "error_trace": last_raw_line
+                }
             self.gui.page.run_task(self.update_terminal, synthetic_error)
 
         self.gui.page.run_task(self.finish_training)
