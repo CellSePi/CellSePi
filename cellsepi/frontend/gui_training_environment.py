@@ -531,7 +531,7 @@ class Training(ft.Container):
         self.training_process.wait()
 
         if self.training_process.returncode != 0 and not error_occurred and not self._cancel_now:
-            if last_raw_line is not None:
+            if last_raw_line is None:
                 synthetic_error = {
                     "type": "error",
                     "text": f"Training was unexpectedly terminated (Exit-Code {self.training_process.returncode}).",

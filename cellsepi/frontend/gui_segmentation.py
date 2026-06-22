@@ -166,7 +166,6 @@ class GUISegmentation:
                 self.gui.error_manager.log_and_show(user_message,ex)
                 self.gui.training_environment.enable_switch_environment()
                 start_button.visible = True
-                start_button.disabled = True
                 pause_button.visible = False
                 cancel_button.visible = False
                 model_title.disabled = False
@@ -175,6 +174,7 @@ class GUISegmentation:
                 self.gui.directory.enable_path_choosing()
                 self.gui.csp.segmentation_running = False
                 if invalid:
+                    start_button.disabled = True
                     model_text.color = ERROR_COLOR
                     self.progress_bar_text.value = "Select new Model"
                 else:
