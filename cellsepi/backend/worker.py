@@ -3,6 +3,8 @@ import os
 import sys
 import json
 import ctypes
+if os.name == "nt":
+    import ctypes.wintypes
 
 base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
