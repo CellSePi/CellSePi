@@ -33,9 +33,6 @@ class BatchImageSegmentation(Notifier):
             super().__init__()
             self.segmentation = segmentation
             self.gui = gui
-            self.segmentation_channel = self.gui.csp.config.get_bf_channel()
-            self.diameter = self.gui.csp.config.get_diameter()
-            self.suffix = self.gui.csp.current_mask_suffix
         else:
             self.segmentation_channel = segmentation_channel
             self.diameter = diameter
@@ -80,6 +77,9 @@ class BatchImageSegmentation(Notifier):
         Applies the segmentation model to every image and stores the resulting masks.
         """
         if event_manager is None:
+            self.segmentation_channel = self.gui.csp.config.get_bf_channel()
+            self.diameter = self.gui.csp.config.get_diameter()
+            self.suffix = self.gui.csp.current_mask_suffix
             image_paths = self.gui.csp.image_paths
             mask_paths = self.gui.csp.mask_paths
             model_path = self.gui.csp.model_path
