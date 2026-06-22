@@ -3,9 +3,13 @@ import os
 import sys
 import json
 
+if os.name == "nt":
+    import ctypes.wintypes
+
 base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 sys.path.insert(0, base_path)
+
 
 flet_env = os.environ.get("FLET_SITE_PACKAGES")
 if flet_env:
