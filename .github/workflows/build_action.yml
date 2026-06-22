@@ -48,7 +48,7 @@ jobs:
         include:
           # -------- Desktop --------
           - name: linux
-            runner: ubuntu-latest
+            runner: ubuntu-22.04
             target: linux
             artifact_path: build/linux
             needs_linux_deps: true
@@ -56,7 +56,7 @@ jobs:
             accelerator: cpu
 
           - name: linux-gpu
-            runner: ubuntu-latest
+            runner: ubuntu-22.04
             target: linux
             artifact_path: build/linux
             needs_linux_deps: true
@@ -119,11 +119,6 @@ jobs:
             $VENV_BIN/pyinstaller --onefile --paths cellsepi --noconsole --distpath external_worker_build --clean cellsepi/backend/worker.py
           elif [ "${{ matrix.target }}" == "linux" ]; then
             $VENV_BIN/pyinstaller --onefile --paths cellsepi --hidden-import=ctypes --hidden-import=_ctypes --collect-binaries _ctypes --distpath external_worker_build --clean cellsepi/backend/worker.py
-            
-            $VENV_BIN/pip install patchelf staticx
-            $VENV_BIN/staticx external_worker_build/worker external_worker_build/worker_static
-            mv external_worker_build/worker_static external_worker_build/worker
-            chmod +x external_worker_build/worker
           else
             $VENV_BIN/pyinstaller --onefile --paths cellsepi --distpath external_worker_build --clean cellsepi/backend/worker.py
           fi
