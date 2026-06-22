@@ -50,22 +50,20 @@ class BatchImageSegmentation(Notifier):
     # the following methods handle the different actions and handle accordingly
     def cancel_action(self):
         self.cancel_now = True
-        if self.executor is not None and self.executor.poll() is None:
-            if os.name == "nt":
-                subprocess.run(
-                    ["taskkill", "/F", "/T", "/PID", str(self.executor.pid)],
-                    capture_output=True
-                )
-            else:
-                self.executor.terminate()
+        self.cancel()
 
     def pause_action(self):
         self.pause_now = True
+        self.cancel()
+
+    def cancel(self):
         if self.executor is not None and self.executor.poll() is None:
             if os.name == "nt":
+                CREATE_NO_WINDOW = 0x08000000
                 subprocess.run(
                     ["taskkill", "/F", "/T", "/PID", str(self.executor.pid)],
-                    capture_output=True
+                    capture_output=True,
+                    creationflags=CREATE_NO_WINDOW
                 )
             else:
                 self.executor.terminate()

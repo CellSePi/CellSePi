@@ -566,9 +566,11 @@ class Training(ft.Container):
     async def cancel_training(self):
         if self.training_process and self.training_process.poll() is None:
             if os.name == "nt":
+                CREATE_NO_WINDOW = 0x08000000
                 subprocess.run(
                     ["taskkill", "/F", "/T", "/PID", str(self.training_process.pid)],
-                    capture_output=True
+                    capture_output=True,
+                    creationflags=CREATE_NO_WINDOW
                 )
             else:
                 self.training_process.terminate()
