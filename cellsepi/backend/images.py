@@ -1,6 +1,5 @@
 import pickle
 
-import sys
 import subprocess
 import json
 import os
@@ -9,25 +8,14 @@ import threading
 import pandas as pd
 import numpy as np
 
-from scipy.ndimage import binary_erosion
 from backend.constants import ExportFileType
 from backend.data_util import load_image_to_numpy, export_dataframe_to_pdf
 from backend.expert_mode.event_manager import EventManager
 from backend.expert_mode.listener import ProgressEvent
 from backend.notifier import Notifier
 from backend.settings import SettingsManager
+from backend.worker_util import get_multi_worker_command, get_worker_env
 
-def get_multi_worker_command():
-    exe_name = "worker.exe" if os.name == "nt" else "worker"
-    base_path = pathlib.Path(__file__).parent.parent
-    exe_dir = pathlib.Path(sys.executable).parent
-    worker_exe = exe_dir / exe_name
-
-    if worker_exe.exists():
-        return [str(worker_exe)]
-    else:
-        worker_script = base_path / "backend" / "worker.py"
-        return [sys.executable, str(worker_script)]
 
 class BatchImageSegmentation(Notifier):
     """
@@ -133,7 +121,8 @@ class BatchImageSegmentation(Notifier):
             stderr=subprocess.STDOUT,
             text=True,
             bufsize=1,
-            encoding='utf-8'
+            encoding='utf-8',
+            env=get_worker_env()
         )
 
         woke_synthetically = threading.Event()

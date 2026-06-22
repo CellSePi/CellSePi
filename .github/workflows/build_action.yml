@@ -91,6 +91,32 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build Backend Worker (PyInstaller)
+        shell: bash
+        run: |
+          python -m venv worker_build_env
+
+          if [ "${{ matrix.target }}" == "windows" ]; then
+            VENV_BIN="worker_build_env/Scripts"
+          else
+            VENV_BIN="worker_build_env/bin"
+          fi
+
+          $VENV_BIN/pip install pyinstaller
+
+          if [ "${{ matrix.target }}" == "windows" ]; then
+            $VENV_BIN/pyinstaller --onefile --paths cellsepi --noconsole --distpath external_worker_build --clean cellsepi/backend/worker.py
+          else
+            $VENV_BIN/pyinstaller --onefile --paths cellsepi --distpath external_worker_build --clean cellsepi/backend/worker.py
+          fi
+
+          ls -la external_worker_build/
+
       - name: Setup uv
         uses: astral-sh/setup-uv@v6
 
@@ -126,11 +152,6 @@ jobs:
               print("APP_NAME=" + data["tool"]["poetry"]["name"])
               print("APP_VERSION=" + data["tool"]["poetry"]["version"])
           ' >> $GITHUB_ENV
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
 
       - name: Install Poetry
         run: pip install poetry
@@ -169,19 +190,6 @@ jobs:
           print(f"Set dependencies for {os_target} ({accelerator}):")
           print(toml_append)
           '
-      - name: Build Backend Worker (PyInstaller)
-        shell: bash
-        run: |
-          poetry run pip install pyinstaller
-          mkdir -p external_worker_build
-          
-          if [ "${{ matrix.target }}" == "windows" ]; then
-            poetry run pyinstaller --onefile --exclude-module flet --exclude-module flet_desktop --paths cellsepi --noconsole --distpath external_worker_build --clean cellsepi/backend/worker.py
-          else
-            poetry run pyinstaller --onefile --exclude-module flet --exclude-module flet_desktop --paths cellsepi --distpath external_worker_build --clean cellsepi/backend/worker.py
-          fi
-          
-          ls -la external_worker_build/
 
       - name: Build app
         shell: bash

@@ -1,4 +1,3 @@
-import sys
 import subprocess
 import json
 import pathlib
@@ -7,6 +6,7 @@ import os
 
 from backend.constants import ModelType, FILTER_INT, FILTER_SCIENTIFIC_FLOAT, FILTER_FLOAT, MAIN_COLOR, ERROR_COLOR, \
     SUCCESS_COLOR
+from backend.worker_util import get_multi_worker_command, get_worker_env
 from frontend.gui_directory import format_directory_path, copy_to_clipboard
 
 
@@ -18,20 +18,6 @@ def create_terminal_text(text, is_bold=False,color=None):
         font_family="Cascadia Code",
         weight=ft.FontWeight.BOLD if is_bold else ft.FontWeight.NORMAL,
     )
-
-
-def get_worker_command():
-    exe_name = "worker.exe" if os.name == "nt" else "worker"
-    base_path = pathlib.Path(__file__).parent.parent
-    exe_dir = pathlib.Path(sys.executable).parent
-    worker_exe = exe_dir / exe_name
-
-    if worker_exe.exists():
-        return [str(worker_exe)]
-    else:
-        worker_script = base_path / "backend" / "training.py"
-        return [sys.executable, str(worker_script)]
-
 
 class Training(ft.Container):
 
@@ -447,7 +433,7 @@ class Training(ft.Container):
             "diameter": float(self.diameter) if self.diameter is not None else None
         }
 
-        cmd = get_worker_command()
+        cmd = get_multi_worker_command()
         cmd.append("train")
         cmd.append(json.dumps(config))
 
@@ -457,7 +443,8 @@ class Training(ft.Container):
             stderr=subprocess.STDOUT,
             text=True,
             bufsize=1,
-            encoding='utf-8'
+            encoding='utf-8',
+            env=get_worker_env()
         )
         self.gui.page.run_thread(self.stdout_listener)
 
