@@ -178,6 +178,7 @@ class GUISegmentation:
                     model_text.color = ERROR_COLOR
                     self.progress_bar_text.value = "Select new Model"
                 else:
+                    start_button.disabled = False
                     self.progress_bar_text.value = "Error occurred during segmentation"
                 self.gui.csp.model_path = None
                 self.gui.page.update()
