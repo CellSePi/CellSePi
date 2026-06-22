@@ -117,6 +117,8 @@ jobs:
 
           if [ "${{ matrix.target }}" == "windows" ]; then
             $VENV_BIN/pyinstaller --onefile --paths cellsepi --noconsole --distpath external_worker_build --clean cellsepi/backend/worker.py
+          elif [ "${{ matrix.target }}" == "linux" ]; then
+            $VENV_BIN/pyinstaller --onefile --paths cellsepi --collect-binaries _ctypes --distpath external_worker_build --clean cellsepi/backend/worker.py
           else
             $VENV_BIN/pyinstaller --onefile --paths cellsepi --distpath external_worker_build --clean cellsepi/backend/worker.py
           fi
