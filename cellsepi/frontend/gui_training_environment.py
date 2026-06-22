@@ -81,6 +81,7 @@ class Training(ft.Container):
         self.color = MAIN_COLOR
         self.progress_bar_text = ft.Text("")
         self.model_directory = self.gui.csp.models_dir
+        self._cancel_now = False
         self.terminal_list = ft.ListView(expand=True, spacing=2,scroll=ft.ScrollMode.ALWAYS, auto_scroll=True)
         self.terminal_container = ft.Container(
             content=ft.SelectionArea(content=self.terminal_list),
@@ -395,6 +396,7 @@ class Training(ft.Container):
         """
         This method starts the training process with the selected parameters and model.
         """
+        self._cancel_now = False
         self.start_button.disabled = True
         self.start_button.visible = False
         self.start_button.update()
@@ -511,17 +513,28 @@ class Training(ft.Container):
         self.gui.training_event.set()
 
     def stdout_listener(self):
+        error_occurred = False
         for line in iter(self.training_process.stdout.readline, ''):
             if not line:
                 break
 
             try:
                 msg = json.loads(line)
+                if msg.get("type") == "error":
+                    error_occurred = True
                 self.gui.page.run_task(self.update_terminal, msg)
             except json.JSONDecodeError:
                 self.gui.page.run_task(self.update_terminal, {"type": "log", "text": line.strip()})
 
         self.training_process.wait()
+
+        if self.training_process.returncode != 0 and not error_occurred and not self._cancel_now:
+            synthetic_error = {
+                "type": "error",
+                "text": f"Training was unexpectedly terminated (Exit-Code {self.training_process.returncode}).",
+                "error_trace": ""
+            }
+            self.gui.page.run_task(self.update_terminal, synthetic_error)
 
         self.gui.page.run_task(self.finish_training)
 
@@ -565,6 +578,7 @@ class Training(ft.Container):
 
     async def cancel_training(self):
         if self.training_process and self.training_process.poll() is None:
+            self._cancel_now = True
             if os.name == "nt":
                 CREATE_NO_WINDOW = 0x08000000
                 subprocess.run(

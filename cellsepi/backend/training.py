@@ -87,6 +87,9 @@ class JsonTqdmStream:
             else:
                 print(json.dumps({"type": "log", "text": clean_text}), flush=True)
 
+    def flush(self):
+        pass
+
 
 def run_cellpose_training(model_type_str, working_dir, mask_filter, weight, sgd_value, learning_rate,
                           epochs, model_name, save_path, gpu_flag, pretrained_path, diameter):

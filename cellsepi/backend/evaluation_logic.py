@@ -150,10 +150,8 @@ def run_cellpose_evaluation(image_paths, mask_paths, model_path, model_type_str,
 
 
     except pickle.UnpicklingError as ex:
-
         print(json.dumps({
             "type": "error",
-            "text": "Invalid or corrupted file. Please select a valid model.",
             "error_trace": traceback.format_exc(),
             "error_type": "UnpicklingError"
         }), flush=True)
@@ -161,7 +159,6 @@ def run_cellpose_evaluation(image_paths, mask_paths, model_path, model_type_str,
     except Exception:
         print(json.dumps({
             "type": "error",
-            "text": "Something went wrong during segmentation.",
             "error_trace": traceback.format_exc(),
             "error_type": "Generic"
         }), flush=True)

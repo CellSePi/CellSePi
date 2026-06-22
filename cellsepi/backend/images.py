@@ -154,6 +154,7 @@ class BatchImageSegmentation(Notifier):
 
     def stdout_listener(self, event_manager,cancel_event):
         pending_error = None
+
         for line in iter(self.executor.stdout.readline, ''):
             if not line: break
             try:
@@ -180,18 +181,27 @@ class BatchImageSegmentation(Notifier):
                     pending_error = msg
 
             except json.JSONDecodeError:
-                print("Worker Log:", line.strip())
+                pass
 
         self.executor.wait()
+        is_cancelled = self.cancel_now or (cancel_event and cancel_event.is_set())
+        is_paused = self.pause_now
+        if self.executor.returncode != 0 and pending_error is None and not is_cancelled and not is_paused:
+            raise RuntimeError(f"Worker crashed with Exit-Code {self.executor.returncode}")
 
         if pending_error is not None:
             error_type = pending_error.get("error_type")
-            if error_type == "UnpicklingError":
-                raise pickle.UnpicklingError(pending_error["text"])
-            else:
-                raise RuntimeError(pending_error["text"])
 
-        if self.cancel_now or (cancel_event and cancel_event.is_set()):
+            trace = pending_error.get("error_trace", "")
+            if not trace:
+                trace = pending_error.get("text", "Unknown Worker Error")
+
+            if error_type == "UnpicklingError":
+                raise pickle.UnpicklingError(trace)
+            else:
+                raise RuntimeError(trace)
+
+        if is_cancelled:
             self.cancel_now = False
         elif self.pause_now:
             self.pause_now = False
