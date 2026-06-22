@@ -2,6 +2,7 @@ import subprocess
 import json
 import pathlib
 import flet as ft
+import base64
 import os
 
 from backend.constants import ModelType, FILTER_INT, FILTER_SCIENTIFIC_FLOAT, FILTER_FLOAT, MAIN_COLOR, ERROR_COLOR, \
@@ -415,17 +416,6 @@ class Training(ft.Container):
         self.gui.csp.training_running = True
         self.gui.training_event.clear()
 
-        #######TODO: DEBUG PRINT DELETE
-        import sys
-        self.terminal_list.controls.append(
-            create_terminal_text("=== SYSTEM PATH DER GUI ===", is_bold=True, color=ft.Colors.YELLOW))
-        for p in sys.path:
-            self.terminal_list.controls.append(create_terminal_text(f" -> {p}"))
-        self.terminal_list.controls.append(
-            create_terminal_text("===========================", is_bold=True, color=ft.Colors.YELLOW))
-        self.terminal_list.update()
-        #######DEBUG END
-
         mask_filter = f"{self.gui.csp.current_mask_suffix}.npy"
         sgd_value = True if self.re_train_model.value else False
         model_type_str = self.model_dropdown.value
@@ -446,7 +436,9 @@ class Training(ft.Container):
 
         cmd = get_multi_worker_command()
         cmd.append("train")
-        cmd.append(json.dumps(config))
+        config_str = json.dumps(config)
+        config_b64 = base64.b64encode(config_str.encode('utf-8')).decode('utf-8')
+        cmd.append(config_b64)
 
         self.training_process = subprocess.Popen(
             cmd,

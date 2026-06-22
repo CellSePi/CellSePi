@@ -1,3 +1,5 @@
+import base64
+
 import pickle
 
 import subprocess
@@ -113,7 +115,9 @@ class BatchImageSegmentation(Notifier):
 
         cmd = get_multi_worker_command()
         cmd.append("eval")
-        cmd.append(json.dumps(config))
+        config_str = json.dumps(config)
+        config_b64 = base64.b64encode(config_str.encode('utf-8')).decode('utf-8')
+        cmd.append(config_b64)
 
         self.executor = subprocess.Popen(
             cmd,

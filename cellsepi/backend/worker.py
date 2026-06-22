@@ -1,5 +1,5 @@
+import base64
 import os
-
 import sys
 import json
 
@@ -26,7 +26,14 @@ if flet_env:
 if __name__ == "__main__":
     if len(sys.argv) > 2:
         mode = sys.argv[1]
-        config = json.loads(sys.argv[2])
+        try:
+            config_str = base64.b64decode(sys.argv[2]).decode('utf-8')
+            config = json.loads(config_str)
+        except Exception as e:
+            error_msg = {"type": "error", "error_type": "ArgError",
+                         "text": f"Worker Argument Error: {e} | ARGV: {sys.argv}"}
+            print(json.dumps(error_msg), flush=True)
+            sys.exit(1)
 
         if mode == "train":
             from backend.training import run_cellpose_training
