@@ -2,9 +2,7 @@ import base64
 import os
 import sys
 import json
-
-if os.name == "nt":
-    import ctypes.wintypes
+import ctypes
 
 base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
