@@ -3,9 +3,7 @@ import traceback
 import json
 import sys
 import logging
-import torch
 
-from backend.model_types import ModelType
 
 def _last_logged_epoch(n):
     for i in range(n - 1, -1, -1):
@@ -92,6 +90,9 @@ class JsonTqdmStream:
 
 def run_cellpose_training(model_type_str, working_dir, mask_filter, weight, sgd_value, learning_rate,
                           epochs, model_name, save_path, gpu_flag, pretrained_path, diameter):
+    import torch
+    from backend.model_types import ModelType
+                              
     cellpose_logger = logging.getLogger()
     cellpose_logger.handlers.clear()
     log_handler = JsonLogHandler(epochs)
