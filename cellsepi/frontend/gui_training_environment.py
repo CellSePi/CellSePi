@@ -69,14 +69,14 @@ class Training(ft.Container):
             on_click=lambda e: e.page.run_task(self.cancel_training),
         )
 
-        self.model = "nuclei"
-        self.batch_size = 100
+        self.model = "Cellpose SAM v2"
+        self.batch_size = 1
         self.epochs = 100
-        self.learning_rate = 0.001
+        self.learning_rate = 0.00001
         self.pre_trained = None
         self.diameter_default = True
         self.diameter = 0.0
-        self.weight = 1e-4  # standard value for the weight
+        self.weight = 0.1  # standard value for the weight
         self.model_name = "new_model"
         self.re_train_model_name = None
         self.color = MAIN_COLOR
@@ -98,7 +98,7 @@ class Training(ft.Container):
         # Changed from TextField to Dropdown for model type selection
         self.model_dropdown = ft.Dropdown(
             label="Model Type",
-            value=ModelType.CP_CYTO.value.name,
+            value=ModelType.CP_SAM_V2.value.name,
             options=[
                 ft.dropdown.Option(key=v.value.name, text=v.value.name)
                 for v in ModelType if v != ModelType.CUSTOM
@@ -163,7 +163,7 @@ class Training(ft.Container):
                                      input_filter=ft.InputFilter(allow=True, regex_string=FILTER_SCIENTIFIC_FLOAT,
                                                                  replacement_string=""),
                                      on_blur=lambda e: self.changed_input("learning_rate", e), expand=True)
-        self.field_diameter = ft.TextField(label="Diameter", value=self.diameter, border_color=self.color,
+        self.field_diameter = ft.TextField(label="Diameter", value=None, border_color=self.color,disabled=True,
                                            input_filter=ft.InputFilter(allow=True, regex_string=FILTER_FLOAT,
                                                                        replacement_string=""),
                                            on_blur=lambda e: self.changed_input("diameter", e), expand=True)
@@ -208,7 +208,7 @@ class Training(ft.Container):
                 self.field_model_name.value = None
         else:
             self.re_train_model_chooser.disabled = True
-            if self.model == "CP Sam":
+            if self.model == "Cellpose SAM" or self.model == "Cellpose SAM v2" or self.model == "Cellpose DINO" or self.model == "Cellpose Small DINO":
                 self.field_diameter.disabled = True
                 self.field_diameter.value = None
             else:
@@ -262,7 +262,7 @@ class Training(ft.Container):
                     self.field_custom_model.visible = True
                 else:
                     self.field_custom_model.visible = False
-                if updated_value == "CP Cyto" or updated_value == "CP Nuclei":
+                if updated_value == "Cellpose Cyto" or updated_value == "Cellpose Nuclei":
                     self.batch_size = 100
                     self.field_batch.value = 100
                     self.epochs = 100
@@ -273,7 +273,7 @@ class Training(ft.Container):
                     self.field_weights.value = 1e-4
                     self.field_diameter.disabled = False
                     self.field_diameter.value = str(self.diameter)
-                elif updated_value == "CP Sam" or updated_value == "CP Sam v2" or updated_value == "CP Dino" or updated_value == "CP Small Dino":
+                elif updated_value == "Cellpose SAM" or updated_value == "Cellpose SAM v2" or updated_value == "Cellpose DINO" or updated_value == "Cellpose Small DINO":
                     self.batch_size = 1
                     self.field_batch.value = 1
                     self.epochs = 100
