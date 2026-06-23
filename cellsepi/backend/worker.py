@@ -3,6 +3,7 @@ import os
 import sys
 import json
 import multiprocessing
+import __future__
 import ctypes
 if os.name == "nt":
     import ctypes.wintypes
