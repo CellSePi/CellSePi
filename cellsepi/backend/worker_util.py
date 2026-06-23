@@ -1,5 +1,4 @@
 import json
-
 import sys
 import os
 import pathlib
@@ -27,7 +26,8 @@ def get_worker_env() -> dict:
         try:
             existing = json.loads(env["FLET_SITE_PACKAGES"])
             extra = os.pathsep.join(existing)
-            env["PATH"] = extra + os.pathsep + env.get("PATH", "")
+            current_path = env.get("PATH", "")
+            env["PATH"] = f"{current_path}{os.pathsep}{extra}" if current_path else extra
         except Exception:
             pass
         return env
@@ -37,6 +37,7 @@ def get_worker_env() -> dict:
     if all_paths:
         env["FLET_SITE_PACKAGES"] = json.dumps(all_paths)
         extra = os.pathsep.join(all_paths)
-        env["PATH"] = extra + os.pathsep + env.get("PATH", "")
+        current_path = env.get("PATH", "")
+        env["PATH"] = f"{current_path}{os.pathsep}{extra}" if current_path else extra
 
     return env

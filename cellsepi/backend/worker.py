@@ -12,16 +12,17 @@ base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 sys.path.insert(0, base_path)
 
-
 flet_env = os.environ.get("FLET_SITE_PACKAGES")
 if flet_env:
     try:
         flet_paths = json.loads(flet_env)
-        for p in reversed(flet_paths):
+        for p in flet_paths:
             if p and p not in sys.path:
-                sys.path.insert(0, p)
-            if p and p not in os.environ.get("PATH", ""):
-                os.environ["PATH"] = p + os.pathsep + os.environ.get("PATH", "")
+                sys.path.append(p)
+
+            current_path = os.environ.get("PATH", "")
+            if p and p not in current_path:
+                os.environ["PATH"] = f"{current_path}{os.pathsep}{p}" if current_path else p
     except Exception as e:
         print(json.dumps({"type": "error", "error_type": "EnvError", "text": str(e)}), flush=True)
 
