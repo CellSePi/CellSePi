@@ -45,21 +45,4 @@ if __name__ == "__main__":
 
         elif mode == "eval":
             from backend.evaluation_logic import run_cellpose_evaluation
-            import sys, sysconfig
-
-            stdlib_path = sysconfig.get_paths()['stdlib']
-            hidden_imports = set()
-            for name, module in sys.modules.items():
-                if hasattr(module, '__file__') and module.__file__:
-                    if module.__file__.startswith(stdlib_path):
-                        base_module = name.split('.')[0]
-                        if not base_module.startswith('_'):
-                            hidden_imports.add(base_module)
-            flag_string = " ".join([f"--hidden-import={mod}" for mod in sorted(hidden_imports)])
-            raise RuntimeError(
-                "\n" + "=" * 80 + "\n"
-                                  "🚨 HIDDEN IMPORTS 🚨\n\n"
-                                  f"{flag_string}\n"
-                + "=" * 80 + "\n"
-            )
             run_cellpose_evaluation(**config)
