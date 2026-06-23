@@ -43,7 +43,13 @@ def run_cellpose_evaluation(image_paths, mask_paths, model_path, model_type_str,
         elif model_type == ModelType.CP_NUCLEI:
             model = modelsV3.CellposeModel(model_type="nuclei", gpu=gpu_flag)
         elif model_type == ModelType.CP_SAM:
-            model = models.CellposeModel(gpu=gpu_flag)
+            model = models.CellposeModel(pretrained_model = 'cpsam',gpu=gpu_flag)
+        elif model_type == ModelType.CP_SAM_V2:
+            model = models.CellposeModel(pretrained_model = 'cpsam_v2',gpu=gpu_flag)
+        elif model_type == ModelType.CP_DINO:
+            model = models.CellposeModel(pretrained_model = 'cpdino',gpu=gpu_flag)
+        elif model_type == ModelType.CP_SMALL_DINO:
+            model = models.CellposeModel(pretrained_model = 'cpdino-vitb',gpu=gpu_flag)
 
         n_images = len(image_paths)
         print(json.dumps({"type": "log", "text": f">>> Starting Evaluation of {n_images} images..."}), flush=True)
@@ -81,7 +87,7 @@ def run_cellpose_evaluation(image_paths, mask_paths, model_path, model_type_str,
                     res = model.eval(image, diameter=current_diameter, channels=[0, 0])
                 mask, flow, style = res[:3]
 
-            elif model_type == ModelType.CP_SAM:
+            elif model_type in [ModelType.CP_SAM, ModelType.CP_SAM_V2, ModelType.CP_DINO, ModelType.CP_SMALL_DINO]:
                 if image.ndim == 3:
                     res = model.eval(image, diameter=current_diameter, z_axis=0, do_3D=False, stitch_threshold=0.5)
                 else:
@@ -130,7 +136,7 @@ def run_cellpose_evaluation(image_paths, mask_paths, model_path, model_type_str,
 
             if model_type in [ModelType.CP_NUCLEI, ModelType.CP_CYTO]:
                 ioV3.masks_flows_to_seg([original_image], [mask], [flow], [image_path])
-            elif model_type == ModelType.CP_SAM:
+            elif model_type in [ModelType.CP_SAM, ModelType.CP_SAM_V2, ModelType.CP_DINO, ModelType.CP_SMALL_DINO]:
                 io.masks_flows_to_seg([original_image], [mask], [flow], [image_path])
 
             default_suffix_path = os.path.splitext(image_path)[0] + '_seg.npy'

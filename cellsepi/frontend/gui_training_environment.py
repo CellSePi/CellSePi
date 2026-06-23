@@ -273,7 +273,7 @@ class Training(ft.Container):
                     self.field_weights.value = 1e-4
                     self.field_diameter.disabled = False
                     self.field_diameter.value = str(self.diameter)
-                elif updated_value == "CP Sam":
+                elif updated_value == "CP Sam" or updated_value == "CP Sam v2" or updated_value == "CP Dino" or updated_value == "CP Small Dino":
                     self.batch_size = 1
                     self.field_batch.value = 1
                     self.epochs = 100

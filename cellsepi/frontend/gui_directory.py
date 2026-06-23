@@ -422,7 +422,7 @@ class DirectoryCard(ft.Card):
                 self.gui.training_environment.start_button.disabled = False
                 if ((self.gui.csp.model_path is not None and (
                         self.gui.csp.model_type == ModelType.CUSTOM))
-                        or self.gui.csp.model_type == ModelType.CP_CYTO or self.gui.csp.model_type == ModelType.CP_NUCLEI or self.gui.csp.model_type == ModelType.CP_SAM):
+                        or self.gui.csp.model_type in [ModelType.CP_CYTO, ModelType.CP_NUCLEI, ModelType.CP_SAM, ModelType.CP_SAM_V2, ModelType.CP_DINO, ModelType.CP_SMALL_DINO]):
                     self.gui.progress_bar_text.value = "Ready to Start"
                     self.gui.start_button.disabled = False
                 self.gui.ready_to_start = True

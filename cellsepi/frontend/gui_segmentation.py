@@ -135,6 +135,33 @@ class GUISegmentation:
                 self.gui.csp.model_path = "pre_def"
                 model_choose_button.visible = False
                 self.gui.csp.model_type = ModelType.CP_SAM
+            elif model_drop_down.value == "CellposeSAMv2":
+                if self.gui.ready_to_start:
+                    self.progress_bar_text.value = "Ready to Start"
+                    start_button.disabled = False
+                model_text.value = "Cellpose SAM v2"
+                model_text.color = None
+                self.gui.csp.model_path = "pre_def"
+                model_choose_button.visible = False
+                self.gui.csp.model_type = ModelType.CP_SAM_V2
+            elif model_drop_down.value == "CellposeDINO":
+                if self.gui.ready_to_start:
+                    self.progress_bar_text.value = "Ready to Start"
+                    start_button.disabled = False
+                model_text.value = "Cellpose DINO"
+                model_text.color = None
+                self.gui.csp.model_path = "pre_def"
+                model_choose_button.visible = False
+                self.gui.csp.model_type = ModelType.CP_DINO
+            elif model_drop_down.value == "CellposeSmallDINO":
+                if self.gui.ready_to_start:
+                    self.progress_bar_text.value = "Ready to Start"
+                    start_button.disabled = False
+                model_text.value = "Cellpose Small DINO"
+                model_text.color = None
+                self.gui.csp.model_path = "pre_def"
+                model_choose_button.visible = False
+                self.gui.csp.model_type = ModelType.CP_SMALL_DINO
             elif model_drop_down.value == "CellposeNuclei":
                 if self.gui.ready_to_start:
                     self.progress_bar_text.value = "Ready to Start"
@@ -654,10 +681,10 @@ class GUISegmentation:
             label="Choose model",
             border_color=MAIN_COLOR,
             options=[
-                ft.DropdownOption(
-                    key="CellposeSAM",
-                    text="Cellpose SAM"
-                ),
+                ft.DropdownOption(key="CellposeSAM", text="Cellpose SAM"),
+                ft.DropdownOption(key="CellposeSAMv2", text="Cellpose SAM v2"),
+                ft.DropdownOption(key="CellposeDINO", text="Cellpose DINO"),
+                ft.DropdownOption(key="CellposeSmallDINO", text="Cellpose Small DINO"),
                 ft.DropdownOption(key="CellposeCyto", text="Cellpose Cyto"),
                 ft.DropdownOption(key="CellposeNuclei", text="Cellpose Nuclei"),
                 ft.DropdownOption(

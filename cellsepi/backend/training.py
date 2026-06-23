@@ -149,7 +149,7 @@ def run_cellpose_training(model_type_str, working_dir, mask_filter, weight, sgd_
                 mask_filter=mask_filter,
                 look_one_level_down=False
             )
-        elif model_type == ModelType.CP_SAM:
+        elif model_type in [ModelType.CP_SAM, ModelType.CP_SAM_V2, ModelType.CP_DINO, ModelType.CP_SMALL_DINO]:
             from cellpose import models, train, io
             output = io.load_train_test_data(
                 train_dir=working_dir,
@@ -168,22 +168,39 @@ def run_cellpose_training(model_type_str, working_dir, mask_filter, weight, sgd_
 
         print(json.dumps({"type": "log", "text": f">>> Loaded {len(images)} images and {len(labels)} masks, starting training..."}), flush=True)
 
-        if model_type == ModelType.CP_SAM:
+        if model_type in [ModelType.CP_SAM, ModelType.CP_SAM_V2, ModelType.CP_DINO, ModelType.CP_SMALL_DINO]:
             from cellpose import models, train
             if sgd_value:
                 model = models.CellposeModel(
                     pretrained_model=pretrained_path,
                     gpu=gpu_flag
                 )
-            else:
+            elif model_type == ModelType.CP_SAM:
                 model = models.CellposeModel(
+                    pretrained_model= 'cpsam',
                     gpu=gpu_flag
                 )
+            elif model_type == ModelType.CP_SAM_V2:
+                model = models.CellposeModel(
+                    pretrained_model='cpsam_v2',
+                    gpu=gpu_flag
+                )
+            elif model_type == ModelType.CP_DINO:
+                model = models.CellposeModel(
+                    pretrained_model= 'cpdino',
+                    gpu=gpu_flag
+                )
+            elif model_type == ModelType.CP_SMALL_DINO:
+                model = models.CellposeModel(
+                    pretrained_model= 'cpdino-vitb',
+                    gpu=gpu_flag
+                )
+
 
             train.train_seg(model.net, train_data=images, train_labels=labels, normalize=True,
                             test_data=test_images, test_labels=test_labels, weight_decay=weight, SGD=sgd_value,
                             learning_rate=learning_rate, n_epochs=epochs, model_name=model_name, min_train_masks=1,
-                            save_path=save_path)
+                            save_path=save_path, bsize=256)
         else:
             from backend.CellposeV3 import modelsV3, trainV3
             if sgd_value:
