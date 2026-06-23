@@ -293,7 +293,7 @@ jobs:
           Name=${APP_PRODUCT_NAME}
           Comment=${APP_DESC}
           Exec=/usr/bin/${APP_NAME}
-          Icon=${APP_NAME}
+          Icon=/usr/share/pixmaps/${APP_NAME}.png
           Terminal=false
           Categories=Science;
           EOF
