@@ -1097,7 +1097,6 @@ class ModuleGUI(ft.GestureDetector):
             setattr(self.module, attr_name, FilePath(dir))
             text.value = format_directory_path(dir, 50)
             text.update()
-            print("hey",text.value)
             self.pipeline_gui.pipeline.event_manager.notify(OnPipelineChangeEvent("user_attr_change"))
 
     async def on_change(self, e, attr_name, typ: type, min_value = None, max_value = None):
