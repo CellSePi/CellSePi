@@ -209,6 +209,7 @@ class GUISegmentation:
                     self.progress_bar_text.value = "Error occurred during segmentation"
                 self.gui.csp.model_path = None
                 self.gui.page.update()
+                self.gui.cancel_event.set()
 
             start_button.visible = False
             pause_button.visible = True
@@ -221,6 +222,7 @@ class GUISegmentation:
             self.gui.open_button.visible = False
             self.gui.training_environment.disable_switch_environment()
             self.gui.directory.disable_path_choosing()
+            self.gui.cancel_event.clear()
 
             self.gui.page.update()
 
