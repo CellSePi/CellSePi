@@ -939,7 +939,9 @@ class ModuleGUI(ft.GestureDetector):
             elif typ == bool:
                 text = ft.Text(attribute_name.removeprefix("user_"), weight=ft.FontWeight.BOLD)
                 index = 0 if not value else 1
-                setattr(self.module, "on_change_" + attribute_name, lambda: None)
+                on_change = getattr(self.module, "on_change_" + attribute_name, None)
+                if on_change is None:
+                    setattr(self.module, "on_change_" + attribute_name, lambda: None)
                 slider_bool = ft.CupertinoSlidingSegmentedButton(
                     selected_index=index,
                     thumb_color=MAIN_COLOR,
@@ -1025,14 +1027,16 @@ class ModuleGUI(ft.GestureDetector):
                 enum_items = list(enum_class)
                 text = ft.Text(attribute_name.removeprefix("user_"), weight=ft.FontWeight.BOLD)
                 index = enum_items.index(value)
-                setattr(self.module, "on_change_" + attribute_name, lambda: None)
+                on_change = getattr(self.module, "on_change_" + attribute_name,None)
+                if on_change is None:
+                    setattr(self.module, "on_change_" + attribute_name, lambda: None)
 
                 total_chars = sum(len(val.name) for val in enum_items)
                 if total_chars > MAX_TOTAL_CHARS_ENUM:
                     input_control = ft.Dropdown(
                         value=enum_items[index].name,
                         options=[ft.dropdown.Option(key=val.name, text=val.name) for val in enum_items],
-                        on_blur=lambda e, attr_name=attribute_name,
+                        on_select=lambda e, attr_name=attribute_name,
                                          e_class=enum_class: self.pipeline_gui.page.run_task(self.update_enum, e,
                                                                                              attr_name, e_class),
                         dense=True,
@@ -1093,6 +1097,7 @@ class ModuleGUI(ft.GestureDetector):
             setattr(self.module, attr_name, FilePath(dir))
             text.value = format_directory_path(dir, 50)
             text.update()
+            print("hey",text.value)
             self.pipeline_gui.pipeline.event_manager.notify(OnPipelineChangeEvent("user_attr_change"))
 
     async def on_change(self, e, attr_name, typ: type, min_value = None, max_value = None):
@@ -1175,6 +1180,7 @@ class ModuleGUI(ft.GestureDetector):
         if self.page_overlay is None:
             page = self.pipeline_gui._page
             self.page_overlay = PageOverlay(page, self.module.settings, self.close_options)
+        self.module.settings_init()
 
     async def open_options(self, e):
         """

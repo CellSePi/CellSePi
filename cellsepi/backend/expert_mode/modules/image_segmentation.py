@@ -27,17 +27,11 @@ class ImageSegmentationModule(Module, ABC):
         self.limit_user_diameter: Limit = Limit(min_val=0.00)
         self.user_mask_suffix: str = "_seg"
         self.user_overwrite_existing_masks: bool = False
+        self.on_change_user_model_type = self.update_model_path_activation
 
-    @property
-    def settings(self) -> ft.Control | None:
-        if self._settings is not None and self.on_change_user_model_type() is None:
-            self.on_change_user_model_type = self.update_model_path_activation
-            self.ref_user_model_path.animate_opacity=600
-            if self.user_model_type is ModelType.CUSTOM:
-                self.ref_user_model_path.current.opacity = 1
-            else:
-                self.ref_user_model_path.current.opacity = 0
-        return self._settings
+    def settings_init(self):
+        self.ref_user_model_path.animate_opacity = 600
+        self.update_model_path_activation()
 
     def update_model_path_activation(self):
         if self.user_model_type is ModelType.CUSTOM:

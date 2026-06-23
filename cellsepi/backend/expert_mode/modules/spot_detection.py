@@ -59,21 +59,19 @@ class SpotDetectionModule(Module, ABC):
         self.limit_user_spot_radius_x_nm = Limit(min_val=1.0)
         self.limit_user_spot_radius_y_nm = Limit(min_val=1.0)
         self.limit_user_spot_radius_z_nm = Limit(min_val=1.0)
+        self.on_change_user_use_log_kernel_and_minimum_distance = self.update_disable_kernel_distance
+        self.on_change_user_use_threshold = self.update_disable_threshold
 
-    @property
-    def settings(self) -> ft.Control | None:
-        if self._settings is not None and self.on_change_user_use_log_kernel_and_minimum_distance() is None:
-            self.on_change_user_use_log_kernel_and_minimum_distance = self.update_disable_kernel_distance
-            self.on_change_user_use_threshold = self.update_disable_threshold
-            self.update_disable_kernel_distance()
-            self.update_disable_threshold()
-        return self._settings
+    def settings_init(self):
+        self.update_disable_kernel_distance()
+        self.update_disable_threshold()
 
     def update_disable_threshold(self):
         if self.user_use_threshold:
             self.ref_user_threshold.current.disabled = False
         else:
             self.ref_user_threshold.current.disabled = True
+        self._settings.update()
 
     def update_disable_kernel_distance(self):
         if self.user_use_log_kernel_and_minimum_distance:
@@ -102,6 +100,7 @@ class SpotDetectionModule(Module, ABC):
             self.ref_user_minimum_distance_x_pixels.current.disabled = True
             self.ref_user_minimum_distance_y_pixels.current.disabled = True
             self.ref_user_minimum_distance_z_pixels.current.disabled = True
+        self._settings.update()
 
     def run(self):
         mask_paths = {}

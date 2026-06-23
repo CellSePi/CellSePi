@@ -22,16 +22,14 @@ class ReadFiles(Module,ABC):
         self.user_over_write = OverWrite.ALWAYS
         self.user_channel_prefix: str = "c"
         self.user_mask_suffix: str = "_seg"
+        self.on_change_user_file_type = self.update_suffix
 
-    @property
-    def settings(self) -> ft.Control | None:
-        if self._settings is not None and self.update_suffix() is None:
-            self.on_change_user_file_type = self.update_suffix
-            self.user_file_path.suffix = self.user_file_type.value.extensions
-        return self._settings
+    def settings_init(self):
+        self.update_suffix()
 
     def update_suffix(self):
         self.user_file_path.suffix = self.user_file_type.value.extensions
+        self._settings.update()
 
     def run(self):
         overwrite = True if self.user_over_write == OverWrite.ALWAYS else False

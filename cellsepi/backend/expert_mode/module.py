@@ -319,6 +319,12 @@ class Module(ABC):
         """
         return self._settings
 
+    def settings_init(self):
+        """
+        After creation of the settings this method is called.
+        """
+        return None
+
     def finished(self):
         """
         Gets executed when the module is complete finished include possible pausing.
