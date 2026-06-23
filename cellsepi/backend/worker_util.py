@@ -20,7 +20,6 @@ def get_multi_worker_command():
 def get_worker_env() -> dict:
     env = os.environ.copy()
 
-    env.pop("LD_LIBRARY_PATH", None)
     env.pop("PYTHONHOME", None)
     env.pop("PYTHONPATH", None)
     
@@ -33,7 +32,7 @@ def get_worker_env() -> dict:
             pass
         return env
 
-    all_paths = [p for p in sys.path if p]
+    all_paths = [p for p in sys.path if p and "site-packages" in p]
 
     if all_paths:
         env["FLET_SITE_PACKAGES"] = json.dumps(all_paths)

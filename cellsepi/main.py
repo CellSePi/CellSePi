@@ -1,11 +1,7 @@
-import sys
-
 import multiprocessing
-
 import flet as ft
 
 from frontend.gui import GUI
-
 
 async def async_main(page: ft.Page):
     page.window.prevent_close = True
