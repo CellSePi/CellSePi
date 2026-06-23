@@ -115,8 +115,8 @@ jobs:
 
           $VENV_BIN/pip install pyinstaller
 
-          HIDDEN_IMPORTS="--hidden-import=__future__ --hidden-import=timeit --hidden-import=math --hidden-import=typing --hidden-import=datetime --hidden-import=urllib --hidden-import=urllib.request --hidden-import=zipfile --hidden-import=sqlite3 --hidden-import=pathlib --hidden-import=logging --hidden-import=uuid"
-
+          HIDDEN_IMPORTS="--hidden-import=__future__ --hidden-import=timeit --hidden-import=math --hidden-import=typing --hidden-import=datetime --hidden-import=urllib --hidden-import=urllib.request --hidden-import=zipfile --hidden-import=sqlite3 --hidden-import=pathlib --hidden-import=logging --hidden-import=uuid --hidden-import=difflib --hidden-import=inspect --hidden-import=pkgutil --hidden-import=json --hidden-import=dataclasses --hidden-import=platform --hidden-import=ast --hidden-import=sympy --hidden-import=jinja2"
+          
           if [ "${{ matrix.target }}" == "windows" ]; then
             $VENV_BIN/pyinstaller --onefile --paths cellsepi --noconsole $HIDDEN_IMPORTS --distpath external_worker_build --clean cellsepi/backend/worker.py
           elif [ "${{ matrix.target }}" == "linux" ]; then
