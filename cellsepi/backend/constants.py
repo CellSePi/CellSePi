@@ -26,8 +26,6 @@ class SourceType(Enum):
     FILE = auto()
     DIRECTORY = auto()
 
-
-
 FILTER_FLOAT = r"^[0-9]*([.][0-9]*)?$"
 FILTER_INT = r"^[0-9]*$"
 FILTER_SCIENTIFIC_FLOAT= r"^[0-9]*[.]?[0-9]*([eE][-+]?[0-9]*)?$"

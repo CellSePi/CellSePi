@@ -950,7 +950,8 @@ class ModuleGUI(ft.GestureDetector):
                         ft.Text("True")
                     ],
                 )
-                choosing = ft.Container(ft.Row([text, slider_bool], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                choosing = ft.Container(ft.Row([text, slider_bool],
+                        wrap=True, alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                                         padding=ft.Padding(0, 10, 0, 10))
                 items.append(choosing)
             elif typ == FilePath:
@@ -1021,25 +1022,47 @@ class ModuleGUI(ft.GestureDetector):
                 )
             elif type(typ) == enum.EnumType:  # An enumeration
                 enum_class = typ
+                enum_items = list(enum_class)
                 text = ft.Text(attribute_name.removeprefix("user_"), weight=ft.FontWeight.BOLD)
-                index = list(enum_class).index(value)
+                index = enum_items.index(value)
                 setattr(self.module, "on_change_" + attribute_name, lambda: None)
-                slider_bool = ft.CupertinoSlidingSegmentedButton(
-                    selected_index=index,
-                    thumb_color=MAIN_COLOR,
-                    on_change=lambda e, attr_name=attribute_name, e_class=enum_class: self.pipeline_gui.page.run_task(self.update_enum,e, attr_name, e_class),
-                    padding=ft.Padding.symmetric(vertical=0, horizontal=0),
-                    controls=[
-                        ft.Text(enum_val.name) for enum_val in enum_class
-                    ],
-                )
+
+                total_chars = sum(len(val.name) for val in enum_items)
+                if total_chars > MAX_TOTAL_CHARS_ENUM:
+                    input_control = ft.Dropdown(
+                        value=enum_items[index].name,
+                        options=[ft.dropdown.Option(key=val.name, text=val.name) for val in enum_items],
+                        on_blur=lambda e, attr_name=attribute_name,
+                                         e_class=enum_class: self.pipeline_gui.page.run_task(self.update_enum, e,
+                                                                                             attr_name, e_class),
+                        dense=True,
+                        border_color = MAIN_COLOR,
+                        width=250,
+                    )
+                else:
+                    input_control = ft.CupertinoSlidingSegmentedButton(
+                        selected_index=index,
+                        thumb_color=MAIN_COLOR,
+                        on_change=lambda e, attr_name=attribute_name,
+                                         e_class=enum_class: self.pipeline_gui.page.run_task(self.update_enum, e,
+                                                                                             attr_name, e_class),
+                        padding=ft.Padding.symmetric(vertical=0, horizontal=0),
+                        controls=[
+                            ft.Text(enum_val.name) for enum_val in enum_class
+                        ],
+                    )
+
                 choosing = ft.Container(
                     ft.Row(
                         [
                             text,
-                            slider_bool
+                            input_control
                         ],
-                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN), padding=ft.Padding(0, 10, 0, 10))
+                        wrap=True,
+                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+                    ),
+                    padding=ft.Padding(0, 10, 0, 10)
+                )
                 items.append(choosing)
             else:
                 raise ValueError(f"Unsupported 'user_' attribute file type: {typ}")
@@ -1136,7 +1159,10 @@ class ModuleGUI(ft.GestureDetector):
         """
         Handles changes to the attribute for enumerations.
         """
-        enum_val = list(enum_class)[int(e.data)]
+        if isinstance(e.control, ft.CupertinoSlidingSegmentedButton):
+            enum_val = list(enum_class)[int(e.data)]
+        else:
+            enum_val = enum_class[e.control.value]
         setattr(self.module, attr_name, enum_val)
         getattr(self.module, "on_change_" + attr_name)()
         self.module.settings.update()
