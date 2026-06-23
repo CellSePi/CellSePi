@@ -3,7 +3,6 @@ import json
 import sys
 import os
 import base64
-import ssl
 import ctypes
 if os.name == "nt":
     import ctypes.wintypes
