@@ -20,9 +20,6 @@ def get_multi_worker_command():
 def get_worker_env() -> dict:
     env = os.environ.copy()
 
-    env.pop("PYTHONHOME", None)
-    env.pop("PYTHONPATH", None)
-
     if "FLET_SITE_PACKAGES" in env:
         try:
             existing = json.loads(env["FLET_SITE_PACKAGES"])
