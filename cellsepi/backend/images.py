@@ -155,7 +155,7 @@ class BatchImageSegmentation(Notifier):
 
     def stdout_listener(self, event_manager,cancel_event):
         pending_error = None
-        last_raw_line = None
+        raw_output = []
 
         for line in iter(self.executor.stdout.readline, ''):
             if not line: break
@@ -183,14 +183,15 @@ class BatchImageSegmentation(Notifier):
                     pending_error = msg
 
             except json.JSONDecodeError:
-                last_raw_line = line.strip()
+                if line.strip():
+                    raw_output.append(line.strip())
 
         self.executor.wait()
         is_cancelled = self.cancel_now or (cancel_event and cancel_event.is_set())
         is_paused = self.pause_now
         if self.executor.returncode != 0 and pending_error is None and not is_cancelled and not is_paused:
-            error_text = last_raw_line if last_raw_line is not None else f"Unknown Worker Crash"
-            raise RuntimeError(f"Segmentation crashed (Error-Code {self.executor.returncode}): {error_text}")
+            error_text = "\n".join(raw_output) if raw_output else "Unknown Worker Crash"
+            raise RuntimeError(f"Segmentation crashed (Error-Code {self.executor.returncode}):\n{error_text}")
 
         if pending_error is not None:
             error_type = pending_error.get("error_type")

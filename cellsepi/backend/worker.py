@@ -2,6 +2,7 @@ import base64
 import os
 import sys
 import json
+import multiprocessing
 import ctypes
 if os.name == "nt":
     import ctypes.wintypes
@@ -24,6 +25,7 @@ if flet_env:
         print(json.dumps({"type": "error", "error_type": "EnvError", "text": str(e)}), flush=True)
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support()
     if len(sys.argv) > 2:
         mode = sys.argv[1]
         try:

@@ -515,7 +515,7 @@ class Training(ft.Container):
 
     def stdout_listener(self):
         error_occurred = False
-        last_raw_line = None
+        raw_output = []
         for line in iter(self.training_process.stdout.readline, ''):
             if not line:
                 break
@@ -526,12 +526,13 @@ class Training(ft.Container):
                     error_occurred = True
                 self.gui.page.run_task(self.update_terminal, msg)
             except json.JSONDecodeError:
-                last_raw_line = line.strip()
+                if line.strip():
+                    raw_output.append(line.strip())
 
         self.training_process.wait()
 
         if self.training_process.returncode != 0 and not error_occurred and not self._cancel_now:
-            if last_raw_line is None:
+            if not raw_output:
                 synthetic_error = {
                     "type": "error",
                     "text": f"Training was unexpectedly terminated (Exit-Code {self.training_process.returncode}).",
@@ -541,7 +542,7 @@ class Training(ft.Container):
                 synthetic_error = {
                     "type": "error",
                     "text": f"Training was unexpectedly terminated (Exit-Code {self.training_process.returncode}).",
-                    "error_trace": last_raw_line
+                    "error_trace": "\n".join(raw_output)
                 }
             self.gui.page.run_task(self.update_terminal, synthetic_error)
 
