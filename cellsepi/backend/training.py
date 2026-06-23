@@ -1,4 +1,4 @@
-import time
+import re
 import traceback
 import json
 import sys
@@ -12,7 +12,7 @@ def _last_logged_epoch(n):
     return 0
 
 def format_time(seconds):
-    mins, secs = divmod(int(seconds), 60)
+    mins, secs = divmod(int(round(seconds)), 60)
     return f"{mins:02d}:{secs:02d}"
 
 
@@ -22,38 +22,52 @@ class JsonLogHandler(logging.Handler):
         self.total_epochs = total_epochs
         self.last_possible = _last_logged_epoch(total_epochs)
         self.last_epoch_logged = False
-        self.start_time = None
+        self.last_elapsed = 0.0
+        self.has_started = False
 
     def emit(self, record):
         log_msg = self.format(record)
+
+        if not self.has_started and ">>> saving model to" in log_msg:
+            self.has_started = True
+            print(json.dumps({"type": "log", "text": log_msg}), flush=True)
+            print(json.dumps({
+                "type": "epoch",
+                "text": f"epochs 0/{self.total_epochs}, starting training...",
+                "percent": 0.0,
+                "current": 0,
+                "total": self.total_epochs,
+                "elapsed": "[00:00<?, ?s/epoch]"
+            }), flush=True)
+            return
+
         parts = log_msg.split(', ', 1)
         if len(parts) == 2 and parts[0].isdigit() and "train_loss" in parts[1]:
             current_epoch = int(parts[0])
-            percent = current_epoch / self.total_epochs
+            epochs_done = current_epoch+1
+            percent = epochs_done / self.total_epochs
 
-            if self.start_time is None:
-                self.start_time = time.time()
+            time_match = re.search(r'time\s+([0-9.]+)s', log_msg)
+            if time_match:
+                self.last_elapsed = float(time_match.group(1))
 
-            elapsed_time = time.time() - self.start_time
-
-            if current_epoch > 0:
-                time_per_epoch = elapsed_time / current_epoch
-                remaining_epochs = self.total_epochs - current_epoch
+            if self.last_elapsed > 0:
+                time_per_epoch = self.last_elapsed / epochs_done
+                remaining_epochs = self.total_epochs - epochs_done
                 eta = remaining_epochs * time_per_epoch
-                time_info = f"[{format_time(elapsed_time)}<{format_time(eta)}, {time_per_epoch:.2f}s/epoch]"
+                time_info = f"[{format_time(self.last_elapsed)}<{format_time(eta)}, {time_per_epoch:.2f}s/epoch]"
             else:
-                time_info = f"[{format_time(elapsed_time)}<?, ?s/epoch]"
+                time_info = "[00:00<?, ?s/epoch]"
 
-            log_msg = f"epochs {current_epoch}/{self.total_epochs}, {parts[1]}"
-            print(json.dumps({"type": "epoch", "text": log_msg, "percent": percent, "current": current_epoch,
+            log_msg = f"epochs {epochs_done}/{self.total_epochs}, {parts[1]}"
+            print(json.dumps({"type": "epoch", "text": log_msg, "percent": percent, "current": epochs_done,
                               "total": self.total_epochs, "elapsed": time_info}), flush=True)
 
             if current_epoch >= self.last_possible:
                 self.last_epoch_logged = True
         elif "saving network parameters" in log_msg and self.last_epoch_logged:
-            total_time = time.time() - self.start_time
-            time_per_epoch = total_time / self.total_epochs
-            time_info = f"[{format_time(total_time)}<00:00, {time_per_epoch:.2f}s/epoch]"
+            time_per_epoch = self.last_elapsed / self.total_epochs
+            time_info = f"[{format_time(self.last_elapsed)}<00:00, {time_per_epoch:.2f}s/epoch]"
             print(json.dumps({"type": "epoch", "text": f"epochs {self.total_epochs}/{self.total_epochs}, {log_msg}",
                               "percent": 1.0, "current": self.total_epochs, "total": self.total_epochs,
                               "elapsed": time_info}), flush=True)
@@ -195,7 +209,6 @@ def run_cellpose_training(model_type_str, working_dir, mask_filter, weight, sgd_
                     pretrained_model= 'cpdino-vitb',
                     gpu=gpu_flag
                 )
-
 
             train.train_seg(model.net, train_data=images, train_labels=labels, normalize=True,
                             test_data=test_images, test_labels=test_labels, weight_decay=weight, SGD=sgd_value,
