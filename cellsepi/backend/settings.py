@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
-import anyio
 from pydantic import BaseModel, Field
 
 from backend.constants import DownscaleMode
@@ -104,12 +103,15 @@ class SettingsManager:
 
     async def load_settings_async(self) -> AppSettings:
         """Loads settings on a background worker thread."""
+        import anyio
         return await anyio.to_thread.run_sync(self.load_settings)
 
     async def save_settings_async(self):
         """Saves settings on a background worker thread without blocking the GUI."""
+        import anyio
         return await anyio.to_thread.run_sync(self.save_settings)
 
     async def reset_settings_async(self):
+        import anyio
         return await anyio.to_thread.run_sync(self.rest_settings)
 

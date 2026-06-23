@@ -3,7 +3,7 @@ import json
 import sys
 import os
 import base64
-
+import ssl
 import ctypes
 if os.name == "nt":
     import ctypes.wintypes
@@ -16,13 +16,11 @@ flet_env = os.environ.get("FLET_SITE_PACKAGES")
 if flet_env:
     try:
         flet_paths = json.loads(flet_env)
-        for p in flet_paths:
+        for p in reversed(flet_paths):
             if p and p not in sys.path:
-                sys.path.append(p)
-
-            current_path = os.environ.get("PATH", "")
-            if p and p not in current_path:
-                os.environ["PATH"] = f"{current_path}{os.pathsep}{p}" if current_path else p
+                sys.path.insert(0, p)
+            if p and p not in os.environ.get("PATH", ""):
+                os.environ["PATH"] = p + os.pathsep + os.environ.get("PATH", "")
     except Exception as e:
         print(json.dumps({"type": "error", "error_type": "EnvError", "text": str(e)}), flush=True)
 
