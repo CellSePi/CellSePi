@@ -115,14 +115,13 @@ jobs:
 
           $VENV_BIN/pip install pyinstaller
 
-          HIDDEN_IMPORTS="--hidden-import=__future__ --hidden-import=timeit --hidden-import=math --hidden-import=typing --hidden-import=datetime --hidden-import=urllib --hidden-import=urllib.request --hidden-import=zipfile --hidden-import=sqlite3 --hidden-import=pathlib --hidden-import=logging --hidden-import=uuid --hidden-import=difflib --hidden-import=inspect --hidden-import=pkgutil --hidden-import=json --hidden-import=dataclasses --hidden-import=platform --hidden-import=ast --hidden-import=sympy --hidden-import=jinja2"
           
           if [ "${{ matrix.target }}" == "windows" ]; then
-            $VENV_BIN/pyinstaller --onefile --paths cellsepi --noconsole $HIDDEN_IMPORTS --distpath external_worker_build --clean cellsepi/backend/worker.py
+            $VENV_BIN/pyinstaller --onefile --paths cellsepi --noconsole --distpath external_worker_build --clean cellsepi/backend/worker.py
           elif [ "${{ matrix.target }}" == "linux" ]; then
-            $VENV_BIN/pyinstaller --onefile --paths cellsepi --hidden-import=ctypes --hidden-import=_ctypes $HIDDEN_IMPORTS --collect-binaries _ctypes --distpath external_worker_build --clean cellsepi/backend/worker.py
+            $VENV_BIN/pyinstaller --onefile --paths cellsepi --hidden-import=ctypes --hidden-import=_ctypes --collect-binaries _ctypes --distpath external_worker_build --clean cellsepi/backend/worker.py
           else
-            $VENV_BIN/pyinstaller --onefile --paths cellsepi --hidden-import=ssl --hidden-import=_ssl $HIDDEN_IMPORTS --collect-binaries _ssl --distpath external_worker_build --clean cellsepi/backend/worker.py
+            $VENV_BIN/pyinstaller --onefile --paths cellsepi --hidden-import=ssl --hidden-import=_ssl --collect-binaries _ssl --distpath external_worker_build --clean cellsepi/backend/worker.py
           fi
           ls -la external_worker_build/
 

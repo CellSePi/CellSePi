@@ -32,7 +32,7 @@ def get_worker_env() -> dict:
             pass
         return env
 
-    all_paths = [p for p in sys.path if p and "site-packages" in p]
+    all_paths = [p for p in sys.path]
 
     if all_paths:
         env["FLET_SITE_PACKAGES"] = json.dumps(all_paths)
