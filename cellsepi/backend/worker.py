@@ -17,7 +17,7 @@ if flet_env:
         flet_paths = json.loads(flet_env)
         for p in reversed(flet_paths):
             if p and p not in sys.path:
-                sys.path.insert(0, p)
+                sys.path.append(p)
             if p and p not in os.environ.get("PATH", ""):
                 os.environ["PATH"] = p + os.pathsep + os.environ.get("PATH", "")
     except Exception as e:

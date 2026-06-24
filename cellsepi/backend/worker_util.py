@@ -21,6 +21,8 @@ def get_worker_env() -> dict:
 
     env.pop("PYTHONHOME", None)
     env.pop("PYTHONPATH", None)
+    env.pop("DYLD_LIBRARY_PATH", None)
+    env.pop("DYLD_FRAMEWORK_PATH", None)
 
     if "FLET_SITE_PACKAGES" in env:
         try:
