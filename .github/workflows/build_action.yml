@@ -168,8 +168,8 @@ jobs:
           import tomllib
           with open("pyproject.toml", "rb") as f:
               data = tomllib.load(f)
-              print("APP_NAME=" + data["tool"]["poetry"]["name"])
-              print("APP_VERSION=" + data["tool"]["poetry"]["version"])
+              print("APP_NAME=" + data["project"]["name"])
+              print("APP_VERSION=" + data["project"]["version"])
           ' >> $GITHUB_ENV
 
       - name: Install dependencies
@@ -255,7 +255,7 @@ jobs:
           import tomllib
           with open("pyproject.toml", "rb") as f:
               data = tomllib.load(f)
-              p = data["tool"]["poetry"]
+              p = data["project"]
               fl = data["tool"]["flet"]
           
           print("export APP_DESC=\"{}\"".format(p["description"]))
@@ -295,7 +295,7 @@ jobs:
           import tomllib
           with open("pyproject.toml", "rb") as f:
               data = tomllib.load(f)
-              p = data["tool"]["poetry"]
+              p = data["project"] 
               fl = data["tool"]["flet"]
           
           print("export APP_DESC=\"{}\"".format(p["description"]))
