@@ -52,11 +52,10 @@ dependencies = [
     "torchvision==0.21.0",
 ]
 
-[tool.uv]
-dev-dependencies = [
+[dependency-groups]
+dev = [
     "pytest==9.1.0",
 ]
-
 
 [tool.pytest.ini_options]
 pythonpath = ["cellsepi"]
