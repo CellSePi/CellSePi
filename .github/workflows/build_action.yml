@@ -409,6 +409,11 @@ jobs:
             tar -cJf "${FINAL_NAME}.tar.xz" -C "$BASE_PATH" .
           elif [ "$ARCHIVE_FORMAT" == "gztar" ]; then
             tar -czf "${FINAL_NAME}.tar.gz" -C "$BASE_PATH" .  
+          elif [ "$OS_TARGET" == "windows" ] && [ "$ARCHIVE_FORMAT" == "zip" ]; then
+            ROOT_DIR=$(pwd)
+            cd "$BASE_PATH"
+            7z a -tzip -mx=5 "$ROOT_DIR/${FINAL_NAME}.zip" *
+            cd "$ROOT_DIR"
           else
             uv run python -c "import shutil; shutil.make_archive('$FINAL_NAME', '$ARCHIVE_FORMAT', '$BASE_PATH')"
           fi
