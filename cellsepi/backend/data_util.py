@@ -31,7 +31,7 @@ from backend.expert_mode.event_manager import *
 from backend.notifier import Notifier
 from backend.settings import SettingsManager
 
-from backend.image_utils import normalize_image
+from backend.image_util import normalize_image
 from backend.constants import BIT_DEPTH
 
 

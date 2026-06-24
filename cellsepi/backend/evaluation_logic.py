@@ -14,7 +14,7 @@ def run_cellpose_evaluation(image_paths, mask_paths, model_path, model_type_str,
     from backend.CellposeV3 import modelsV3, ioV3
     from backend.constants import ModelType
     from backend.settings import SegmentationConfig
-    from backend.image_utils import normalize_image, rescale_image
+    from backend.image_util import normalize_image, rescale_image
                               
     try:
         if isinstance(rescale_settings, dict):

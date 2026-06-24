@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-from image_editing_view import normalize_image as fast_normalize_image
+from image_util import normalize_image as fast_normalize_image
 from backend.settings import SettingsManager, DownscaleMode
 
 
