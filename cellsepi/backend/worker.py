@@ -46,10 +46,3 @@ if __name__ == "__main__":
         elif mode == "eval":
             from backend.evaluation_logic import run_cellpose_evaluation
             run_cellpose_evaluation(**config)
-
-        elif mode == "test_imports":
-            from backend.evaluation_logic import run_cellpose_evaluation
-            from backend.training import run_cellpose_training
-
-            print(json.dumps({"type": "progress", "percent": 100, "process": "Test Imports OK"}), flush=True)
-            sys.exit(0)
