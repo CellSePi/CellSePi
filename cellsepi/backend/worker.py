@@ -4,7 +4,10 @@ import sys
 import os
 import base64
 import ctypes
-if os.name == "nt":
+
+if sys.platform == "darwin":
+    import ssl
+elif sys.platform == "win32":
     import ctypes.wintypes
 
 base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -17,7 +20,7 @@ if flet_env:
         flet_paths = json.loads(flet_env)
         for p in reversed(flet_paths):
             if p and p not in sys.path:
-                sys.path.append(p)
+                sys.path.insert(0, p)
             if p and p not in os.environ.get("PATH", ""):
                 os.environ["PATH"] = p + os.pathsep + os.environ.get("PATH", "")
     except Exception as e:
