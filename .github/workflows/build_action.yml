@@ -404,7 +404,14 @@ jobs:
             FINAL_NAME="${APP_NAME}_${APP_VERSION}_${OS_TARGET}_${ACCELERATOR}_amd64"
           fi
           
-          uv run python -c "import shutil; shutil.make_archive('$FINAL_NAME', '$ARCHIVE_FORMAT', '$BASE_PATH')"
+          if [ "$ARCHIVE_FORMAT" == "xztar" ]; then
+            export XZ_OPT="-T0"
+            tar -cJf "${FINAL_NAME}.tar.xz" -C "$BASE_PATH" .
+          elif [ "$ARCHIVE_FORMAT" == "gztar" ]; then
+            tar -czf "${FINAL_NAME}.tar.gz" -C "$BASE_PATH" .  
+          else
+            uv run python -c "import shutil; shutil.make_archive('$FINAL_NAME', '$ARCHIVE_FORMAT', '$BASE_PATH')"
+          fi
 
       - name: Auto-Split if > 2GB
         shell: bash
