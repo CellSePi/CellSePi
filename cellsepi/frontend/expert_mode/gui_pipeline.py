@@ -236,7 +236,6 @@ class PipelineGUI(ft.Stack):
         for module in self.modules.values():
             if module.module_id != module_id:
                 await module.toggle_detection()
-                self.update()
 
     async def enables_all_stuck_in_running(self):
         """
