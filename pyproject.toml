@@ -71,3 +71,7 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["cellsepi"]
 include = ["cellsepi/csp.schema.json"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
