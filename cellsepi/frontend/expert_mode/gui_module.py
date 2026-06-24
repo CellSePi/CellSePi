@@ -1207,8 +1207,9 @@ class ModuleGUI(ft.GestureDetector):
         copy_dict = self.to_dict()
         new_module = self.pipeline_gui.add_module(type(self.module), x=cast(float, self.left) + 20, y=cast(float, self.top) + 20,
                                      module_dict=copy_dict)
-        await new_module.toggle_detection()
-        await self.pipeline_gui.check_for_valid(new_module.module_id)
+        if self.connection_ports.visible:
+            await new_module.toggle_detection()
+            await self.pipeline_gui.check_for_valid(new_module.module_id)
         self.copy_button.icon_color = ft.Colors.WHITE60
         self.copy_button.update()
 
