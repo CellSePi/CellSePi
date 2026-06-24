@@ -24,19 +24,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
         with:
           python-version: "3.12"
 
-      - name: Install Poetry
-        run: pip install poetry
-
       - name: Install dependencies
-        run: poetry install
+        run: uv sync
 
       - name: Run tests
-        run: poetry run pytest
+        run: uv run pytest
 
   build:
     name: Build ${{ matrix.name }}
@@ -88,11 +85,28 @@ jobs:
             accelerator: gpu
 
     steps:
+      - name: Free up runner disk space
+        if: runner.os == 'Linux'
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo docker image prune -a -f
+          df -h
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Enable Long Paths on Windows
+        if: matrix.target == 'windows'
+        shell: pwsh
+        run: |
+          git config --system core.longpaths true
+          New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Value 1 -PropertyType DWORD -Force
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
         with:
           python-version: "3.12"
 
@@ -104,8 +118,7 @@ jobs:
             sudo apt-get install -y libffi-dev libssl-dev
           fi
 
-          python -m venv worker_build_env
-
+          uv venv worker_build_env
 
           if [ "${{ matrix.target }}" == "windows" ]; then
             VENV_BIN="worker_build_env/Scripts"
@@ -113,9 +126,8 @@ jobs:
             VENV_BIN="worker_build_env/bin"
           fi
 
-          $VENV_BIN/pip install pyinstaller
+          uv pip install -p worker_build_env pyinstaller
 
-          
           if [ "${{ matrix.target }}" == "windows" ]; then
             $VENV_BIN/pyinstaller --onefile --paths cellsepi --noconsole --distpath external_worker_build --clean cellsepi/backend/worker.py
           elif [ "${{ matrix.target }}" == "linux" ]; then
@@ -125,9 +137,6 @@ jobs:
           fi
           
           ls -la external_worker_build/
-
-      - name: Setup uv
-        uses: astral-sh/setup-uv@v6
 
       - name: Disable Windows Defender (Performance Boost)
         if: matrix.target == 'windows'
@@ -155,7 +164,7 @@ jobs:
       - name: Extract Global App Variables
         shell: bash
         run: |
-          python -c '
+          uv run python -c '
           import tomllib
           with open("pyproject.toml", "rb") as f:
               data = tomllib.load(f)
@@ -163,18 +172,15 @@ jobs:
               print("APP_VERSION=" + data["tool"]["poetry"]["version"])
           ' >> $GITHUB_ENV
 
-      - name: Install Poetry
-        run: pip install poetry
-
       - name: Install dependencies
-        run: poetry install --only main
+        run: uv sync --no-dev
 
       - name: Set Torch dependencies
         shell: bash
         run: |
-          poetry remove torch torchvision || true
+          uv remove torch torchvision || true
           
-          python -c '
+          uv run python -c '
           import os
           os_target = "${{ matrix.target }}"
           accelerator = "${{ matrix.accelerator }}"
@@ -202,20 +208,26 @@ jobs:
           '
 
       - name: Build app
-        shell: bash
-        run: |
-          if [ "${{ matrix.target }}" == "macos" ]; then
-            poetry run flet build ${{ matrix.target }} --arch arm64 --template https://github.com/CellSePi/CellSePiTemplate --yes --verbose
-          else
-            if [ "${{ matrix.accelerator }}" == "cpu" ]; then
-              export PIP_EXTRA_INDEX_URL="https://download.pytorch.org/whl/cpu"
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          shell: bash
+          command: |
+            if [ "${{ matrix.target }}" == "macos" ]; then
+              uv run flet build ${{ matrix.target }} --arch arm64 --template https://github.com/CellSePi/CellSePiTemplate --yes --verbose
             else
-              export PIP_EXTRA_INDEX_URL="https://download.pytorch.org/whl/cu124"
+              if [ "${{ matrix.accelerator }}" == "cpu" ]; then
+                export PIP_EXTRA_INDEX_URL="https://download.pytorch.org/whl/cpu"
+                export UV_EXTRA_INDEX_URL="https://download.pytorch.org/whl/cpu"
+              else
+                export PIP_EXTRA_INDEX_URL="https://download.pytorch.org/whl/cu124"
+                export UV_EXTRA_INDEX_URL="https://download.pytorch.org/whl/cu124"
+              fi
+              uv run flet build ${{ matrix.target }} --template https://github.com/CellSePi/CellSePiTemplate --yes --verbose
             fi
-            poetry run flet build ${{ matrix.target }} --template https://github.com/CellSePi/CellSePiTemplate --yes --verbose
-          fi
 
-      - name: Inject Worker into App Folder
+      - name: Inject Worker into App Folder & Clean Up
         shell: bash
         run: |
           if [ "${{ matrix.target }}" == "windows" ]; then
@@ -229,6 +241,9 @@ jobs:
             cp external_worker_build/worker ${{ matrix.artifact_path }}/
             chmod +x ${{ matrix.artifact_path }}/worker
           fi
+          
+          rm -rf external_worker_build
+          rm -rf worker_build_env
 
       - name: Setup Icon and install script for portable Linux archive
         if: matrix.target == 'linux'
@@ -236,7 +251,7 @@ jobs:
         run: |
           cp cellsepi/assets/icon.png ${{ matrix.artifact_path }}/icon.png
           
-          eval $(python -c '
+          eval $(uv run python -c '
           import tomllib
           with open("pyproject.toml", "rb") as f:
               data = tomllib.load(f)
@@ -276,7 +291,7 @@ jobs:
         if: matrix.target == 'linux' && matrix.accelerator == 'cpu'
         shell: bash
         run: |
-          eval $(python -c '
+          eval $(uv run python -c '
           import tomllib
           with open("pyproject.toml", "rb") as f:
               data = tomllib.load(f)
@@ -353,7 +368,7 @@ jobs:
             FINAL_NAME="${APP_NAME}_${APP_VERSION}_${OS_TARGET}_${ACCELERATOR}_amd64"
           fi
           
-          python -c "import shutil; shutil.make_archive('$FINAL_NAME', '$ARCHIVE_FORMAT', '$BASE_PATH')"
+          uv run python -c "import shutil; shutil.make_archive('$FINAL_NAME', '$ARCHIVE_FORMAT', '$BASE_PATH')"
 
       - name: Auto-Split if > 2GB
         shell: bash
@@ -373,7 +388,7 @@ jobs:
           
           echo "Found archive to check: $ARCHIVE_FILE"
           
-          FILE_SIZE=$(python3 -c "import os; print(os.path.getsize('$ARCHIVE_FILE'))")
+          FILE_SIZE=$(uv run python3 -c "import os; print(os.path.getsize('$ARCHIVE_FILE'))")
           MAX_SIZE=1900000000 
 
           if [ $FILE_SIZE -gt $MAX_SIZE ]; then
