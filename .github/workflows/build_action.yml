@@ -173,7 +173,7 @@ jobs:
           ' >> $GITHUB_ENV
 
       - name: Install dependencies
-        run: uv sync --no-dev
+        run: uv sync
 
       - name: Set Torch dependencies
         shell: bash
