@@ -139,6 +139,18 @@ jobs:
           fi
           
           ls -la external_worker_build/
+      - name: Test macOS Worker (Deep Import Test)
+        if: matrix.target == 'macos'
+        shell: bash
+        run: |
+          set -e
+          export FLET_SITE_PACKAGES=$(uv run python -c "import site, json; print(json.dumps(site.getsitepackages()))")
+          
+          DUMMY_CONFIG="e30="
+          
+          ./external_worker_build/worker test_imports $DUMMY_CONFIG
+          
+          echo "Deep Test bestanden! SSL (macOS) und Torch (Flet) wurden erfolgreich zusammen geladen!" 
 
       - name: Disable Windows Defender (Performance Boost)
         if: matrix.target == 'windows'
