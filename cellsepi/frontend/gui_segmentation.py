@@ -290,7 +290,6 @@ class GUISegmentation:
             """
             cancel_button.visible = False
             self.segmentation_cancelling = True
-            self.segmentation.to_be_cancelled()
             self.gui.diameter_display.opacity = 0.5
             if self.segmentation_currently_paused:
                 resume_button.visible = False
@@ -303,6 +302,7 @@ class GUISegmentation:
                 pause_button.visible = False
                 self.progress_bar_text.value = "Cancelling: " + self.progress_bar_text.value
                 self.gui.page.update()
+            self.segmentation.to_be_cancelled()
 
         def pause_segmentation(e):  # called when the pause button is clicked
             """
