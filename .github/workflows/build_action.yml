@@ -61,10 +61,10 @@ jobs:
             archive_type: xztar
             accelerator: gpu
 
-          - name: macos
-            runner: macos-latest
-            target: macos
-            artifact_path: build/macos
+          - name: macOS
+            runner: macOS-latest
+            target: macOS
+            artifact_path: build/macOS
             needs_linux_deps: false
             archive_type: gztar
             accelerator: cpu
@@ -221,7 +221,7 @@ jobs:
           os_target = "${{ matrix.target }}"
           accelerator = "${{ matrix.accelerator }}"
           
-          if os_target == "macos":
+          if os_target == "macOS":
               suffix = ""
           elif accelerator == "cpu":
               suffix = "+cpu"
@@ -250,7 +250,7 @@ jobs:
           max_attempts: 3
           shell: bash
           command: |
-            if [ "${{ matrix.target }}" == "macos" ]; then
+            if [ "${{ matrix.target }}" == "macOS" ]; then
               uv run flet build ${{ matrix.target }} --arch arm64 --template https://github.com/CellSePi/CellSePiTemplate --yes --verbose
             else
               if [ "${{ matrix.accelerator }}" == "cpu" ]; then
@@ -269,9 +269,9 @@ jobs:
           if [ "${{ matrix.target }}" == "windows" ]; then
             cp external_worker_build/worker.exe ${{ matrix.artifact_path }}/
             
-          elif [ "${{ matrix.target }}" == "macos" ]; then
-            cp external_worker_build/worker ${{ matrix.artifact_path }}/*.app/Contents/MacOS/
-            chmod +x ${{ matrix.artifact_path }}/*.app/Contents/MacOS/worker
+          elif [ "${{ matrix.target }}" == "macOS" ]; then
+            cp external_worker_build/worker ${{ matrix.artifact_path }}/*.app/Contents/macOS/
+            chmod +x ${{ matrix.artifact_path }}/*.app/Contents/macOS/worker
             
           else
             cp external_worker_build/worker ${{ matrix.artifact_path }}/
@@ -398,8 +398,8 @@ jobs:
           BASE_PATH="${{ matrix.artifact_path }}"
           ARCHIVE_FORMAT="${{ matrix.archive_type }}"
           
-          if [ "$OS_TARGET" == "macos" ]; then
-            FINAL_NAME="${APP_NAME}_${APP_VERSION}_macos_arm64"
+          if [ "$OS_TARGET" == "macOS" ]; then
+            FINAL_NAME="${APP_NAME}_${APP_VERSION}_macOS_arm64"
           else
             FINAL_NAME="${APP_NAME}_${APP_VERSION}_${OS_TARGET}_${ACCELERATOR}_amd64"
           fi
