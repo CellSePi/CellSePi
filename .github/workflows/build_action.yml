@@ -164,13 +164,47 @@ jobs:
       - name: Extract Global App Variables
         shell: bash
         run: |
+          APP_NAME=$(uv run python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['name'])")
+          echo "APP_NAME=$APP_NAME" >> $GITHUB_ENV
+          
+          VERSION=$(uv run python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
+          
+          REF_NAME="${{ github.ref_name }}"
+          
+          if [[ "${{ github.ref_type }}" == "tag" ]] && [[ "$REF_NAME" == v* ]]; then
+            EXTRACTED_VERSION="${REF_NAME#v}"
+            
+            if [[ "$EXTRACTED_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+              VERSION="$EXTRACTED_VERSION"
+            fi
+          fi
+          
+          echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Patch pyproject.toml with Git Tag Version
+        shell: bash
+        run: |
+          echo "Patching pyproject.toml to version: ${{ env.APP_VERSION }}"
+          
           uv run python -c '
-          import tomllib
-          with open("pyproject.toml", "rb") as f:
-              data = tomllib.load(f)
-              print("APP_NAME=" + data["project"]["name"])
-              print("APP_VERSION=" + data["project"]["version"])
-          ' >> $GITHUB_ENV
+          import re
+          import os
+          
+          new_version = os.environ.get("APP_VERSION")
+          
+          with open("pyproject.toml", "r", encoding="utf-8") as f:
+              content = f.read()
+              
+          patched_content = re.sub(
+              r"^version\s*=\s*\".*?\"", 
+              f"version = \"{new_version}\"", 
+              content, 
+              flags=re.MULTILINE
+          )
+          
+          with open("pyproject.toml", "w", encoding="utf-8") as f:
+              f.write(patched_content)
+          '
 
       - name: Install dependencies
         run: uv sync
