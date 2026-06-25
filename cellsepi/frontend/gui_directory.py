@@ -221,8 +221,6 @@ class DirectoryCard(ft.Card):
         self.gui.progress_bar.value = 0
         self.gui.contrast_slider.disabled = True
         self.gui.brightness_slider.disabled = True
-        self.gui.csp.current_channel_prefix = self.gui.csp.config.get_channel_prefix()
-        self.gui.csp.current_mask_suffix = self.gui.csp.config.get_mask_suffix()
         self.gui.contrast_slider.value = 1
         self.gui.brightness_slider.value = 1
         self.gui.diameter_display.opacity = 0.5
@@ -269,7 +267,7 @@ class DirectoryCard(ft.Card):
             self,
             path,
             file_type: FileType,
-            channel_prefix: str,
+            channel_prefix: str = "c",
             mask_suffix: str = "_seg",
             event_manager: EventManager = None,
             overwrite: bool = True,
@@ -357,7 +355,6 @@ class DirectoryCard(ft.Card):
                             file_type=file_type,
                             path=path,
                             target_dir=working_directory,
-                            channel_prefix=channel_prefix,
                             event_manager=event_manager
                         )
                     else:

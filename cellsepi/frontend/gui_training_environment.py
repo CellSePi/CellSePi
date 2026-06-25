@@ -419,7 +419,7 @@ class Training(ft.Container):
         self.gui.csp.training_running = True
         self.gui.training_event.clear()
 
-        mask_filter = f"{self.gui.csp.current_mask_suffix}.npy"
+        mask_filter = f"{self.gui.csp.config.get_mask_suffix()}.npy"
         sgd_value = True if self.re_train_model.value else False
         model_type_str = self.model_dropdown.value
         config = {

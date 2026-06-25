@@ -20,9 +20,6 @@ class CellSePi:
 
         self.image_id = None
         self.channel_id = None
-        self.current_channel_prefix = None
-        self.current_mask_suffix = None
-
 
         self.readout = None
 

@@ -20,8 +20,6 @@ class ReadFiles(Module,ABC):
         self.user_file_path: FilePath = FilePath(suffix=first_enum_member.value.extensions)
         self.user_file_type = first_enum_member
         self.user_over_write = OverWrite.ALWAYS
-        self.user_channel_prefix: str = "c"
-        self.user_mask_suffix: str = "_seg"
         self.on_change_user_file_type = self.update_suffix
 
     def settings_init(self):
@@ -33,6 +31,6 @@ class ReadFiles(Module,ABC):
 
     def run(self):
         overwrite = True if self.user_over_write == OverWrite.ALWAYS else False
-        working_directory = DirectoryCard().select_directory(self.user_file_path.path, self.user_file_type.value.ref,
-                                                             self.user_channel_prefix,self.user_mask_suffix, self.event_manager,overwrite)
-        self.outputs["image_paths"].data= load_directory(directory=working_directory, mask_suffix=self.user_mask_suffix,return_type=ReturnTypePath.IMAGE_PATHS,event_manager= self.event_manager)
+        working_directory = DirectoryCard().select_directory(path=self.user_file_path.path, file_type=self.user_file_type.value.ref,
+                                                             event_manager= self.event_manager,overwrite=overwrite)
+        self.outputs["image_paths"].data= load_directory(directory=working_directory,return_type=ReturnTypePath.IMAGE_PATHS,event_manager= self.event_manager)

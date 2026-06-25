@@ -1,5 +1,6 @@
 import threading
 
+from backend.error_manager import ErrorManager
 from backend.images import BatchImageReadout
 from backend.cellsepi import CellSePi
 from backend.notifier import Notifier
@@ -50,25 +51,21 @@ class Fluorescence(Notifier):
             self.gui.readout_event.clear()
             FluorescenceReadoutControl().disabled = True
 
-            brightfield_channel = self.csp.config.get_bf_channel()
-            prefix = self.csp.current_channel_prefix
-            working_directory = self.csp.working_directory
+            segmentation_channel = self.csp.config.get_bf_channel()
+            prefix = self.csp.config.get_channel_prefix()
 
             # creates the readout image and fills the mask_path
             batch_image_readout = BatchImageReadout(image_paths=self.csp.image_paths,
                                                     mask_paths=self.csp.mask_paths,
                                                     export_file_type=export_file_type,
                                                     file_path=file_path,
-                                                    segmentation_channel=brightfield_channel,
+                                                    segmentation_channel=segmentation_channel,
                                                     channel_prefix=prefix)
             batch_image_readout.add_update_listener(listener=on_update)
             batch_image_readout.add_completion_listener(listener=completed_readout)
 
-            target = batch_image_readout.run
-            self.csp.readout_thread = threading.Thread(target=target)
-
+            batch_image_readout.run()
             self._call_start_listeners(False)
-            self.csp.readout_thread.start()
 
 
         else:
@@ -80,11 +77,8 @@ class Fluorescence(Notifier):
          -error handling. All error that can possibly occur
          -creates a banner visible in the GUI if an error is important
         """
-
         if self.csp.readout_running:
             return False,
-        if self.csp.readout_thread is not None and self.csp.readout_thread.is_alive():
-            return False
         if self.csp.image_paths is None or len(self.csp.image_paths) == 0:
             error_banner(self.gui, "No image to process")
             return False

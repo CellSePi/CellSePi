@@ -12,6 +12,7 @@ import flet as ft
 
 from backend.constants import downloads_directory, ModelType, ExportFileType, MAIN_COLOR, ERROR_COLOR
 from backend.data_util import FileTransfer
+from backend.error_manager import ErrorManager
 from backend.expert_mode.event_manager import EventManager
 from backend.fluorescence import Fluorescence
 from backend.segmentation import Segmentation
@@ -494,6 +495,25 @@ class GUISegmentation:
         self.segmentation.add_pause_listener(listener=paused_segmentation)
         self.segmentation.add_resume_listener(listener=resumed_segmentation)
 
+        async def complete_fl_ui():
+            self.progress_bar.value = 0
+            if not platform.system() == "Linux":
+                self.gui.page.window.progress_bar = -1
+
+            if self.gui.csp.model_path is not None:
+                self.progress_bar_text.value = "Ready to start"
+            else:
+                self.progress_bar_text.value = "Waiting for Input"
+
+            FluorescenceReadoutControl().disabled = False
+            self.gui.training_environment.enable_switch_environment()
+            self.gui.directory.enable_path_choosing()
+            model_title.disabled = False
+            model_chooser.disabled = False
+            self.gui.csp.readout_running=False
+            self.gui.page.update()
+            self.gui.readout_event.set()
+
         async def fluorescence_readout(e):
             """
             Updates the segmentation card and starts readout of the fluorescence data when the fluorescence button is clicked.
@@ -515,7 +535,15 @@ class GUISegmentation:
             if path.suffix == "":
                 path = path.with_suffix(export_ft.value.extension)
 
-            self.gui.page.run_thread(self.fluorescence.readout_fluorescence, export_ft, path)
+            def threaded_fluorescence_runner():
+                try:
+                    self.fluorescence.readout_fluorescence(export_ft,path)
+                except Exception as ex:
+                    ErrorManager().log_and_show("An unexpected error occurred during readout.",ex)
+                    self.gui.page.run_task(complete_fl_ui)
+
+
+            self.gui.page.run_thread(threaded_fluorescence_runner)
 
             FluorescenceReadoutControl().disabled = True
             start_button.disabled = True
@@ -534,23 +562,7 @@ class GUISegmentation:
             self.progress_bar_text.value = "0 %"
             self.gui.page.update()
 
-        async def complete_fl_ui():
-            self.progress_bar.value = 0
-            if not platform.system() == "Linux":
-                self.gui.page.window.progress_bar = -1
 
-            if self.gui.csp.model_path is not None:
-                self.progress_bar_text.value = "Ready to start"
-            else:
-                self.progress_bar_text.value = "Waiting for Input"
-
-            FluorescenceReadoutControl().disabled = False
-            self.gui.training_environment.enable_switch_environment()
-            self.gui.directory.enable_path_choosing()
-            model_title.disabled = False
-            model_chooser.disabled = False
-            self.gui.page.update()
-            self.gui.readout_event.set()
 
         def complete_fl(*args, **kwargs):
             self.gui.page.run_task(complete_fl_ui)

@@ -40,7 +40,8 @@ def listdir(directory):
     return dir_list
 
 
-def organize_files(files, channel_prefix, mask_suffix=""):
+def organize_files(files, mask_suffix=""):
+    channel_prefix = CSP_CHANNEL_PREFIX
     id_to_file = {}
     for file in files:
 
@@ -67,10 +68,9 @@ def organize_files(files, channel_prefix, mask_suffix=""):
     return id_to_file
 
 
-def load_directory(directory, channel_prefix=CSP_CHANNEL_PREFIX, mask_suffix=None,
+def load_directory(directory, mask_suffix=None,
                    return_type: ReturnTypePath = ReturnTypePath.BOTH_PATHS, event_manager: EventManager = None):
     assert directory is not None
-
     total_steps = 4 if return_type == ReturnTypePath.BOTH_PATHS else 3
     step = 0
 
@@ -79,9 +79,6 @@ def load_directory(directory, channel_prefix=CSP_CHANNEL_PREFIX, mask_suffix=Non
         step += 1
         if event_manager is not None:
             event_manager.notify(event=ProgressEvent(int(step / total_steps * 100), process=process))
-
-    if channel_prefix is None:
-        channel_prefix = "c"
 
     if mask_suffix is None:
         mask_suffix = "_seg"
@@ -99,21 +96,21 @@ def load_directory(directory, channel_prefix=CSP_CHANNEL_PREFIX, mask_suffix=Non
     match return_type:
         case ReturnTypePath.IMAGE_PATHS:
             notifier("Organizing: Image Files")
-            id_to_image = organize_files(tiff_files, channel_prefix=channel_prefix)
+            id_to_image = organize_files(tiff_files)
             notifier("Finished Organizing Files")
             return id_to_image
         case ReturnTypePath.MASK_PATHS:
             notifier("Organizing: Mask Files")
             mask_files = [path for path in file_paths if path.suffix == ".npy" and path.stem.endswith(mask_suffix)]
-            id_to_mask = organize_files(mask_files, channel_prefix=channel_prefix, mask_suffix=mask_suffix)
+            id_to_mask = organize_files(mask_files, mask_suffix=mask_suffix)
             notifier("Finished Organizing Files")
             return id_to_mask
         case ReturnTypePath.BOTH_PATHS:
             notifier("Organizing: Image Files")
-            id_to_image = organize_files(tiff_files, channel_prefix=channel_prefix)
+            id_to_image = organize_files(tiff_files)
             notifier("Organizing: Mask Files")
             mask_files = [path for path in file_paths if path.suffix == ".npy" and path.stem.endswith(mask_suffix)]
-            id_to_mask = organize_files(mask_files, channel_prefix=channel_prefix, mask_suffix=mask_suffix)
+            id_to_mask = organize_files(mask_files, mask_suffix=mask_suffix)
             notifier("Finished Organizing Files!")
             return id_to_image, id_to_mask
     return None
@@ -405,7 +402,6 @@ def extract_from_file(
         file_type,
         path,
         target_dir,
-        channel_prefix,
         event_manager: EventManager = None
 ):
     """
