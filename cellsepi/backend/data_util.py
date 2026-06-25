@@ -27,6 +27,7 @@ from bioio_base.transforms import reshape_data
 from tifffile import tifffile
 
 from backend.constants import ReturnTypePath, FileType, BIT_DEPTH, Suffixes, CSP_CHANNEL_PREFIX, APP_DIR
+from backend.expert_mode import event_manager
 from backend.expert_mode.event_manager import *
 from backend.notifier import Notifier
 from backend.settings import SettingsManager
@@ -484,7 +485,8 @@ def extract_from_directory(
 
     # File names are of the format <scene><channel_prefix><channel_id>.tif
     # and bioio returns a T x C x Z x Y x X image with T=1 and C=1
-    channels_in_individual_files = all([channel_prefix in str(ipath) for ipath in image_paths])
+    nd2_images = file_type == FileType.ND2_DIR
+    channels_in_individual_files = (not nd2_images and all([channel_prefix in str(ipath) for ipath in image_paths]))
 
     scenes = defaultdict(list)
     scenes_masks = defaultdict(list)
@@ -513,8 +515,11 @@ def extract_from_directory(
             else:
                 continue
         else:
-            scene_mask = base_stem
-            channel_str = base_stem
+            if channel_prefix in base_stem:
+                scene_mask, channel_str = base_stem.rsplit(channel_prefix, 1)
+            else:
+                scene_mask = base_stem
+                channel_str = base_stem
 
         scenes_masks[scene_mask].append((channel_str, mpath))
 
@@ -552,8 +557,11 @@ def extract_from_directory(
             orig_channel_str, fpath = scenes[scene][0]
             bio_image = CellSePiImage(file_type, fpath)
             raw_data = bio_image.data
+            channel_names = getattr(bio_image, "channel_names", None)
             for i in range(raw_data.shape[1]):
-                channel_mapping[orig_channel_str].append(i)
+                if channel_names is not None and i < len(channel_names):
+                    channel_mapping[str(channel_names[i])].append(i)
+                channel_mapping[str(i)].append(i)
 
         n_channels = raw_data.shape[1]
         for new_idx in range(n_channels):
