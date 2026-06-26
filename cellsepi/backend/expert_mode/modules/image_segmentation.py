@@ -9,17 +9,17 @@ from backend.expert_mode.module import *
 from backend.constants import ModelType
 
 
-class ImageSegmentationModule(Module, ABC):
+class ImageSegmentationModule(Module):
     _gui_config = ModuleGuiConfig("ImageSegmentation",Categories.SEGMENTATION,"This module handles the segmentation of cells for each series on the given segmentation_channel with the provided model in model_path.")
     def __init__(self, module_id: str = None) -> None:
         super().__init__(module_id)
-        self.inputs = {
-            "image_paths": InputPort("image_paths", dict),
-            "mask_paths": InputPort("mask_paths", dict,opt=True),
-        }
-        self.outputs = {
-            "mask_paths": OutputPort("mask_paths", dict),
-        }
+        self.inputs = InputPorts(
+            InputPort("image_paths", dict),
+            InputPort("mask_paths", dict,opt=True),
+        )
+        self.outputs = OutputPorts(
+            OutputPort("mask_paths", dict),
+        )
         self.user_model_type: ModelType = ModelType.CUSTOM
         self.user_model_path: FilePath = FilePath()
         self.user_segmentation_channel: str = "2"
@@ -42,10 +42,10 @@ class ImageSegmentationModule(Module, ABC):
             self._settings.update()
 
     def run(self):
-        if self.inputs["mask_paths"].data is None:
-            self.inputs["mask_paths"].data = {}
+        if self.inputs.mask_paths.data is None:
+            self.inputs.mask_paths.data = {}
         else:
-            masks = self.inputs["mask_paths"].data
+            masks = self.inputs.mask_paths.data
             if self.user_overwrite_existing_masks:
                 for img in masks:
                     path = masks[img][self.user_segmentation_channel]
@@ -54,9 +54,9 @@ class ImageSegmentationModule(Module, ABC):
                     masks[img].pop(self.user_segmentation_channel, None)
 
         try:
-            BatchImageSegmentation(segmentation_channel=self.user_segmentation_channel,diameter=self.user_diameter,suffix=self.user_mask_suffix).run(self.event_manager,self.inputs["image_paths"].data,self.inputs["mask_paths"].data,self.user_model_path.path,model_type=self.user_model_type,cancel_event=self._cancel_event)
+            BatchImageSegmentation(segmentation_channel=self.user_segmentation_channel,diameter=self.user_diameter,suffix=self.user_mask_suffix).run(self.event_manager,self.inputs.image_paths.data,self.inputs.mask_paths.data,self.user_model_path.path,model_type=self.user_model_type,cancel_event=self._cancel_event)
         except pickle.UnpicklingError as ex:
             raise PipelineRunningException("Segmentation Error", "Invalid or corrupted file. Please select a valid model.")
 
-        self.outputs["mask_paths"].data = self.inputs["mask_paths"].data
+        self.outputs.mask_paths.data = self.inputs.mask_paths.data
 

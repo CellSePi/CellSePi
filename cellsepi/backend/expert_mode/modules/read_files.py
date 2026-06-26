@@ -9,13 +9,13 @@ FileSourceFileType = create_enum_subset(
     lambda m: m.value.source == SourceType.FILE,
     fields_to_copy=["name", "extensions"]
 )
-class ReadFiles(Module,ABC):
+class ReadFiles(Module):
     _gui_config = ModuleGuiConfig("ReadFiles",Categories.INPUTS,"This module handles the read in of different files.")
     def __init__(self, module_id: str = None) -> None:
         super().__init__(module_id)
-        self.outputs = {
-            "image_paths": OutputPort("image_paths", dict),
-        }
+        self.outputs = OutputPorts(
+            OutputPort("image_paths", dict),
+        )
         first_enum_member = list(FileSourceFileType)[0]
         self.user_file_path: FilePath = FilePath(suffix=first_enum_member.value.extensions)
         self.user_file_type = first_enum_member
@@ -33,4 +33,4 @@ class ReadFiles(Module,ABC):
         overwrite = True if self.user_over_write == OverWrite.ALWAYS else False
         working_directory = DirectoryCard().select_directory(path=self.user_file_path.path, file_type=self.user_file_type.value.ref,
                                                              event_manager= self.event_manager,overwrite=overwrite)
-        self.outputs["image_paths"].data= load_directory(directory=working_directory,return_type=ReturnTypePath.IMAGE_PATHS,event_manager= self.event_manager)
+        self.outputs.image_paths.data= load_directory(directory=working_directory,return_type=ReturnTypePath.IMAGE_PATHS,event_manager= self.event_manager)

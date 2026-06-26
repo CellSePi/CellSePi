@@ -45,6 +45,7 @@ class ModuleGUI(ft.GestureDetector):
                                                                                                  module_type.gui_config().name + "_" + str(
                                                                                                      id_number))
         self.module._page = self.pipeline_gui._page
+        self.page_overlay = None
         self.pipeline_gui._page.run_task(self.create_options)
         if module_dict is not None:
             self.update_user_attr(module_dict)
@@ -271,7 +272,6 @@ class ModuleGUI(ft.GestureDetector):
             ], tight=True
             )], height=self.module_container.height,
         )
-        self.page_overlay = None  # PageOverlay(self.pipeline_gui.page,self.module.settings,self.close_options)
         self._ports_lock = asyncio.Lock()
 
     def is_port_connected(self, port_name: str) -> bool:

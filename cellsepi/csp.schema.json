@@ -5,7 +5,7 @@
   "type": "object",
   "properties": {
     "version": {"type": "string",
-      "enum": ["csp-2.0"]
+      "enum": ["csp-1.0"]
     },
     "modules": {
         "description": "All modules of the pipeline",

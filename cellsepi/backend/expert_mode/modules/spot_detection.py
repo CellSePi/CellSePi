@@ -10,22 +10,23 @@ from scipy.ndimage import binary_dilation
 from backend.expert_mode.listener import ProgressEvent
 from backend.expert_mode.pipeline_manager import PipelineRunningException
 from backend.expert_mode.module import *
+from backend.expert_mode.ports import InputPort, OutputPort
 
 
-class SpotDetectionModule(Module, ABC):
+class SpotDetectionModule(Module):
     _gui_config = ModuleGuiConfig("SpotDetection",
                                   Categories.SEGMENTATION,
                                   "This module handles spot detection in cells for each series on the given segmentation_channel with the big-fish python package.")
 
     def __init__(self, module_id: str = None) -> None:
         super().__init__(module_id)
-        self.inputs = {
-            "image_paths": InputPort("image_paths", dict),
-            "mask_paths": InputPort("mask_paths", dict, opt=True),
-        }
-        self.outputs = {
-            "mask_paths": OutputPort("mask_paths", dict),
-        }
+        self.inputs = InputPorts(
+            InputPort("image_paths", dict),
+            InputPort("mask_paths", dict, opt=True)
+        )
+        self.outputs = OutputPorts(
+            OutputPort("mask_paths", dict)
+        )
         self.user_remove_duplicate: bool = True
         self.user_use_threshold: bool = False
         self.user_use_log_kernel_and_minimum_distance: bool = False
@@ -104,18 +105,18 @@ class SpotDetectionModule(Module, ABC):
 
     def run(self):
         mask_paths = {}
-        image_paths = self.inputs["image_paths"].data
+        image_paths = self.inputs.image_paths.data
         n_series = len(list(image_paths))
         self.event_manager.notify(ProgressEvent(percent=0, process=f"Spot detection: Starting"))
         for iN, image_id in enumerate(list(image_paths)):
             if self.is_cancelled():
-                self.outputs["mask_paths"].data = mask_paths
+                self.outputs.mask_paths.data = mask_paths
                 self.event_manager.notify(
                     ProgressEvent(percent=int((iN) / n_series * 100), process="Spot detection: Cancelled"))
                 return
             if self.user_segmentation_channel in image_paths[image_id] and os.path.isfile(
-                    self.inputs["image_paths"].data[image_id][self.user_segmentation_channel]):
-                image_path = self.inputs["image_paths"].data[image_id][self.user_segmentation_channel]
+                    self.inputs.image_paths.data[image_id][self.user_segmentation_channel]):
+                image_path = self.inputs.image_paths.data[image_id][self.user_segmentation_channel]
                 directory, filename = os.path.split(image_path)
                 name, _ = os.path.splitext(filename)
                 new_filename = f"{name}{self.user_mask_suffix}.npy"
@@ -161,11 +162,11 @@ class SpotDetectionModule(Module, ABC):
                     }
 
                 mask_seg = None
-                if self.inputs["mask_paths"].data is not None:
-                    if image_id in self.inputs["mask_paths"].data and self.user_segmentation_channel in \
-                            self.inputs["mask_paths"].data[image_id]:
+                if self.inputs.mask_paths.data is not None:
+                    if image_id in self.inputs.mask_paths.data and self.user_segmentation_channel in \
+                            self.inputs.mask_paths.data[image_id]:
                         mask_seg = np.load(
-                            Path(self.inputs["mask_paths"].data[image_id][self.user_segmentation_channel]),
+                            Path(self.inputs.mask_paths.data[image_id][self.user_segmentation_channel]),
                             allow_pickle=True).item()
                 mask = create_spot_mask(spots, empty_mask, mask_seg, self.user_mask_spot_radius_pixels)
                 np.save(new_path, mask)
@@ -173,7 +174,7 @@ class SpotDetectionModule(Module, ABC):
                 self.event_manager.notify(ProgressEvent(percent=int((iN + 1) / n_series * 100),
                                                         process=f"Spot detection images: {iN + 1}/{n_series}"))
 
-        self.outputs["mask_paths"].data = mask_paths
+        self.outputs.mask_paths.data = mask_paths
         self.event_manager.notify(ProgressEvent(percent=100, process=f"Spot detection: Finished"))
 
 

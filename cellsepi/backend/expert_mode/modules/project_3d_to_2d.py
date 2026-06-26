@@ -14,7 +14,7 @@ class ProjectionType(Enum):
     Z_MEAN = auto()
 
 
-class Project3dTo2d(Module, ABC):
+class Project3dTo2d(Module):
     _gui_config = ModuleGuiConfig(
         "Project3Dto2D",
         Categories.FILTERS,
@@ -22,23 +22,23 @@ class Project3dTo2d(Module, ABC):
 
     def __init__(self, module_id: str = None) -> None:
         super().__init__(module_id)
-        self.inputs = {
-            "image_paths": InputPort("image_paths", dict),
-        }
-        self.outputs = {
-            "image_paths": OutputPort("image_paths", dict),
-        }
+        self.inputs = InputPorts(
+            InputPort("image_paths", dict),
+        )
+        self.outputs = OutputPorts(
+            OutputPort("image_paths", dict),
+        )
         self.user_projection_type: ProjectionType = ProjectionType.Z_MAX
 
 
     def run(self):
-        images = self.inputs["image_paths"].data
+        images = self.inputs.image_paths.data
         outputs_images = {}
         n_series = len(images)
         self.event_manager.notify(ProgressEvent(percent=0, process=f"Projecting Series: Starting"))
         for iN, series in enumerate(images):
             if self.is_cancelled():
-                self.outputs["image_paths"].data = outputs_images
+                self.outputs.image_paths.data = outputs_images
                 self.event_manager.notify(
                     ProgressEvent(percent=int((iN) / n_series * 100), process="Projection: Cancelled"))
                 return
@@ -68,5 +68,5 @@ class Project3dTo2d(Module, ABC):
 
             self.event_manager.notify(ProgressEvent(percent=int((iN + 1) / n_series * 100),
                                                     process=f"Projecting Series: {iN + 1}/{n_series}"))
-        self.outputs["image_paths"].data = outputs_images
+        self.outputs.image_paths.data = outputs_images
         self.event_manager.notify(ProgressEvent(percent=100, process=f"Projecting Series: Finished"))

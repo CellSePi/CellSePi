@@ -2,12 +2,14 @@ import threading
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Callable, Union, Set
-from typing import Dict,List
+from typing import Callable
+from typing import List
 
 import flet as ft
 
 from backend.expert_mode.event_manager import EventManager
+from backend.expert_mode.ports import *
+
 
 class FilePath:
     """
@@ -26,100 +28,6 @@ class DirectoryPath:
         self.path = path
 
 
-class Port:
-    """
-    Ports defines an input or output of a module.
-    Ports with the same names in different modules are considered as the same type of ports
-    and their data can be transferred with pipes to each other.
-    """
-    def __init__(self, name: str, data_type: type, opt: bool = False, multi: Union[bool, Set[str]] = False):
-        self.name = name
-        self.data_type = data_type #type
-        self.opt = opt #optional
-        if not multi:
-            self.mode = "single" #how many inputs are allowed
-            self._data = None
-        elif isinstance(multi, (set, list, tuple)):
-            self.mode = "multi_tagged"
-            if isinstance(multi, set):
-                self.allowed_tags = sorted(list(multi))
-            else:
-                self.allowed_tags = list(dict.fromkeys(multi))
-            self._data = {tag: list() for tag in self.allowed_tags}
-        elif multi is True:
-            self.mode = "multi_list"
-            self._data = list()
-        else:
-            raise ValueError("Parameter multi must be False, True, or a collection of tags.")
-
-    @property
-    def data(self):
-        return self._data
-
-    @data.setter
-    def data(self, value):
-        if value is None:
-            self.clear()
-            return
-        if self.mode == "single":
-            if not isinstance(value, self.data_type):
-                raise TypeError(f"Typ error: single needs {self.data_type.__name__}, not {type(value).__name__}!")
-        elif self.mode == "multi_tagged":
-            if not isinstance(value, dict):
-                raise TypeError(f"Typ error: multi_tagged needs a Dictionary, not {type(value).__name__}!")
-        elif self.mode == "multi_list":
-            if not isinstance(value, list):
-                raise TypeError(f"Typ error: multi_list needs a List, not {type(value).__name__}!")
-
-        self._data = value
-
-    def clear(self):
-        if self.mode == "single":
-            self._data = None
-        elif self.mode == "multi_tagged":
-            self._data = {tag: list() for tag in self.allowed_tags}
-        elif self.mode == "multi_list":
-            self._data = list()
-        else:
-            raise ValueError("Parameter multi must be False, True, or a collection of tags.")
-
-    def add_data(self, value, tag: str | None = None):
-        """
-        Raises:
-            TypeError: If the data type is not the required type.
-        """
-        if not(isinstance(value, self.data_type) or value is None):
-            raise TypeError(f"Expected data of type {self.data_type}, got {type(value)}!")
-        if self.mode == "single":
-            self._data = value
-        elif self.mode == "multi_tagged":
-            if tag in self._data:
-                self._data[tag].append(value)
-            else:
-                raise ValueError(f"Tag {tag} is not valid for this port!")
-        else:
-            self._data.append(value)
-
-    def __str__(self):
-        return f"port_name: {self.name}, port_data_type: {self.data_type.__name__}, opt: {self.opt}, data: {self.data}, mode: {self.mode}"
-
-class InputPort(Port):
-    """
-    InputPorts defines an input of a module.
-    Ports with the same names in different modules are considered as the same type of ports
-    and their data can be transferred with pipes to each other.
-    """
-    def __init__(self, name: str, data_type: type, opt: bool = False,  multi: Union[bool, Set[str]] = False):
-        super().__init__(name, data_type, opt,multi)
-
-class OutputPort(Port):
-    """
-    OutputPorts defines an output of a module.
-    Ports with the same names in different modules are considered as the same type of ports
-    and their data can be transferred with pipes to each other.
-    """
-    def __init__(self, name: str, data_type: type):
-        super().__init__(name, data_type)
 
 class Categories(Enum):
     """
@@ -198,8 +106,8 @@ class Module(ABC):
         self.module_id:str = self.get_new_id() if module_id is None else module_id
         self.event_manager: EventManager | None = None
         self._cancel_event: threading.Event | None = None
-        self.inputs: Dict[str,InputPort] = {}
-        self.outputs: Dict[str,OutputPort] = {}
+        self.inputs: InputPorts = InputPorts()
+        self.outputs: OutputPorts = OutputPorts()
         self._settings: ft.Control | None = None
         self._on_settings_dismiss: Callable[[], None] | None = lambda : None
         """

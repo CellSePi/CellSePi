@@ -6,7 +6,7 @@ from backend.expert_mode.listener import ProgressEvent, OnPipelineChangeEvent
 from backend.expert_mode.module import *
 
 
-class Review(Module, ABC):
+class Review(Module):
     mask_color = (255, 0, 0)
     mask_opacity = 128
     outline_color = (0, 255, 0)
@@ -15,15 +15,14 @@ class Review(Module, ABC):
                                   "This module allows you to manually review and edit masks. Also you can create new masks when no mask are given.")
 
     def __init__(self, module_id: str = None) -> None:
-        # regular modul
         super().__init__(module_id)
-        self.inputs = {
-            "image_paths": InputPort("image_paths", dict),
-            "mask_paths": InputPort("mask_paths", dict, True),
-        }
-        self.outputs = {
-            "mask_paths": OutputPort("mask_paths", dict),
-        }
+        self.inputs = InputPorts(
+        InputPort("image_paths", dict),
+            InputPort("mask_paths", dict, True),
+        )
+        self.outputs = OutputPorts (
+            OutputPort("mask_paths", dict),
+        )
         self.user_segmentation_channel: str = "2"
         self.user_2_5d = False
         self.user_mask_suffix = "_seg"
@@ -109,7 +108,7 @@ class Review(Module, ABC):
         return self._settings
 
     def finished(self):
-        self.outputs["mask_paths"].data = self.inputs["mask_paths"].data
+        self.outputs.mask_paths.data = self.inputs.mask_paths.data
         self._text_field_mask_suffix.visible = False
         self._canvas.disable_editing_without_update()
 
@@ -123,15 +122,15 @@ class Review(Module, ABC):
         self._image_gallery.controls.clear()
         self._text_field_mask_suffix.visible = True
         # reset image_viewer
-        if self.inputs["mask_paths"].data is None:
-            self.inputs["mask_paths"].data = {}
-        self._canvas.set_main_paths(self.inputs["image_paths"].data)
-        self._canvas.set_mask_paths(self.inputs["mask_paths"].data)
+        if self.inputs.mask_paths.data is None:
+            self.inputs.mask_paths.data = {}
+        self._canvas.set_main_paths(self.inputs.image_paths.data)
+        self._canvas.set_mask_paths(self.inputs.mask_paths.data)
         self._canvas.reset_image(without_update=True)
         self._edit_allowed = True
         self.event_manager.notify(ProgressEvent(percent=100, process=f"Preparing: finished"))
         self.event_manager.notify(ProgressEvent(percent=0, process=f"Loading Images: Starting"))
-        src = convert_tiffs_to_png_parallel(self.inputs["image_paths"].data)
+        src = convert_tiffs_to_png_parallel(self.inputs.image_paths.data)
 
         async def select_image(img_id, c_id):
             if self.image_id is not None and self.image_id in self._selected_images_visualise:
@@ -208,8 +207,7 @@ class Review(Module, ABC):
             image_id: the id of the image to check mask availability
             update: True to update the gui
         """
-        if self.inputs["mask_paths"].data is not None and image_id in self.inputs[
-            "mask_paths"].data and self.user_segmentation_channel in self.inputs["mask_paths"].data[image_id]:
+        if self.inputs.mask_paths.data is not None and image_id in self.inputs.mask_paths.data and self.user_segmentation_channel in self.inputs.mask_paths.data[image_id]:
             self._icon_check[image_id].visible = True
             self._icon_x[image_id].visible = False
         else:
@@ -223,8 +221,8 @@ class Review(Module, ABC):
         """
         Updates the symbol next to series number of image for every image_id in mask_paths.
         """
-        if self.inputs["image_paths"].data is not None:
-            for image_id in self.inputs["image_paths"].data:
+        if self.inputs.image_paths.data is not None:
+            for image_id in self.inputs.image_paths.data:
                 self.update_mask_check(image_id)
 
     async def _mask_update_async(self, image_id, mask_added_or_removed):

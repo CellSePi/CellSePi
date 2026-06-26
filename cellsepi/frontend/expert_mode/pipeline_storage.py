@@ -24,14 +24,15 @@ def get_major_dict(data):
 
 class PipelineStorage:
     """
-    Handels loading and saving of Pipelines.
+    Handles loading and saving of Pipelines.
     """
     def __init__(self,pipeline_gui):
         self.schema_name = "csp.schema.json"
         self.project_root = os.path.dirname(cast(str, os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
         self.schema_directory = os.path.join(self.project_root, self.schema_name)
         self.pipeline_gui = pipeline_gui
-        self.version = "csp-2.0"
+        self.schema = load_schema(schema_path=self.schema_directory)
+        self.version = self.schema["properties"]["version"]["enum"][0]
         self.schema = load_schema(schema_path=self.schema_directory)
 
     async def save_as_pipeline(self,file_path:str= ""):
