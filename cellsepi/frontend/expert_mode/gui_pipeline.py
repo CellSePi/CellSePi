@@ -45,6 +45,12 @@ class PipelineGUI(ft.Stack):
         self.loading = True
         for module in list(self.modules.values()):
            await module.remove_module()
+        #make sure that pipeline_manager is really reset
+        show_room_module_ids = [m.module_id for m in self.show_room_modules]
+        for module in list(self.pipeline.modules):
+            if show_room_module_ids is not None and module.module_id in show_room_module_ids:
+                continue
+            self.pipeline.remove_module(module)
         self.pipeline.run_order = deque()
         self.pipeline.executing = ""
         self.pipeline.running = False
@@ -127,7 +133,6 @@ class PipelineGUI(ft.Stack):
         """
         Removes a connection from the pipeline.
         """
-        print("hey!")
         self.pipeline.remove_connection(source_module_id,target_module_id)
         await self.lines_gui.remove_line(self.modules[source_module_id], self.modules[target_module_id])
         await self.update_all_port_icons()

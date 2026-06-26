@@ -449,8 +449,14 @@ class Builder:
                         self.pipeline_storage.load_pipeline(files[0].path)
                         await self.pipeline_gui.reset()
                         await self.pipeline_gui.load_pipeline()
-                    except Exception as ex:
-                        self.error_manager.log_and_show(f"Failed to load pipeline: {ex}",ex)
+                    except ValueError as ve:
+                        self.error_manager.log_and_show(f"Failed to load pipeline: {ve}", ve)
+                    except Exception as exception:
+                        await self.pipeline_gui.reset()
+                        self.pipeline_gui.pipeline_name = "NewPipeline"
+                        self.pipeline_gui.pipeline_directory = ""
+                        self.pipeline_gui.pipeline_dict = {}
+                        self.error_manager.log_and_show(f"Failed to load pipeline: {exception}", exception)
 
 
                 cupertino_alert_dialog = ft.CupertinoAlertDialog(
@@ -480,7 +486,13 @@ class Builder:
                     self.pipeline_storage.load_pipeline(files[0].path)
                     await self.pipeline_gui.reset()
                     await self.pipeline_gui.load_pipeline()
+                except ValueError as ve1:
+                    self.error_manager.log_and_show(f"Failed to load pipeline: {ve1}", ve1)
                 except Exception as exception1:
+                    await self.pipeline_gui.reset()
+                    self.pipeline_gui.pipeline_name = "NewPipeline"
+                    self.pipeline_gui.pipeline_directory = ""
+                    self.pipeline_gui.pipeline_dict = {}
                     self.error_manager.log_and_show(f"Failed to load pipeline: {exception1}",exception1)
 
         self.load_button.icon_color = MAIN_ACTIVE_COLOR
