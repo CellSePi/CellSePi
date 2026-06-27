@@ -6,6 +6,10 @@ class Port:
     Ports defines an input or output of a module.
     Ports with the same names in different modules are considered as the same type of ports
     and their data can be transferred with pipes to each other.
+
+    IMPORTANT: If you use the same port name across different modules, you must ensure
+    that the `data_type` is identical. Mismatched data types on ports with the same name
+    will raise a `TypeError` in the `Pipe` during data transfer.
     """
     def __init__(self, name: str, data_type: type, opt: bool = False, multi: Union[bool, Set[str]] = False):
         self.name = name
@@ -85,8 +89,8 @@ class InputPort(Port):
     and their data can be transferred with pipes to each other.
 
     Attributes:
-        name (str): Port name. Used as attribute on 'self.inputs'.
-        data_type (type): Expected Python type (for documentation).
+        name (str): Port name.
+        data_type (type): Type of the data provided by this port.
         opt (bool): If 'True', port is optional (no warning when unconnected). Defaults to False.
         multi (Union[bool, Set[str]]): Defines if the port accepts multiple connections.
             If 'False' (default), it accepts a single connection.
@@ -115,7 +119,7 @@ class OutputPort(Port):
     and their data can be transferred with pipes to each other.
 
     Attributes:
-        name (str): Port name. Used as attribute on 'self.outputs'.
+        name (str): Port name.
         data_type (type): Type of the data provided by this port.
 
     ### Example:

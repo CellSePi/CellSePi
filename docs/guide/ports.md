@@ -12,6 +12,10 @@
 <p>Define the input and output ports that connect this module to others in the pipeline. Declare them in <code>__init__</code> by assigning to <code>self.inputs</code> and <code>self.outputs</code>.</p>
 
 ## Basic example
+!!! warning "Important Rule for Port Naming"
+    Ports with the same name in different modules **must always have the same `data_type`**. 
+    Because identical port names are treated as the same conceptual connection, mixing different data types (e.g., setting `"images"` as `dict` in Module A, but as `list` in Module B) is not allowed.
+    If a `Pipe` attempts to transfer data between mismatched ports, it will immediately raise a `TypeError` during execution (`"Type mismatch on port..."`).
 
 ```python
 def __init__(self, module_id=None):
