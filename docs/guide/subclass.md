@@ -44,7 +44,6 @@ class MyModule(Module):
     options:
       show_root_heading: false
       show_source: false
-      show_instance_attributes: false
       show_root_toc_entry: false
       members: []
 

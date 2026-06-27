@@ -19,7 +19,7 @@
       <p>Inherit from the base class and define your GUI config.</p>
 
 ```python
-{%include-markdown "examples/MyModule.py" start="[start:subclass]" end="[end:subclass]" preserve_includer_indent=false%}
+{%include-markdown "examples/MyModule.py" start="[start:subclass]" end="[end:subclass]"%}
 ```
 
     </div>
@@ -32,7 +32,7 @@
       <p>Define your input and output ports in the constructor.</p>
 
 ```python
-{%include-markdown "examples/MyModule.py" start="[start:ports]" end="[end:ports]" preserve_includer_indent=false%}
+{%include-markdown "examples/MyModule.py" start="[start:ports]" end="[end:ports]"%}
 ```
 
     </div>
@@ -45,7 +45,7 @@
       <p>Add <code>user_</code> attributes to automatically generate your GUI controls.</p>
 
 ```python
-{%include-markdown "examples/MyModule.py" start="[start:settings]" end="[end:settings]" preserve_includer_indent=false%}
+{%include-markdown "examples/MyModule.py" start="[start:settings]" end="[end:settings]"%}
 ```
 
     </div>
@@ -58,7 +58,7 @@
       <p>Write your core logic to process the data.</p>
 
 ```python
-{%include-markdown "examples/MyModule.py" start="[start:run]" end="[end:run]" preserve_includer_indent=false%}
+{%include-markdown "examples/MyModule.py" start="[start:run]" end="[end:run]"%}
 ```
 
     </div>
