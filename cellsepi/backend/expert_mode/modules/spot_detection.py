@@ -1,16 +1,13 @@
 import os
 from pathlib import Path
 
-from backend.expert_mode.limits import Limit
 from backend.expert_mode.modules.big_fish.big_fish import detect_spots
 import numpy as np
 import tifffile
 from scipy.ndimage import binary_dilation
 
-from backend.expert_mode.listener import ProgressEvent
 from backend.expert_mode.pipeline_manager import PipelineRunningException
 from backend.expert_mode.module import *
-from backend.expert_mode.ports import InputPort, OutputPort
 
 
 class SpotDetectionModule(Module):
@@ -181,7 +178,6 @@ class SpotDetectionModule(Module):
 def create_spot_mask(spots: list, mask: dict, mask_seg: dict, radius: float, thickness: int = 1):
     """
     Create a mask and outline for a list of spots.
-    (3d spot input in (Z,Y,X) => 3d mask output in (Z,X,Y))
     Arguments:
         spots (list): List of spot coordinates. For 2D images: [(y, x), ...], for 3D images: [(z, y, x), ...].
         mask (dict): Dictionary with two numpy arrays:
@@ -192,6 +188,7 @@ def create_spot_mask(spots: list, mask: dict, mask_seg: dict, radius: float, thi
                         - "outlines": integer array for segmented cells outlines.
         radius (float): Radius of each spot in pixels/voxels.
         thickness (int, optional (default=1)): Thickness of the outline in pixels/voxels.
+
     Returns:
         mask (dict): Dictionary with two numpy arrays:
                         - "masks": integer array for the spots.

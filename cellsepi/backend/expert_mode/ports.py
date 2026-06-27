@@ -80,18 +80,48 @@ class Port:
 
 class InputPort(Port):
     """
-    InputPorts defines an input of a module.
+    InputPorts defines an input for a module.
     Ports with the same names in different modules are considered as the same type of ports
     and their data can be transferred with pipes to each other.
+
+    Attributes:
+        name (str): Port name. Used as attribute on 'self.inputs'.
+        data_type (type): Expected Python type (for documentation).
+        opt (bool): If 'True', port is optional (no warning when unconnected). Defaults to False.
+        multi (Union[bool, Set[str]]): Defines if the port accepts multiple connections.
+            If 'False' (default), it accepts a single connection.
+            If 'True', it accepts multiple connections.
+            If a set of strings is provided, it acts as a multi-port that uses these tags.
+
+    ### Examples:
+    ```python
+    # Standard single input
+    InputPort("image_paths", dict)
+
+    # Optional multi-port
+    InputPort("image_paths", dict, opt=True, multi=True)
+
+    # Tagged multi-port
+    InputPort("image_paths", dict, multi={"SEG", "SDM"})
+    ```
     """
     def __init__(self, name: str, data_type: type, opt: bool = False,  multi: Union[bool, Set[str]] = False):
         super().__init__(name, data_type, opt,multi)
 
 class OutputPort(Port):
     """
-    OutputPorts defines an output of a module.
+    OutputPorts defines an output for a module.
     Ports with the same names in different modules are considered as the same type of ports
     and their data can be transferred with pipes to each other.
+
+    Attributes:
+        name (str): Port name. Used as attribute on 'self.outputs'.
+        data_type (type): Type of the data provided by this port.
+
+    ### Example:
+    ```python
+    OutputPort("mask_paths", dict)
+    ```
     """
     def __init__(self, name: str, data_type: type):
         super().__init__(name, data_type)

@@ -338,7 +338,7 @@ class DirectoryCard(ft.Card):
 
                 overwrite = (dialog_result[0] == 0)
 
-        if overwrite:
+        if overwrite or not working_directory.exists():
             if working_directory.exists():
                 shutil.rmtree(working_directory)
             os.makedirs(working_directory, exist_ok=True)

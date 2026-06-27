@@ -2,7 +2,7 @@ from backend.constants import MAIN_COLOR, HIGHLIGHT_COLOR, ERROR_COLOR, SUCCESS_
 from image_editing_view import ImageEditingView
 
 from backend.data_util import convert_tiffs_to_png_parallel
-from backend.expert_mode.listener import ProgressEvent, OnPipelineChangeEvent
+from backend.expert_mode.listener import OnPipelineChangeEvent
 from backend.expert_mode.module import *
 
 
@@ -34,78 +34,69 @@ class Review(Module):
         self._selected_images_visualise = {}
         self._image_gallery = ft.ListView(expand=True)
         self._edit_allowed = False
-        self._text_field_segmentation_channel: ft.TextField | None = None
-        self._text_field_mask_suffix: ft.TextField | None = None
-        self._control_menu: ft.Container | None = None
-        self._canvas: ImageEditingView | None = None
         Review._instances.append(self)
-
-    @property
-    def settings(self) -> ft.Control:
-        if self._settings is None:
-            self._text_field_segmentation_channel = ft.TextField(
-                border_color=ft.Colors.WHITE60,
-                value=self.user_segmentation_channel,
-                on_blur=lambda e: self.on_change_sc(e),
-                tooltip="Segmentation channel",
-                height=30, width=70, content_padding=ft.Padding.symmetric(vertical=0, horizontal=5),
-                fill_color=ft.Colors.WHITE38,
-                filled=True,
-                text_align=ft.TextAlign.CENTER,
-                border_width=2,
-                focused_border_color=ft.Colors.WHITE,
-                text_style=ft.TextStyle(color=ft.Colors.BLACK, weight=ft.FontWeight.BOLD),
-                cursor_color=ft.Colors.BLACK,
-                expand=False,
-            )
-            self._text_field_mask_suffix = ft.TextField(
-                border_color=ft.Colors.WHITE60,
-                value=self.user_mask_suffix,
-                on_blur=lambda e: self.on_change_ms(e),
-                tooltip="Mask suffix",
-                height=30, width=70, content_padding=ft.Padding.symmetric(vertical=0, horizontal=5),
-                fill_color=ft.Colors.WHITE38,
-                filled=True,
-                text_align=ft.TextAlign.CENTER,
-                border_width=2,
-                focused_border_color=ft.Colors.WHITE,
-                text_style=ft.TextStyle(color=ft.Colors.BLACK, weight=ft.FontWeight.BOLD),
-                cursor_color=ft.Colors.BLACK,
-                visible=False,
-                expand=False,
-            )
-            self._control_menu = ft.Container(ft.Container(ft.Row(
-                [self._text_field_segmentation_channel,
-                 self._text_field_mask_suffix,
-                 ], spacing=2, alignment=ft.MainAxisAlignment.CENTER,
-            ), bgcolor=MAIN_COLOR, expand=True, border_radius=ft.BorderRadius.vertical(top=0, bottom=12),
-                height=38,
-            )
-            )
-            self._canvas = ImageEditingView(
-                on_mask_change=self._mask_update_async)
-            self._canvas.auto_adjust = True
-            self._canvas.mask_color = self.mask_color
-            self._canvas.outline_color = self.outline_color
-            self._canvas.mask_opacity = self.mask_opacity
-            self._settings: ft.Control = ft.Row(
-                                [self._canvas,
-                                    ft.Card(
-                                        content=ft.Column(
-                                            [
-                                                ft.Container(
-                                                    self._image_gallery,
-                                                    expand=True,
-                                                    padding=ft.Padding.only(
-                                                        top=20,
-                                                        left=20,
-                                                        right=20,
-                                                        bottom=10)
-                                                ),
-                                                self._control_menu
-                                            ], spacing=0, expand=True, width=640)),
-                                ], expand=True, margin=20)
-        return self._settings
+        self._text_field_segmentation_channel = ft.TextField(
+            border_color=ft.Colors.WHITE60,
+            value=self.user_segmentation_channel,
+            on_blur=lambda e: self.on_change_sc(e),
+            tooltip="Segmentation channel",
+            height=30, width=70, content_padding=ft.Padding.symmetric(vertical=0, horizontal=5),
+            fill_color=ft.Colors.WHITE38,
+            filled=True,
+            text_align=ft.TextAlign.CENTER,
+            border_width=2,
+            focused_border_color=ft.Colors.WHITE,
+            text_style=ft.TextStyle(color=ft.Colors.BLACK, weight=ft.FontWeight.BOLD),
+            cursor_color=ft.Colors.BLACK,
+            expand=False,
+        )
+        self._text_field_mask_suffix = ft.TextField(
+            border_color=ft.Colors.WHITE60,
+            value=self.user_mask_suffix,
+            on_blur=lambda e: self.on_change_ms(e),
+            tooltip="Mask suffix",
+            height=30, width=70, content_padding=ft.Padding.symmetric(vertical=0, horizontal=5),
+            fill_color=ft.Colors.WHITE38,
+            filled=True,
+            text_align=ft.TextAlign.CENTER,
+            border_width=2,
+            focused_border_color=ft.Colors.WHITE,
+            text_style=ft.TextStyle(color=ft.Colors.BLACK, weight=ft.FontWeight.BOLD),
+            cursor_color=ft.Colors.BLACK,
+            visible=False,
+            expand=False,
+        )
+        self._control_menu = ft.Container(ft.Container(ft.Row(
+            [self._text_field_segmentation_channel,
+             self._text_field_mask_suffix,
+             ], spacing=2, alignment=ft.MainAxisAlignment.CENTER,
+        ), bgcolor=MAIN_COLOR, expand=True, border_radius=ft.BorderRadius.vertical(top=0, bottom=12),
+            height=38,
+        )
+        )
+        self._canvas = ImageEditingView(
+            on_mask_change=self._mask_update_async)
+        self._canvas.auto_adjust = True
+        self._canvas.mask_color = self.mask_color
+        self._canvas.outline_color = self.outline_color
+        self._canvas.mask_opacity = self.mask_opacity
+        self._settings: ft.Control = ft.Row(
+            [self._canvas,
+             ft.Card(
+                 content=ft.Column(
+                     [
+                         ft.Container(
+                             self._image_gallery,
+                             expand=True,
+                             padding=ft.Padding.only(
+                                 top=20,
+                                 left=20,
+                                 right=20,
+                                 bottom=10)
+                         ),
+                         self._control_menu
+                     ], spacing=0, expand=True, width=640)),
+             ], expand=True, margin=20)
 
     def finished(self):
         self.outputs.mask_paths.data = self.inputs.mask_paths.data

@@ -4,7 +4,6 @@ from enum import auto
 import numpy as np
 from tifffile import tifffile
 
-from backend.expert_mode.listener import ProgressEvent
 from backend.expert_mode.module import *
 from backend.expert_mode.pipeline_manager import PipelineRunningException
 

@@ -1,8 +1,6 @@
 import os
-
 import pickle
 
-from backend.expert_mode.limits import Limit
 from backend.expert_mode.pipeline_manager import PipelineRunningException
 from backend.segmentation import BatchImageSegmentation
 from backend.expert_mode.module import *

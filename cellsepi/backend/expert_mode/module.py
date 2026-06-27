@@ -8,6 +8,8 @@ from typing import List
 import flet as ft
 
 from backend.expert_mode.event_manager import EventManager
+from backend.expert_mode.listener import ProgressEvent
+from backend.expert_mode.limits import Limit
 from backend.expert_mode.ports import *
 
 
@@ -32,7 +34,10 @@ class DirectoryPath:
 class Categories(Enum):
     """
     Categories of the different modules, each with its own color.
-    It is forbidden to use red or green, as they are reserved to indicate specific statuses.
+
+    Warning:
+        Red and green are reserved for pipeline status indicators
+        and must not be used for new categories.
     """
     INPUTS = ft.Colors.ORANGE
     OUTPUTS = ft.Colors.LIGHT_BLUE
@@ -41,8 +46,21 @@ class Categories(Enum):
     SEGMENTATION = ft.Colors.AMBER_ACCENT
 
 class ModuleGuiConfig:
-    """
-    Stores configuration information for a module's GUI representation.
+    """Stores configuration information for a module's GUI representation.
+
+    Attributes:
+        name (str): Display name on the module card. Must be unique.
+        category (Categories): Determines the color of the module card.
+        description (str): Tooltip shown when hovering the module.
+
+    ### Example:
+    ```python
+    _gui_config = ModuleGuiConfig(
+        "MyModule",
+        Categories.FILTERS,
+        "Does something useful."
+    )
+    ```
     """
     def __init__(self, name: str, category: Categories, description:str = None):
         self.name = name
