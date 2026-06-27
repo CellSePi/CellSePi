@@ -1,7 +1,6 @@
 site_name: CellSePi
 site_description: Documentation for building modules in the CellSePi pipeline system.
-site_url: https://CellSePi.github.io/CellSePi/Module-Dev
-use_directory_urls: true
+site_url: https://cellsepi.github.io/CellSePi/
 repo_url: https://github.com/CellSePi/CellSePi
 repo_name: CellSePi
 docs_dir: docs
@@ -74,3 +73,4 @@ nav:
       - Implement run(): guide/run.md
       - Launch the plugin: guide/plugin.md
   - Examples: guide/examples.md
+
