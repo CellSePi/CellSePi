@@ -283,6 +283,7 @@ body[data-md-color-scheme="default"] .badge-red    { background: #ffeef0; color:
 
 .step-body {
   flex: 1;
+  min-width: 0;
 }
 
 .step-body h4 {
@@ -308,12 +309,6 @@ body[data-md-color-scheme="default"] .badge-red    { background: #ffeef0; color:
   padding: 0.1em 0.4em;
   font-size: 0.85em;
   box-shadow: none;
-}
-
-.step-body .highlight,
-.step-body pre {
-  max-width: 100%;
-  overflow-x: auto;
 }
 
 /* === HERO TAG === */
@@ -431,6 +426,7 @@ body[data-md-color-scheme="default"] .badge-red    { background: #ffeef0; color:
   padding: 1.25rem 1.5rem !important;
   font-size: 13px !important;
   line-height: 1.7 !important;
+  overflow-x: auto !important;
 }
 
 .md-typeset pre > code {

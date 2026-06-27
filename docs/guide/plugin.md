@@ -1,4 +1,4 @@
-<a href="/" class="back-card">
+<a href="../../" class="back-card">
   <span class="back-card-icon">←</span>
   <span>
     <span class="back-card-label">Back to</span>

@@ -5,8 +5,15 @@ on:
     branches:
       - main
     paths:
-      - 'docs/**'
+      - 'docs/guide/**'
+      - 'docs/index.md'
+      - 'docs/stylesheets/**'
+      - 'docs/examples/**'
+      - 'docs/assets/**'
       - 'mkdocs.yml'
+      - 'cellsepi/backend/expert_mode/module.py'
+      - 'cellsepi/backend/expert_mode/ports.py'
+      - 'cellsepi/backend/expert_mode/limits.py'
 
 permissions:
   contents: write
