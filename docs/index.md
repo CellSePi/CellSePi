@@ -55,6 +55,7 @@ class MyModule(Module):
         self.outputs.result.data = data
         return False
 ```
+
 <a href="guide/examples/" class="next-card" style="margin-top: 1rem;">
   <span class="next-card-label">Going deeper</span>
   <span class="next-card-title">Examples →</span>
