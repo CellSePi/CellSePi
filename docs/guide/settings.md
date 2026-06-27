@@ -94,7 +94,7 @@ The GUI automatically decides how to render an `Enum` based on the **total chara
 
 ![Segmented button GUI](../assets/segmented_button.png)
 
-* **Dropdown menu:** The total character count **exceeds 28**. (Saves horizontal space for longer lists).
+* **Dropdown menu:** The total character count **exceeds 28**.
 
 ![Dropdown menu GUI](../assets/dropdown_menu.png)
 ## Change callbacks
