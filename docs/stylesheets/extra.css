@@ -311,6 +311,26 @@ body[data-md-color-scheme="default"] .badge-red    { background: #ffeef0; color:
   box-shadow: none;
 }
 
+.step-detail-link {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--card-accent);
+  background: var(--card-accent-bg);
+  border: 1px solid var(--card-border-hover);
+  border-radius: 4px;
+  padding: 2px 8px;
+  text-decoration: none !important;
+  margin-bottom: 0.6rem;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.step-detail-link:hover {
+  background: var(--card-border-hover);
+  color: var(--card-text);
+  text-decoration: none !important;
+}
+
 /* === HERO TAG === */
 
 .hero-tag {

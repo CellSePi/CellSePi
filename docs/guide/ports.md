@@ -34,7 +34,7 @@ def __init__(self, module_id=None):
 Access port data via attribute name on `self.inputs` and `self.outputs`:
 
 ```python
-{% include-markdown "../examples/MyModule.py" start="[start:run]" end="[end:run]" preserve_includer_indent=false %}
+{% include-markdown "../examples/my_module_steps.py" start="[start:run]" end="[end:run]" preserve_includer_indent=false %}
 ```
 
 ---

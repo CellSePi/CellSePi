@@ -22,8 +22,8 @@ self.limit_user_threshold = Limit(min_val=0.0, max_val=1.0)
 
 [start:run]
 def run(self) -> bool:
-    data = self.inputs.images.data      # read input
+    data = self.inputs.images.data   # read input
     # ... process data
-    self.outputs.result.data = data     # write output
+    self.outputs.result.data = data  # write output
     return False
 [end:run]

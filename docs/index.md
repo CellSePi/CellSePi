@@ -33,28 +33,11 @@ Modules are the core building blocks of a CellSePi pipeline. Each module is resp
 
 <h2 id="module-example">What a module looks like</h2>
 
+
 ```python
-from backend.expert_mode.module import *
-
-class MyModule(Module):
-    _gui_config = ModuleGuiConfig("MyModule", Categories.FILTERS, "Does something useful.")
-
-    def __init__(self, module_id=None):
-        super().__init__(module_id)
-        self.inputs = InputPorts(
-            InputPort("images", dict),
-        )
-        self.outputs = OutputPorts(
-            OutputPort("result", dict),
-        )
-        self.user_threshold: float = 0.5
-
-    def run(self) -> bool:
-        data = self.inputs.images.data
-        # ... process data
-        self.outputs.result.data = data
-        return False
+--8<-- "docs/examples/my_module.py"
 ```
+
 
 <a href="guide/examples/" class="next-card" style="margin-top: 1rem;">
   <span class="next-card-label">Going deeper</span>
