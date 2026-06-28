@@ -52,8 +52,8 @@ class MyModule(Module):
 !!! warning
     Red and green are reserved for pipeline status indicators.
 
-| Category | Preview | Use for |
-|----------|---------|---------|
+| Category | Color                                                                                                                           | Use for |
+|----------|------------------------------------------------------------------------------------------------------------------------------|---------|
 | `Categories.INPUTS` | <span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:#FF9800;vertical-align:middle"></span> | Reading files, loading data |
 | `Categories.OUTPUTS` | <span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:#03A9F4;vertical-align:middle"></span> | Exporting results, saving files |
 | `Categories.FILTERS` | <span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:#E040FB;vertical-align:middle"></span> | Transforming or filtering data |
