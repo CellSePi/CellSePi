@@ -61,7 +61,7 @@
     <div class="step-num">5</div>
     <div class="step-body">
       <h4>Launch the plugin</h4>
-      <p>Save your file and restart CellSePi. Your module will appear automatically in the expert mode. <a href="../plugin/" class="step-detail-link">Learn more</a></p>
+      <p>Save your file in the the <code>plugins/</code> folder and restart CellSePi. Your module will appear automatically in the expert mode. <a href="../plugin/" class="step-detail-link">Learn more</a></p>
     </div>
   </div>
 </section>
