@@ -19,7 +19,7 @@ Import everything you need from the module package:
 from backend.expert_mode.module import *
 ```
 
-This imports `Module`, `ModuleGuiConfig`, `Categories`, `InputPorts`, `OutputPorts`, `InputPort`, `OutputPort`, `Limit`, `FilePath`, `DirectoryPath`, `EventManager`, and `ProgressEvent`. This is everything required to build a module. More on the last two in Step 4.
+This imports `Module`, `ModuleGuiConfig`, `Categories`, `InputPorts`, `OutputPorts`, `InputPort`, `OutputPort`, `Limit`, `FilePath`, `DirectoryPath`, `EventManager`, and `ProgressEvent`. This is everything required to build a module. More on the last two in Step <a href="../run/" class="Step-4">4</a>.
 
 ## Defining the class
 
