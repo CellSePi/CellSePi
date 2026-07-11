@@ -180,14 +180,37 @@ a.custom-card:visited {
 
 .custom-card.static-card {
   cursor: default !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.sweep-streak {
+  position: absolute;
+  top: -50%;
+  left: -40%;
+  width: 35%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--card-accent) 12%, transparent),
+    transparent
+  );
+  transform: rotate(20deg);
+  pointer-events: none;
+  animation: static-card-sweep 1s linear forwards;
+}
+
+@keyframes static-card-sweep {
+  from { left: -40%; }
+  to   { left: 125%; }
 }
 
 .custom-card.static-card:hover {
   transform: none !important;
-  background-color: inherit;
-  box-shadow: var(--md-shadow-z1) !important;
+  background: var(--card-bg) !important;
+  border-color: var(--card-border) !important;
 }
-
 /* === CALLOUTS === */
 
 .md-typeset .admonition,

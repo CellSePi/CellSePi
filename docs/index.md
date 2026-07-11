@@ -3,6 +3,14 @@
 
 Modules are the core building blocks of a CellSePi pipeline. Each module is responsible for a single, well-defined task, such as reading files, segmenting images, or exporting results. It connects seamlessly to other modules through ports.
 
+<a href="guide/quickstart/" class="next-card" style="margin-bottom: 2rem; display: block;">
+  <span class="next-card-label">Get started</span>
+  <span class="next-card-title">Quick start →</span>
+  <span class="next-card-sub">Build your first module step by step.</span>
+</a>
+
+Below you find more detailed instructions for the individual concepts:
+
 <div class="custom-card-grid">
   <a href="guide/subclass/" class="custom-card">
     <h4><span class="card-num">1</span> Subclass <code>Module</code></h4>
@@ -23,11 +31,6 @@ Modules are the core building blocks of a CellSePi pipeline. Each module is resp
   <a href="guide/plugin/" class="custom-card">
     <h4><span class="card-num">5</span> Launch the plugin</h4>
     <p>Place your Python module in the <code>plugins</code> directory to make it available in CellSePi.</p>
-  </a>
-  <a href="guide/quickstart/" class="next-card">
-    <span class="next-card-label">Next up</span>
-    <span class="next-card-title">Quick start →</span>
-    <span class="next-card-sub">Build your first module step by step.</span>
   </a>
 </div>
 
