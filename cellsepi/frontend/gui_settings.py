@@ -4,11 +4,22 @@ import flet as ft
 from pydantic import BaseModel
 
 from backend.constants import FILTER_INT, FILTER_FLOAT_0_TO_1, FILTER_FLOAT, FILTER_INT_SIGNED, FILTER_FLOAT_SIGNED, \
-    MAIN_COLOR, ERROR_COLOR
+    MAIN_COLOR, ERROR_COLOR, LICENSE_URL, README_URL
 from backend.error_manager import ErrorManager
+from backend._version import VERSION
 from backend.settings import SettingsManager
 from frontend.gui_page_overlay import PageOverlay
 from image_editing_view import ImageEditingView
+
+
+def _on_exit_link(text_control: ft.Text):
+    text_control.color = ft.Colors.BLUE
+    text_control.update()
+
+
+def _on_enter_link(text_control: ft.Text):
+    text_control.color = ft.Colors.BLUE_ACCENT_700
+    text_control.update()
 
 
 class GUISettings:
@@ -29,7 +40,18 @@ class GUISettings:
             on_dismiss=lambda e: self._cancel,
             modal=False
         )
-        pass
+
+        self.readme_text = ft.Text(
+            "README",
+            size=11,
+            color=ft.Colors.BLUE,
+        )
+
+        self.license_text = ft.Text(
+            "Apache-2.0 license",
+            size=11,
+            color=ft.Colors.BLUE,
+        )
 
     async def _save(self):
         await self.settings_manager.save_settings_async()
@@ -50,11 +72,37 @@ class GUISettings:
         self.build()
         self.overlay.update()
 
+    async def _open_link(self, url: str):
+        await self.page.launch_url(url)
+
     def build(self):
         self.overlay.content = ft.Card(
             content=ft.Container(
                 content=ft.Column(
                     controls=[
+                        ft.Row(
+                            [
+                                ft.Text(f"CellSePi v{VERSION}", size=11, color=ft.Colors.GREY),
+                                ft.Text("·", size=11, color=ft.Colors.GREY),
+                                ft.GestureDetector(
+                                    content=self.readme_text,
+                                    mouse_cursor=ft.MouseCursor.CLICK,
+                                    on_enter=lambda e: _on_enter_link(self.readme_text),
+                                    on_exit=lambda e: _on_exit_link(self.readme_text),
+                                    on_tap=lambda e: self.page.run_task(self._open_link,README_URL),
+                                ),
+                                ft.Text("·", size=11, color=ft.Colors.GREY),
+                                ft.GestureDetector(
+                                    content=self.license_text,
+                                    mouse_cursor=ft.MouseCursor.CLICK,
+                                    on_enter=lambda e: _on_enter_link(self.license_text),
+                                    on_exit=lambda e: _on_exit_link(self.license_text),
+                                    on_tap=lambda e: self.page.run_task(self._open_link,LICENSE_URL),
+                                ),
+                            ],
+                            alignment=ft.MainAxisAlignment.CENTER,
+                            spacing=5,
+                        ),
                         ft.Text("Settings", size=20, weight=ft.FontWeight.BOLD),
                         ft.ListView(
                             controls=self.build_list_items(),
@@ -140,7 +188,7 @@ class GUISettings:
             if isinstance(value, BaseModel):
                 nested_section = ft.Column(
                     [
-                        ft.Text(field_name.title(), weight=ft.FontWeight.W_600, size=14),
+                        ft.Text(field_name.replace("_", " ").title(), weight=ft.FontWeight.W_600, size=14),
                         ft.Container(
                             content=self._generate_fields_for_model(value),
                             padding=ft.Padding.only(left=15)  # Indent nested settings

@@ -1,0 +1,1 @@
+VERSION = "1.0.0" # Automatically overridden by Git tag (format: v<major>.<minor>.<patch>[suffix], e.g. v1.0.1 or v1.0.1-beta)

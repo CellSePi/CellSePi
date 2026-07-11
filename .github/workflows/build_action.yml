@@ -183,9 +183,10 @@ jobs:
           
           echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
 
-      - name: Patch pyproject.toml with Git Tag Version
+      - name: Patch pyproject.toml and _version.py with Git Tag Version
         shell: bash
         run: |
+          echo 'VERSION = "${{ env.APP_VERSION }}"' > cellsepi/backend/_version.py
           echo "Patching pyproject.toml to version: ${{ env.APP_VERSION }}"
           
           uv run python -c '

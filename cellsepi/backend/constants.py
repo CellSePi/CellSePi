@@ -11,6 +11,9 @@ CSP_CHANNEL_PREFIX = "_CSP-channel-pref_"
 APP_NAME = ".cellsepi"
 APP_DIR = Path(Path.home() / APP_NAME)
 
+LICENSE_URL = "https://github.com/CellSePi/CellSePi/blob/main/LICENSE"
+README_URL = "https://github.com/CellSePi/CellSePi#readme"
+
 MAIN_COLOR = ft.Colors.BLUE_ACCENT
 HIGHLIGHT_COLOR = ft.Colors.ORANGE_700
 ERROR_COLOR = ft.Colors.RED
