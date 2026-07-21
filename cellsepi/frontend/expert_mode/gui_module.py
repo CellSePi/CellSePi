@@ -1,5 +1,6 @@
 import asyncio
 import enum
+import pathlib
 import textwrap
 import flet as ft
 from typing import List, Any, Dict, cast
@@ -512,7 +513,7 @@ class ModuleGUI(ft.GestureDetector):
             ports_chips.controls.append(
                 ft.Chip(
                     label=ft.Text(port_name),
-                    on_select=lambda e, name=port_name: self.pipeline_gui.page.run_task(self.select_port,e, name),
+                    on_select=lambda e, name=port_name: self.pipeline_gui.page.run_task(self.select_port, e, name),
                 )
             )
         return ports_chips
@@ -555,7 +556,8 @@ class ModuleGUI(ft.GestureDetector):
             self.click_gesture.disabled = True
             self.click_gesture.visible = False
             self.click_gesture.update()
-            if (self.module_id not in self.pipeline_gui.pipeline.run_order and not self.pipeline_gui.pipeline.executing == self.module_id) or not self.pipeline_gui.pipeline.running:
+            if (
+                    self.module_id not in self.pipeline_gui.pipeline.run_order and not self.pipeline_gui.pipeline.executing == self.module_id) or not self.pipeline_gui.pipeline.running:
                 self.delete_button.visible = True
                 self.delete_button.update()
             self.connection_ports.visible = False
@@ -585,7 +587,6 @@ class ModuleGUI(ft.GestureDetector):
                 e.control.border_color = MAIN_COLOR
                 e.control.update()
 
-
             dropdowns = {}
             for port_name, in_port in ports_needing_tags:
                 dropdowns[port_name] = ft.Dropdown(
@@ -603,12 +604,12 @@ class ModuleGUI(ft.GestureDetector):
 
             async def on_confirm(e):
                 final_ports = []
-                not_selected= False
+                not_selected = False
                 for port_name in transmitting_ports:
                     if port_name in dropdowns:
                         selected_tag = dropdowns[port_name].value
                         if not selected_tag:
-                            dropdowns[port_name].border_color=ERROR_COLOR
+                            dropdowns[port_name].border_color = ERROR_COLOR
                             dropdowns[port_name].update()
                             not_selected = True
 
@@ -624,42 +625,40 @@ class ModuleGUI(ft.GestureDetector):
                 await self._execute_connection(source_id, final_ports)
 
             dialog_card = ft.Card(
-                    width=380,
-                    height=500,
-                    content=ft.Container(
-                        padding=20,
-                        content=ft.Column(
-                            tight=True,
-                            controls=[
-                                ft.Column(
-                                    controls=[
-                                        ft.Text("Select Tags", weight=ft.FontWeight.BOLD, size=36),
-                                        ft.Text("Please select a tag for the connections:", size=14),
-                                    ],
-                                    tight=True,
-                                    spacing=5,
-                                ),
-                                ft.ListView(
-                                    controls=[ft.Container(height=4)] + list(dropdowns.values()),
-                                    expand=True,
-                                    spacing=10,
-                                ),
-                                ft.Row(
-                                    alignment=ft.MainAxisAlignment.END,
-                                    controls=[ft.Button("Connect", on_click=on_confirm)]
-                                )
-                            ]
-                        )
+                width=380,
+                height=500,
+                content=ft.Container(
+                    padding=20,
+                    content=ft.Column(
+                        tight=True,
+                        controls=[
+                            ft.Column(
+                                controls=[
+                                    ft.Text("Select Tags", weight=ft.FontWeight.BOLD, size=36),
+                                    ft.Text("Please select a tag for the connections:", size=14),
+                                ],
+                                tight=True,
+                                spacing=5,
+                            ),
+                            ft.ListView(
+                                controls=[ft.Container(height=4)] + list(dropdowns.values()),
+                                expand=True,
+                                spacing=10,
+                            ),
+                            ft.Row(
+                                alignment=ft.MainAxisAlignment.END,
+                                controls=[ft.Button("Connect", on_click=on_confirm)]
+                            )
+                        ]
                     )
                 )
+            )
             overlay = PageOverlay(
                 page=self.pipeline_gui.page,
-                on_dismiss = on_cancel,
-                content= dialog_card,
+                on_dismiss=on_cancel,
+                content=dialog_card,
             )
             overlay.open()
-
-
 
     async def _execute_connection(self, source_id: str, ports_list: list):
         """
@@ -830,13 +829,19 @@ class ModuleGUI(ft.GestureDetector):
         height = element_height * len(user_attributes) + spacing * (len(user_attributes) - 1)
         limit_reached = len(user_attributes) > USER_OPTIONS_LIMIT
         if len(user_attributes) != 0:
-            return ft.Card(content= ft.Container(
-                            ft.ListView(
-                                controls=self.create_attribute_list(user_attributes),
-                                width=500,
-                                spacing=spacing,
-                                height=(element_height * (USER_OPTIONS_LIMIT + 1) + spacing * ((USER_OPTIONS_LIMIT + 1) - 1)) - 30 if limit_reached else height,
-                            ), padding=padding)
+            return ft.Card(
+                content=ft.Container(
+                    ft.ListView(
+                        controls=self.create_attribute_list(user_attributes),
+                        width=500,
+                        spacing=spacing,
+                        height=(element_height * (USER_OPTIONS_LIMIT + 1)
+                                + spacing * ((USER_OPTIONS_LIMIT + 1) - 1)) - 30
+                        if limit_reached
+                        else height,
+                    ),
+                    padding=padding
+                )
             )
 
         else:
@@ -867,9 +872,9 @@ class ModuleGUI(ft.GestureDetector):
                         value=str(value),
                         ref=ref,
                         on_blur=lambda e, attr_name=attribute_name, type_atr=typ:
-                        self.pipeline_gui.page.run_task(self.on_change,e,
-                                       attr_name,
-                                       type_atr),
+                        self.pipeline_gui.page.run_task(self.on_change, e,
+                                                        attr_name,
+                                                        type_atr),
                         height=60,
                     )
                 )
@@ -895,12 +900,12 @@ class ModuleGUI(ft.GestureDetector):
                         value=str(value),
                         ref=ref,
                         input_filter=ft.InputFilter(allow=True, regex_string=current_regex, replacement_string=""),
-                        on_blur=lambda e, attr_name=attribute_name, type_atr=typ,mi=min_val, ma=max_val:
-                        self.pipeline_gui.page.run_task(self.on_change,e,
-                                       attr_name,
-                                       type_atr,
-                                       mi,
-                                       ma),
+                        on_blur=lambda e, attr_name=attribute_name, type_atr=typ, mi=min_val, ma=max_val:
+                        self.pipeline_gui.page.run_task(self.on_change, e,
+                                                        attr_name,
+                                                        type_atr,
+                                                        mi,
+                                                        ma),
                         height=60,
                     )
                 )
@@ -928,11 +933,11 @@ class ModuleGUI(ft.GestureDetector):
                         ref=ref,
                         input_filter=ft.InputFilter(allow=True, regex_string=current_regex, replacement_string=""),
                         on_blur=lambda e, attr_name=attribute_name, type_atr=typ, mi=min_val, ma=max_val:
-                        self.pipeline_gui.page.run_task(self.on_change,e,
-                                       attr_name,
-                                       type_atr,
-                                       mi,
-                                       ma),
+                        self.pipeline_gui.page.run_task(self.on_change, e,
+                                                        attr_name,
+                                                        type_atr,
+                                                        mi,
+                                                        ma),
                         height=60,
                     )
                 )
@@ -945,7 +950,8 @@ class ModuleGUI(ft.GestureDetector):
                 slider_bool = ft.CupertinoSlidingSegmentedButton(
                     selected_index=index,
                     thumb_color=MAIN_COLOR,
-                    on_change=lambda e, attr_name=attribute_name: self.pipeline_gui.page.run_task(self.update_bool,e, attr_name),
+                    on_change=lambda e, attr_name=attribute_name: self.pipeline_gui.page.run_task(self.update_bool, e,
+                                                                                                  attr_name),
                     padding=ft.Padding.symmetric(vertical=0, horizontal=0),
                     controls=[
                         ft.Text("False"),
@@ -953,7 +959,7 @@ class ModuleGUI(ft.GestureDetector):
                     ],
                 )
                 choosing = ft.Container(ft.Row([text, slider_bool],
-                        wrap=True, alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                                               wrap=True, alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                                         padding=ft.Padding(0, 10, 0, 10))
                 items.append(choosing)
             elif typ == FilePath:
@@ -969,26 +975,33 @@ class ModuleGUI(ft.GestureDetector):
                 file_picker = ft.FilePicker()
                 ref = ft.Ref[ft.Stack]()
                 file_stack = ft.Stack(
-                        [
-                            text_field,
-                            ft.Container(
-                                content=ft.IconButton(
-                                    icon=ft.Icons.UPLOAD_FILE,
-                                    tooltip="Pick file",
-                                    on_click=lambda a, attr_name=attribute_name,
-                                                    content=text_field: self.pipeline_gui.page.run_task(
-                                        self.on_select_file,
-                                        a,
-                                        file_picker,
-                                        attr_name,
-                                        content),
-                                ), alignment=ft.Alignment.TOP_RIGHT, right=10, top=5)
-                        ],ref = ref
-                    )
+                    [
+                        text_field,
+                        ft.Container(
+                            content=ft.IconButton(
+                                icon=ft.Icons.UPLOAD_FILE,
+                                tooltip="Pick file",
+                                on_click=lambda a,
+                                                attr_name=attribute_name,
+                                                content=text_field:
+                                self.pipeline_gui.page.run_task(
+                                    self.on_select_file,
+                                    a,
+                                    file_picker,
+                                    attr_name,
+                                    content),
+                            ),
+                            alignment=ft.Alignment.TOP_RIGHT,
+                            right=10,
+                            top=5
+                        )
+                    ],
+                    ref=ref
+                )
                 setattr(self.module, "ref_" + attribute_name, ref)
                 items.append(
-                        file_stack
-                    )
+                    file_stack
+                )
             elif typ == DirectoryPath:
                 text_field = ft.TextField(
                     label=attribute_name.removeprefix("user_"),
@@ -1002,22 +1015,26 @@ class ModuleGUI(ft.GestureDetector):
                 file_picker = ft.FilePicker()
                 ref = ft.Ref[ft.Stack]()
                 dir_stack = ft.Stack(
-                        [
-                            text_field,
-                            ft.Container(
-                                content=ft.IconButton(
-                                    icon=ft.Icons.FOLDER_OPEN,
-                                    tooltip="Choose directory",
-                                    on_click=lambda a, attr_name=attribute_name,
-                                                    content=text_field: self.pipeline_gui.page.run_task(
-                                        self.on_select_dir, a,
-                                        file_picker, attr_name,
-                                        content),
+                    [
+                        text_field,
+                        ft.Container(
+                            content=ft.IconButton(
+                                icon=ft.Icons.FOLDER_OPEN,
+                                tooltip="Choose directory",
+                                on_click=lambda a,
+                                                attr_name=attribute_name,
+                                                content=text_field: self.pipeline_gui.page.run_task(
+                                    self.on_select_dir,
+                                    a,
+                                    file_picker,
+                                    attr_name,
+                                    content
                                 ),
-                                alignment=ft.Alignment.TOP_RIGHT, right=10, top=5
-                            )
-                        ],ref = ref
-                    )
+                            ),
+                            alignment=ft.Alignment.TOP_RIGHT, right=10, top=5
+                        )
+                    ], ref=ref
+                )
                 setattr(self.module, "ref_" + attribute_name, ref)
                 items.append(
                     dir_stack
@@ -1027,7 +1044,7 @@ class ModuleGUI(ft.GestureDetector):
                 enum_items = list(enum_class)
                 text = ft.Text(attribute_name.removeprefix("user_"), weight=ft.FontWeight.BOLD)
                 index = enum_items.index(value)
-                on_change = getattr(self.module, "on_change_" + attribute_name,None)
+                on_change = getattr(self.module, "on_change_" + attribute_name, None)
                 if on_change is None:
                     setattr(self.module, "on_change_" + attribute_name, lambda: None)
 
@@ -1040,7 +1057,7 @@ class ModuleGUI(ft.GestureDetector):
                                          e_class=enum_class: self.pipeline_gui.page.run_task(self.update_enum, e,
                                                                                              attr_name, e_class),
                         dense=True,
-                        border_color = MAIN_COLOR,
+                        border_color=MAIN_COLOR,
                         width=250,
                     )
                 else:
@@ -1078,9 +1095,11 @@ class ModuleGUI(ft.GestureDetector):
         """
         suffix = getattr(self.module, attr_name).suffix
         files = await file_picker.pick_files(allow_multiple=False,
-                                                 dialog_title=attr_name.removeprefix("user_"),
-                                                 file_type=ft.FilePickerFileType.CUSTOM if suffix is not None else ft.FilePickerFileType.ANY,
-                                                 allowed_extensions=suffix if suffix is not None else [], )
+                                             dialog_title=attr_name.removeprefix("user_"),
+                                             file_type=ft.FilePickerFileType.CUSTOM if suffix is not None else ft.FilePickerFileType.ANY,
+                                             allowed_extensions=suffix if suffix is not None else [],
+                                             initial_directory=str(pathlib.Path.home() / "Downloads"),
+                                             )
         if files is not None and len(files) > 0:
             current_file_path = getattr(self.module, attr_name)
             current_file_path.path = files[0].path
@@ -1092,14 +1111,17 @@ class ModuleGUI(ft.GestureDetector):
         """
         Handles if a directory is selected.
         """
-        dir = await file_picker.get_directory_path(dialog_title=attr_name.removeprefix("user_"))
+        dir = await file_picker.get_directory_path(
+            dialog_title=attr_name.removeprefix("user_"),
+            initial_directory=str(pathlib.Path.home() / "Downloads")
+        )
         if dir is not None:
             setattr(self.module, attr_name, FilePath(dir))
             text.value = format_directory_path(dir, 50)
             text.update()
             self.pipeline_gui.pipeline.event_manager.notify(OnPipelineChangeEvent("user_attr_change"))
 
-    async def on_change(self, e, attr_name, typ: type, min_value = None, max_value = None):
+    async def on_change(self, e, attr_name, typ: type, min_value=None, max_value=None):
         """
         Handles changes to the attribute for different types.
         """
@@ -1139,13 +1161,13 @@ class ModuleGUI(ft.GestureDetector):
             setattr(self.module, attr_name, typ(e.control.value))
             self.pipeline_gui.pipeline.event_manager.notify(OnPipelineChangeEvent("user_attr_change"))
         except ValueError as err:
-            error_msg = str(err) if "Value for" in str(err) else f"{attribute_name_without_prefix} only allows {typ.__name__}'s."
+            error_msg = str(err) if "Value for" in str(
+                err) else f"{attribute_name_without_prefix} only allows {typ.__name__}'s."
             self.pipeline_gui.page.show_dialog(ft.SnackBar(
                 ft.Text(error_msg, color=ft.Colors.WHITE),
                 bgcolor=ERROR_COLOR))
             e.control.value = str(getattr(self.module, attr_name))
             e.control.update()
-
 
     async def update_bool(self, e, attr_name):
         """
@@ -1205,8 +1227,9 @@ class ModuleGUI(ft.GestureDetector):
         self.copy_button.icon_color = ft.Colors.BLACK38
         self.copy_button.update()
         copy_dict = self.to_dict()
-        new_module = self.pipeline_gui.add_module(type(self.module), x=cast(float, self.left) + 20, y=cast(float, self.top) + 20,
-                                     module_dict=copy_dict)
+        new_module = self.pipeline_gui.add_module(type(self.module), x=cast(float, self.left) + 20,
+                                                  y=cast(float, self.top) + 20,
+                                                  module_dict=copy_dict)
         if self.connection_ports.visible:
             await new_module.toggle_detection()
             await self.pipeline_gui.check_for_valid(new_module.module_id)
@@ -1271,4 +1294,5 @@ class ModuleGUI(ft.GestureDetector):
                     error_manager.log(e)
 
         if has_load_errors:
-            error_manager.show(f"An error occurred during updating the user attributes of the module: {self.module.gui_config().name}")
+            error_manager.show(
+                f"An error occurred during updating the user attributes of the module: {self.module.gui_config().name}")
