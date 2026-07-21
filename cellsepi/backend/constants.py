@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from enum import Enum, auto
 from types import SimpleNamespace
 from pathlib import Path
@@ -58,6 +59,29 @@ class FileType(Enum):
 class OverWrite(Enum):
     ALWAYS = auto()
     NEVER = auto()
+
+@dataclass
+class RestorationConfig:
+    display_name: str   # für GUI / User
+    type: str           # für Cellpose
+    is_deep_learning: bool
+
+class RestorationType(Enum):
+    DENOISE = RestorationConfig("Denoise", "denoise", True)
+    DEBLUR = RestorationConfig("Deblur", "deblur", True)
+    UPSAMPLING = RestorationConfig("Upsampling", "upsample", True)
+    AUTOMATICALLY = RestorationConfig("Automatically", "oneclick", True)
+
+@dataclass
+class ModelRestaurationConfig:
+    type: str
+
+class ModelRestorationType(Enum):
+    CYTO2 = ModelRestaurationConfig("cyto2")
+    CYTO3 = ModelRestaurationConfig("cyto3")
+    NUCLEI = ModelRestaurationConfig("nuclei")
+
+
 
 def create_enum_subset(new_name: str, base_enum: type[Enum], condition_func: Callable, fields_to_copy: list[str]) -> type[Enum]:
     members = {}

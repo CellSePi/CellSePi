@@ -32,6 +32,7 @@ class BatchImageSegmentation(Notifier):
                  segmentation_channel: str = "",
                  diameter: float = 125.0,
                  suffix: str = "_seg"):
+
         if gui is not None:
             super().__init__()
             self.segmentation = segmentation

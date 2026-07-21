@@ -128,6 +128,7 @@ class Module(ABC):
         self.outputs: OutputPorts = OutputPorts()
         self._settings: ft.Control | None = None
         self._on_settings_dismiss: Callable[[], None] | None = lambda : None
+
         """
         User-defined attributes convention:        
         - Add custom attributes by prefixing them with 'user_'.
