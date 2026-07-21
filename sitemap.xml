@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://cellsepi.github.io/CellSePi/</loc>
+         <lastmod>2026-07-21</lastmod>
+    </url>
+    <url>
+         <loc>https://cellsepi.github.io/CellSePi/guide/examples/</loc>
+         <lastmod>2026-07-21</lastmod>
+    </url>
+    <url>
+         <loc>https://cellsepi.github.io/CellSePi/guide/plugin/</loc>
+         <lastmod>2026-07-21</lastmod>
+    </url>
+    <url>
+         <loc>https://cellsepi.github.io/CellSePi/guide/ports/</loc>
+         <lastmod>2026-07-21</lastmod>
+    </url>
+    <url>
+         <loc>https://cellsepi.github.io/CellSePi/guide/quickstart/</loc>
+         <lastmod>2026-07-21</lastmod>
+    </url>
+    <url>
+         <loc>https://cellsepi.github.io/CellSePi/guide/run/</loc>
+         <lastmod>2026-07-21</lastmod>
+    </url>
+    <url>
+         <loc>https://cellsepi.github.io/CellSePi/guide/settings/</loc>
+         <lastmod>2026-07-21</lastmod>
+    </url>
+    <url>
+         <loc>https://cellsepi.github.io/CellSePi/guide/subclass/</loc>
+         <lastmod>2026-07-21</lastmod>
+    </url>
+</urlset>
