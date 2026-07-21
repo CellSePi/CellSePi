@@ -878,6 +878,9 @@ class DirectoryManager:
             app_dir = APP_DIR
         self._base_path = Path(app_dir)
         self._cache_path: Optional[Path] = None
+        self._working_directory: Optional[Path] = None
+
+        # self._timestamp = get_timestamp()
 
     @property
     def base_directory(self) -> Path:
@@ -894,19 +897,38 @@ class DirectoryManager:
 
         return self._cache_path
 
-    def get_cache_file_path(self, filename: str) -> Path:
-        """
-        Returns a full path for a file within the intermediate directory.
-        """
-        # Accessing the property ensures the directory is created
-        dir_path = Path(self.cache_directory.path)
-        return dir_path / filename
+    @property
+    def working_directory(self) -> Path:
+        # if self._working_directory is None:
+        #    raise ValueError("Working directory not initialized. Call initialize_working_directory first.")
+        return self._working_directory
+
+    def init_working_directory(self, subdir: str):
+        self._working_directory = self.cache_directory / subdir
+        self._working_directory.mkdir(parents=True, exist_ok=True)
+        return self._working_directory
+
+    @property
+    def modules_working_directory(self) -> Path:
+        mwd = self.cache_directory / "modules"
+        mwd.mkdir(parents=True, exist_ok=True)
+        return mwd
+
+    # def get_cache_file_path(self, filename: str) -> Path:
+    #     """
+    #     Returns a full path for a file within the intermediate directory.
+    #     """
+    #     # Accessing the property ensures the directory is created
+    #     dir_path = Path(self.cache_directory.path)
+    #     return dir_path / filename
 
     def get_cache_dir_path(self, dirname: str, makedir=True) -> Path:
         dirpath = self.cache_directory / dirname
 
         if makedir:
             os.makedirs(dirpath, exist_ok=True)
+
+        self.current_cache_dir = dirpath
         return dirpath
 
     def streamline_cache(self):

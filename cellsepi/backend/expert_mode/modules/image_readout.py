@@ -25,7 +25,10 @@ class ImageReadoutModule(Module):
         self.user_channel_prefix: str = "c"
 
     def run(self):
-        path_with_new_suffix = pathlib.Path(pathlib.Path(self.user_export_directory_path.path) / self.user_export_file_name).with_suffix(self.user_export_file_type.value.extension)
+        path_with_new_suffix = pathlib.Path(
+            pathlib.Path(self.user_export_directory_path.path) / self.user_export_file_name
+        ).with_suffix(self.user_export_file_type.value.extension)
+
         (BatchImageReadout(
             self.inputs.image_paths.data,
             self.inputs.mask_paths.data,

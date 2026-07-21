@@ -4,6 +4,7 @@ from enum import auto
 import numpy as np
 from tifffile import tifffile
 
+from backend.expert_mode.listener import ProgressEvent
 from backend.expert_mode.module import *
 from backend.expert_mode.pipeline_manager import PipelineRunningException
 
@@ -29,12 +30,14 @@ class Project3dTo2d(Module):
         )
         self.user_projection_type: ProjectionType = ProjectionType.Z_MAX
 
-
     def run(self):
         images = self.inputs.image_paths.data
         outputs_images = {}
         n_series = len(images)
         self.event_manager.notify(ProgressEvent(percent=0, process=f"Projecting Series: Starting"))
+
+        base_dir = self.get_working_directory()
+
         for iN, series in enumerate(images):
             if self.is_cancelled():
                 self.outputs.image_paths.data = outputs_images
@@ -46,7 +49,7 @@ class Project3dTo2d(Module):
                 image_path = images[series][channel]
                 image = tifffile.imread(image_path)  # dimensions are: Z,Y,X
                 if image.ndim != 3:
-                    raise PipelineRunningException("Value Error","Wrong image format, expected a 3D image.")
+                    raise PipelineRunningException("Value Error", "Wrong image format, expected a 3D image.")
                 if self.user_projection_type == ProjectionType.Z_MAX:
                     projected = np.max(image, axis=0)
                     suffix = "_max"
@@ -54,14 +57,14 @@ class Project3dTo2d(Module):
                     projected = np.mean(image, axis=0).round().astype(image.dtype)
                     suffix = "_mean"
 
-                base_dir = os.path.dirname(image_path)
+                # base_dir = os.path.dirname(image_path)
+
                 name_without_type = os.path.splitext(os.path.basename(image_path))[0]
 
                 new_filename = f"{name_without_type}{suffix}.tif"
                 new_path = os.path.join(base_dir, new_filename)
 
                 tifffile.imwrite(new_path, projected)
-
 
                 outputs_images[series][channel] = new_path
 
