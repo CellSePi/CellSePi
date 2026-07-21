@@ -3,9 +3,20 @@ import traceback
 import json
 import os
 
-def run_cellpose_evaluation(image_paths, mask_paths, model_path, model_type_str,
-                            segmentation_channel, diameter, suffix, gpu_flag,
-                            delete_small_masks, mask_deletion_diameter, rescale_settings):
+
+def run_cellpose_evaluation(image_paths,
+                            mask_paths,
+                            model_path,
+                            model_type_str,
+                            segmentation_channel,
+                            diameter,
+                            module_directory,
+                            suffix,
+                            gpu_flag,
+                            delete_small_masks,
+                            mask_deletion_diameter,
+                            rescale_settings
+                            ):
     import numpy as np
     import cv2
     import torch
@@ -15,7 +26,7 @@ def run_cellpose_evaluation(image_paths, mask_paths, model_path, model_type_str,
     from backend.constants import ModelType
     from backend.settings import SegmentationConfig
     from backend.image_util import normalize_image, rescale_image
-                              
+
     try:
         if isinstance(rescale_settings, dict):
             rescale_settings = SegmentationConfig(**rescale_settings)
@@ -43,13 +54,13 @@ def run_cellpose_evaluation(image_paths, mask_paths, model_path, model_type_str,
         elif model_type == ModelType.CP_NUCLEI:
             model = modelsV3.CellposeModel(model_type="nuclei", gpu=gpu_flag)
         elif model_type == ModelType.CP_SAM:
-            model = models.CellposeModel(pretrained_model = 'cpsam',gpu=gpu_flag)
+            model = models.CellposeModel(pretrained_model='cpsam', gpu=gpu_flag)
         elif model_type == ModelType.CP_SAM_V2:
-            model = models.CellposeModel(pretrained_model = 'cpsam_v2',gpu=gpu_flag)
+            model = models.CellposeModel(pretrained_model='cpsam_v2', gpu=gpu_flag)
         elif model_type == ModelType.CP_DINO:
-            model = models.CellposeModel(pretrained_model = 'cpdino',gpu=gpu_flag)
+            model = models.CellposeModel(pretrained_model='cpdino', gpu=gpu_flag)
         elif model_type == ModelType.CP_SMALL_DINO:
-            model = models.CellposeModel(pretrained_model = 'cpdino-vitb',gpu=gpu_flag)
+            model = models.CellposeModel(pretrained_model='cpdino-vitb', gpu=gpu_flag)
 
         n_images = len(image_paths)
         print(json.dumps({"type": "log", "text": f">>> Starting Evaluation of {n_images} images..."}), flush=True)
@@ -131,8 +142,12 @@ def run_cellpose_evaluation(image_paths, mask_paths, model_path, model_type_str,
                         mask[mask == cell_id] = 0
 
             directory, filename = os.path.split(image_path)
+            # ToDo EK: Change directory here
             name, _ = os.path.splitext(filename)
-            new_path = os.path.join(directory, f"{name}{suffix}.npy")
+            # new_path = os.path.join(directory, f"{name}{suffix}.npy")
+            if module_directory is None:
+                module_directory = directory
+            new_path = os.path.join(module_directory, f"{name}{suffix}.npy")
 
             if model_type in [ModelType.CP_NUCLEI, ModelType.CP_CYTO]:
                 ioV3.masks_flows_to_seg([original_image], [mask], [flow], [image_path])
@@ -149,7 +164,7 @@ def run_cellpose_evaluation(image_paths, mask_paths, model_path, model_type_str,
             percent = round((current_done_count / n_images) * 100)
             print(json.dumps(
                 {"type": "progress", "percent": percent, "image_id": image_id, "new_path": new_path, "skipped": False}),
-                  flush=True)
+                flush=True)
 
         print(json.dumps({"type": "finished", "text": "Evaluation Complete"}), flush=True)
 

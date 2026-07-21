@@ -75,8 +75,15 @@ class BatchImageSegmentation(Notifier):
     def resume_action(self):
         self.resume_now = True
 
-    def run(self, event_manager: EventManager = None, image_paths=None, mask_paths=None, model_path=None,
-            model_type=None,cancel_event=None):
+    def run(self,
+            event_manager: EventManager = None,
+            image_paths=None,
+            mask_paths=None,
+            model_path=None,
+            model_type=None,
+            module_directory=None,
+            cancel_event=None
+            ):
         """
         Applies the segmentation model to every image and stores the resulting masks.
         """
@@ -91,7 +98,8 @@ class BatchImageSegmentation(Notifier):
             n_images = len(image_paths)
             current_done_count = sum(
                 1 for img_id in mask_paths
-                if self.segmentation_channel in mask_paths[img_id] and mask_paths[img_id][self.segmentation_channel] is not None
+                if self.segmentation_channel in mask_paths[img_id] and mask_paths[img_id][
+                    self.segmentation_channel] is not None
             )
             percent = int((current_done_count / n_images) * 100)
             self._call_start_listeners(f"{percent} %")
@@ -109,6 +117,7 @@ class BatchImageSegmentation(Notifier):
             "model_type_str": model_type,
             "segmentation_channel": self.segmentation_channel,
             "diameter": self.diameter,
+            "module_directory": str(module_directory),
             "suffix": self.suffix,
             "gpu_flag": self.GPU,
             "delete_small_masks": settings_manager.settings.segmentation.delete_small_masks,
@@ -157,7 +166,7 @@ class BatchImageSegmentation(Notifier):
             if not was_real_cancel:
                 cancel_event.clear()
 
-    def stdout_listener(self, event_manager,cancel_event):
+    def stdout_listener(self, event_manager, cancel_event):
         pending_error = None
         raw_output = []
 
@@ -218,6 +227,7 @@ class BatchImageSegmentation(Notifier):
                 self._call_completion_listeners()
             else:
                 event_manager.notify(ProgressEvent(percent=100, process="All images segmented."))
+
 
 class BatchImageReadout(Notifier):
 
