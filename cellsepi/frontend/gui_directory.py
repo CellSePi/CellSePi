@@ -152,6 +152,8 @@ class DirectoryCard(ft.Card):
             self.icon_check = {}
             self.icon_x = {}
 
+
+
     def create_path_list_tile(self):
         def on_enter_text(text_filed):
             text_filed.color = MAIN_COLOR
@@ -191,7 +193,7 @@ class DirectoryCard(ft.Card):
             allowed_extensions = self.file_type.value.extensions
             files = await ft.FilePicker().pick_files(
                 dialog_title="Pick file",
-                initial_directory=str(previous_directory),
+
                 allow_multiple=False,
                 file_type=ft.FilePickerFileType.CUSTOM,
                 allowed_extensions=allowed_extensions
