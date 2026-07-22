@@ -34,7 +34,7 @@
 * [Modular Workflow Pipeline](#modular-workflow-pipeline)
 * [Guides](https://github.com/CellSePi/CellSePi/blob/main/README.md#%EF%B8%8F-guides)
 * [Build](#build)
-* [Citations](#citations)
+* [Citations](https://github.com/CellSePi/CellSePi/blob/main/README.md#-citations)
 * [Authors](#authors)
 * [License](#license)
 * [How To Cite](#how-to-cite)
