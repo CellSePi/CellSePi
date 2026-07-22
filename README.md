@@ -37,7 +37,7 @@
 * [Citations](#citations)
 * [Authors](#authors)
 * [License](#license)
-* [How-to-cite](#how-to-cite-)
+* [How-to-cite](#how-to-cite)
 * [Feedback & Contributions](#feedback--contributions)
 
 
