@@ -111,7 +111,7 @@ Main Window Start Screen
 
 Main Window with Loaded Images
 
-![Main Window with Images](docs/images/main_window_start_screen.png?raw=true)
+![Main Window with Images](docs/images/start_screen_with_image.png?raw=true)
 
 
 ## Functionalities 
@@ -193,13 +193,13 @@ During segmentation, you can:
 - **Pause:** Temporarily halt the process and resume later.
 - **Cancel:** Abort the process, reverting to the previous masks or removing them if none existed before.
 
-![Segmentation](https://github.com/PraiseTheDarkFlo/CellSePi/blob/main/docs/gifs/segmentation.gif?raw=true)
+![Segmentation](docs/gifs/Segmentation.gif?raw=true)
 
 
 **Readout**  
 Generates an `.xlsx`, `.tsv`, `.csv` or `.pdf` file containing the extracted fluorescence values. Click the "Open fluorescence file" button to launch your system’s default spreadsheet application with the generated file (e.g. ONLYOFFICE as seen below).
 
-![Readout](https://github.com/PraiseTheDarkFlo/CellSePi/blob/main/docs/gifs/readout.gif?raw=true)
+![Readout](docs/gifs/fluroscence_readout.gif?raw=true)
 
 **Correction Tools**  
 Correct segmentation errors manually or draw masks to train new models.  
@@ -211,7 +211,7 @@ Correct segmentation errors manually or draw masks to train new models.
 
 The Drawing Tools are fully integrated into the flet application (no separate application or window needed). Changes to the image will occur immediately. 
 
-![Drawing Tools](https://github.com/PraiseTheDarkFlo/CellSePi/blob/main/docs/gifs/drawing_tools.gif?raw=true)
+![Drawing Tools](docs/gifs/drawing_tools.gif?raw=true)
 
 **Cell ID Overlay**   
 Display the IDs and fluorescence values of the cells identified in the image to get a preview of the readout. The number next to the ID button indicates how many masks are present: 
@@ -220,10 +220,12 @@ Display the IDs and fluorescence values of the cells identified in the image to 
  
 The visualization of the IDs can be invoked by hovering over the mask in the image.
 
+![CellID](docs/gifs/cell_id_overlay.gif?raw=true)
+
 **Brightness and Contrast**  
 Enhance the visibility of your image by using the brightness and contrast sliders. The "Auto brightness and contrast" button automatically adjusts and normalizes the image.  
 
-![Brightness Contrast](https://github.com/PraiseTheDarkFlo/CellSePi/blob/main/docs/gifs/brightness_contrast.gif?raw=true)
+![Brightness Contrast](docs/gifs/brightness_contrast.gif?raw=true)
 
 **Average Diameter**  
 The average diameter of all cells over all images is displayed and updated with every change in the masks. The cell diameter is approximated by assuming circular cells and calculating the diameter from the area.  
@@ -241,6 +243,10 @@ Solely, upload an implemented python script through the Plugin function in the m
 Train your own models using the **Cellpose** framework. Two training modes are available:
 1. **New Model Training:** Train a model from scratch using standard Cellpose models (`sam`, `sam v2`, `nuclei`, `cyto`, `cyto2` or `cyto3`).
 2. **Model Fine-Tuning:** Retrain an existing model with your own images and masks for improved performance.
+
+During training: 
+- **Cancel:** Terminate the training
+- **Logging:** See the training progress in the provided field
 
 ![Training](https://github.com/PraiseTheDarkFlo/CellSePi/blob/main/docs/gifs/training.gif?raw=true)
 
@@ -341,7 +347,7 @@ cmd /c copy /b cellsepi_*.part* cellsepi_combined_archive.zip
 ```bash
   python -m cellsepi build
 ```
-  For Windows you need [Visual Studio 2022](https://learn.microsoft.com/en-us/visualstudio/install/install-visual-studio?view=vs-2022) with Desktop development with C++ workload installed ([Flet Windows build docs](https://flet.dev/docs/publish/windows/)).
+  For Windows, you need [Visual Studio 2022](https://learn.microsoft.com/en-us/visualstudio/install/install-visual-studio?view=vs-2022) with Desktop development with C++ workload installed ([Flet Windows build docs](https://flet.dev/docs/publish/windows/)).
 
 
 

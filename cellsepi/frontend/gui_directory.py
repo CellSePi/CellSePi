@@ -193,7 +193,7 @@ class DirectoryCard(ft.Card):
             allowed_extensions = self.file_type.value.extensions
             files = await ft.FilePicker().pick_files(
                 dialog_title="Pick file",
-
+                initial_directory=str(previous_directory),
                 allow_multiple=False,
                 file_type=ft.FilePickerFileType.CUSTOM,
                 allowed_extensions=allowed_extensions
