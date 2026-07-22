@@ -37,7 +37,7 @@
 * [Citations](https://github.com/CellSePi/CellSePi/blob/main/README.md#-citations)
 * [Authors](https://github.com/CellSePi/CellSePi/blob/main/README.md#%EF%B8%8F-authors)
 * [License](#license)
-* [How To Cite](#how-to-cite)
+* [How To Cite](https://github.com/CellSePi/CellSePi/blob/main/README.md#-how-to-cite)
 * [Feedback & Contributions](#feedback--contributions)
 
 
