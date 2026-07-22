@@ -32,7 +32,7 @@
 * [Functionalities](#functionalities)
 * [Training](#training)
 * [Modular Workflow Pipeline](#modular-workflow-pipeline)
-* [Guides](#[guides](https://github.com/CellSePi/CellSePi/blob/main/README.md#%EF%B8%8F-guides))
+* [Guides](#(https://github.com/CellSePi/CellSePi/blob/main/README.md#%EF%B8%8F-guides))
 * [Build](#build)
 * [Citations](#citations)
 * [Authors](#authors)
