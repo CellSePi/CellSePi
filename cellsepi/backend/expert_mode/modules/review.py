@@ -17,10 +17,10 @@ class Review(Module):
     def __init__(self, module_id: str = None) -> None:
         super().__init__(module_id)
         self.inputs = InputPorts(
-        InputPort("image_paths", dict),
+            InputPort("image_paths", dict),
             InputPort("mask_paths", dict, True),
         )
-        self.outputs = OutputPorts (
+        self.outputs = OutputPorts(
             OutputPort("mask_paths", dict),
         )
         self.user_segmentation_channel: str = "2"
@@ -66,37 +66,55 @@ class Review(Module):
             visible=False,
             expand=False,
         )
-        self._control_menu = ft.Container(ft.Container(ft.Row(
-            [self._text_field_segmentation_channel,
-             self._text_field_mask_suffix,
-             ], spacing=2, alignment=ft.MainAxisAlignment.CENTER,
-        ), bgcolor=MAIN_COLOR, expand=True, border_radius=ft.BorderRadius.vertical(top=0, bottom=12),
-            height=38,
-        )
+        self._control_menu = ft.Container(
+            ft.Container(
+                ft.Row(
+                    [
+                        self._text_field_segmentation_channel,
+                        self._text_field_mask_suffix,
+                    ],
+                    spacing=2,
+                    alignment=ft.MainAxisAlignment.CENTER,
+                ),
+                bgcolor=MAIN_COLOR,
+                expand=True,
+                border_radius=ft.BorderRadius.vertical(top=0, bottom=12),
+                height=38,
+            )
         )
         self._canvas = ImageEditingView(
-            on_mask_change=self._mask_update_async)
+            on_mask_change=self._mask_update_async
+        )
         self._canvas.auto_adjust = True
         self._canvas.mask_color = self.mask_color
         self._canvas.outline_color = self.outline_color
         self._canvas.mask_opacity = self.mask_opacity
         self._settings: ft.Control = ft.Row(
-            [self._canvas,
-             ft.Card(
-                 content=ft.Column(
-                     [
-                         ft.Container(
-                             self._image_gallery,
-                             expand=True,
-                             padding=ft.Padding.only(
-                                 top=20,
-                                 left=20,
-                                 right=20,
-                                 bottom=10)
-                         ),
-                         self._control_menu
-                     ], spacing=0, expand=True, width=640)),
-             ], expand=True, margin=20)
+            [
+                self._canvas,
+                ft.Card(
+                    content=ft.Column(
+                        [
+                            ft.Container(
+                                self._image_gallery,
+                                expand=True,
+                                padding=ft.Padding.only(
+                                    top=20,
+                                    left=20,
+                                    right=20,
+                                    bottom=10)
+                            ),
+                            self._control_menu
+                        ],
+                        spacing=0,
+                        expand=True,
+                        width=640
+                    )
+                ),
+            ],
+            expand=True,
+            margin=20
+        )
 
     def finished(self):
         self.outputs.mask_paths.data = self.inputs.mask_paths.data
@@ -154,15 +172,27 @@ class Review(Module):
                     ft.Column(
                         [
                             ft.GestureDetector(
-                                content=ft.Container(ft.Stack([ft.Image(
-                                    src=cur_image_paths[channel_id],
-                                    height=150,
-                                    width=150,
-                                    fit=ft.BoxFit.CONTAIN,
-                                    gapless_playback=True
-                                ), self._selected_images_visualise[image_id][channel_id]]), width=156, height=156),
+                                content=ft.Container(
+                                    ft.Stack(
+                                        [
+                                            ft.Image(
+                                                src=cur_image_paths[channel_id],
+                                                height=150,
+                                                width=150,
+                                                fit=ft.BoxFit.CONTAIN,
+                                                gapless_playback=True
+                                            ),
+                                            self._selected_images_visualise[image_id][channel_id]
+                                        ]
+                                    ),
+                                    width=156,
+                                    height=156
+                                ),
                                 on_tap=lambda e, img_id=image_id, c_id=channel_id: self._canvas.page.run_task(
-                                    select_image, img_id, c_id)
+                                    select_image,
+                                    img_id,
+                                    c_id
+                                )
                             ),
                             ft.Text(channel_id, size=10, text_align=ft.TextAlign.CENTER),
                         ],
@@ -176,16 +206,48 @@ class Review(Module):
                 spacing=10,
                 scroll=ft.ScrollMode.AUTO,
             )
-            self._icon_check[image_id] = ft.Icon(ft.Icons.CHECK, color=SUCCESS_COLOR, size=17, visible=False,
-                                                 tooltip="Mask is available")
-            self._icon_x[image_id] = ft.Icon(ft.Icons.CLOSE, size=17, visible=True, tooltip="Mask not available")
-            self.update_mask_check(image_id, False)
-            self._image_gallery.controls.append(ft.Column([ft.Row(
-                [ft.Text(f"{image_id}", weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.CENTER),
-                 self._icon_check[image_id], self._icon_x[image_id]], spacing=2),
-                group_row], spacing=10, alignment=ft.MainAxisAlignment.CENTER))
+            self._icon_check[image_id] = ft.Icon(
+                ft.Icons.CHECK,
+                color=SUCCESS_COLOR,
+                size=17,
+                visible=False,
+                tooltip="Mask is available"
+            )
+            self._icon_x[image_id] = ft.Icon(
+                ft.Icons.CLOSE,
+                size=17,
+                visible=True,
+                tooltip="Mask not available"
+            )
+            self.update_mask_check(
+                image_id,
+                False
+            )
+            self._image_gallery.controls.append(
+                ft.Column(
+                    [
+                        ft.Row(
+                            [
+                                ft.Text(
+                                    f"{image_id}",
+                                    weight=ft.FontWeight.BOLD,
+                                    text_align=ft.TextAlign.CENTER
+                                ),
+                                self._icon_check[image_id],
+                                self._icon_x[image_id]],
+                            spacing=2
+                        ),
+                        group_row],
+                    spacing=10,
+                    alignment=ft.MainAxisAlignment.CENTER
+                )
+            )
             self.event_manager.notify(
-                ProgressEvent(percent=int((iN + 1) / n_series * 100), process=f"Loading Images: {iN + 1}/{n_series}"))
+                ProgressEvent(
+                    percent=int((iN + 1) / n_series * 100),
+                    process=f"Loading Images: {iN + 1}/{n_series}"
+                )
+            )
             self._image_gallery.update()
 
         self.event_manager.notify(ProgressEvent(percent=100, process=f"Loading Images: Finished"))
@@ -198,7 +260,9 @@ class Review(Module):
             image_id: the id of the image to check mask availability
             update: True to update the gui
         """
-        if self.inputs.mask_paths.data is not None and image_id in self.inputs.mask_paths.data and self.user_segmentation_channel in self.inputs.mask_paths.data[image_id]:
+        if (self.inputs.mask_paths.data is not None
+                and image_id in self.inputs.mask_paths.data
+                and self.user_segmentation_channel in self.inputs.mask_paths.data[image_id]):
             self._icon_check[image_id].visible = True
             self._icon_x[image_id].visible = False
         else:
@@ -224,9 +288,13 @@ class Review(Module):
         if str(e.control.value) == "":
             self.settings.page.open(
                 ft.SnackBar(
-                    ft.Text(f"Mask suffix must be not empty!",
-                            color=ft.Colors.WHITE),
-                    bgcolor=ERROR_COLOR))
+                    ft.Text(
+                        f"Mask suffix must be not empty!",
+                        color=ft.Colors.WHITE
+                    ),
+                    bgcolor=ERROR_COLOR
+                )
+            )
             e.control.value = self.user_mask_suffix
             self.settings.page.update()
             return
@@ -238,9 +306,13 @@ class Review(Module):
         if str(e.control.value) == "":
             self.settings.page.show_dialog(
                 ft.SnackBar(
-                    ft.Text(f"Segmentation channel must be not empty!",
-                            color=ft.Colors.WHITE),
-                    bgcolor=ERROR_COLOR))
+                    ft.Text(
+                        f"Segmentation channel must be not empty!",
+                        color=ft.Colors.WHITE
+                    ),
+                    bgcolor=ERROR_COLOR
+                )
+            )
             e.control.value = self.user_segmentation_channel
             self.settings.page.update()
             return
