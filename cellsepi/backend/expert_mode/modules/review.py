@@ -2,7 +2,7 @@ from backend.constants import MAIN_COLOR, HIGHLIGHT_COLOR, ERROR_COLOR, SUCCESS_
 from image_editing_view import ImageEditingView
 
 from backend.data_util import convert_tiffs_to_png_parallel
-from backend.expert_mode.listener import OnPipelineChangeEvent
+from backend.expert_mode.listener import OnPipelineChangeEvent, ProgressEvent
 from backend.expert_mode.module import *
 
 
