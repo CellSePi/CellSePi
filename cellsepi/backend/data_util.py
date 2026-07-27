@@ -567,7 +567,7 @@ def extract_from_directory(
         for new_idx in range(n_channels):
             image_data = raw_data[0, new_idx]
 
-            file_name = f"{scene}{CSP_CHANNEL_PREFIX}{new_idx+1}.tif"
+            file_name = f"{scene}{CSP_CHANNEL_PREFIX}{new_idx + 1}.tif"
             target_path = target_dir / file_name
 
             write_image(target_path, image_data)
@@ -576,7 +576,7 @@ def extract_from_directory(
             if orig_channel_str in channel_mapping and len(channel_mapping[orig_channel_str]) > 0:
                 new_idx = channel_mapping[orig_channel_str].pop(0)
 
-                target_path = target_dir / f"{scene}{CSP_CHANNEL_PREFIX}{new_idx+1}{mask_suffix}.npy"
+                target_path = target_dir / f"{scene}{CSP_CHANNEL_PREFIX}{new_idx + 1}{mask_suffix}.npy"
                 shutil.copy(str(mpath), str(target_path))
 
         if event_manager is not None:
@@ -653,6 +653,7 @@ def process_channel(channel_id, channel_path):
         return channel_id, base64.b64encode(buffer).decode('utf-8')
     finally:
         del image
+
 
 def convert_series_parallel(image_id, cur_image_paths):
     png_images = {image_id: {}}
@@ -826,7 +827,7 @@ def export_dataframe_to_pdf(df: pd.DataFrame, output_path: str):
             data_matrix = [sub_cols] + sub_df.round(2).values.tolist()
 
             # Create the sub-table
-            pdf_table = Table(data_matrix)#, colWidths=col_width_allocation)
+            pdf_table = Table(data_matrix)  # , colWidths=col_width_allocation)
 
             # Apply clean aesthetic theme
             pdf_table.setStyle(TableStyle([
@@ -878,6 +879,7 @@ class DirectoryManager:
             app_dir = APP_DIR
         self._base_path = Path(app_dir)
         self._cache_path: Optional[Path] = None
+        self._module_cache_path: Optional[Path] = None
         self._working_directory: Optional[Path] = None
 
         # self._timestamp = get_timestamp()
@@ -898,19 +900,30 @@ class DirectoryManager:
         return self._cache_path
 
     @property
+    def module_cache_directory(self) -> Path:
+        """
+        Returns the path for intermediate module files.
+        """
+        if self._module_cache_path is None:
+            self._module_cache_path = self._base_path / "module_cache"
+            self._module_cache_path.mkdir(parents=True, exist_ok=True)
+
+        return self._module_cache_path
+
+    @property
     def working_directory(self) -> Path:
         # if self._working_directory is None:
         #    raise ValueError("Working directory not initialized. Call initialize_working_directory first.")
         return self._working_directory
 
-    def init_working_directory(self, subdir: str):
-        self._working_directory = self.cache_directory / subdir
-        self._working_directory.mkdir(parents=True, exist_ok=True)
-        return self._working_directory
+    # def init_working_directory(self, subdir: str):
+    #     self._working_directory = self.cache_directory / subdir
+    #     self._working_directory.mkdir(parents=True, exist_ok=True)
+    #     return self._working_directory
 
     @property
     def modules_working_directory(self) -> Path:
-        mwd = self.cache_directory / "modules"
+        mwd = self.module_cache_directory
         mwd.mkdir(parents=True, exist_ok=True)
         return mwd
 
@@ -931,16 +944,21 @@ class DirectoryManager:
         self.current_cache_dir = dirpath
         return dirpath
 
-    def streamline_cache(self):
+    def _streamline_dir(self, directory):
         """
-        Removes only the old entries in the cache directory.
+        Removes only the old entries in the directory.
         Keeps the three most recent directories.
         """
-        if self.cache_directory and self.cache_directory.exists():
+        if directory and directory.exists():
             modification_times = []
-            for item in self._cache_path.glob("*"):
+            for item in directory.glob("*"):
                 if item.is_dir():
-                    modification_times.append([item, item.stat().st_mtime])
+                    modification_times.append(
+                        [
+                            item,
+                            item.stat().st_mtime
+                        ]
+                    )
 
             print(modification_times)
             modification_times = sorted(modification_times, key=lambda elem: elem[1], reverse=True)
@@ -953,14 +971,33 @@ class DirectoryManager:
 
             pass
 
-    def clear_cache(self):
+    def streamline_cache(self):
         """
-        Removes all files in the cache directory.
+        Removes only the old entries in the cache directory.
+        Keeps the three most recent directories.
         """
-        if self.cache_directory and self.cache_directory.exists():
-            for item in self._cache_path.glob("*"):
+        self._streamline_dir(self.cache_directory)
+
+    def _clear_directory(self, directory):
+        """
+        Removes all files in the directory.
+        """
+        if directory and directory.exists():
+            for item in directory.glob("*"):
 
                 if item.is_dir():
                     shutil.rmtree(item)
                 else:
                     item.unlink()
+
+    def clear_cache(self):
+        """
+        Removes all files in the cache directory.
+        """
+        self._clear_directory(self.cache_directory)
+
+    def clear_modules_cache(self):
+        """
+        Removes all files in the cache directory.
+        """
+        self._clear_directory(self.module_cache_directory)

@@ -332,6 +332,7 @@ class GUI:
             self.page.update()
 
             DirectoryManager().streamline_cache()
+            DirectoryManager().clear_modules_cache()
 
             self.page.run_task(self.handle_window_closing)
 
