@@ -24,10 +24,10 @@ def run_module(m):
 
 class PipelineManager:
     def __init__(self):
-        self.modules: List[Module] = [] #running order
-        self.module_map: Dict[str, Module] = {} #mapping for fast access to the modules
-        self.pipes_in: Dict[str,List[Pipe]] = {} #dict[target,[Pipe]]
-        self.pipes_out: Dict[str,List[Pipe]] = {} #dict[source,[Pipe]]
+        self.modules: List[Module] = []  # running order
+        self.module_map: Dict[str, Module] = {}  # mapping for fast access to the modules
+        self.pipes_in: Dict[str, List[Pipe]] = {}  # dict[target,[Pipe]]
+        self.pipes_out: Dict[str, List[Pipe]] = {}  # dict[source,[Pipe]]
         self.run_order: deque[str] = deque()
         self.modules_executed = 0
         self.executing: str = ""
@@ -41,9 +41,9 @@ class PipelineManager:
         Creates a module of the given class and adds it to the pipeline.
         """
         module = module_class()
-        return self._add_module(module,module_class)
+        return self._add_module(module, module_class)
 
-    def add_module_with_id(self, module_class: Type[Module],module_id: str) -> Module:
+    def add_module_with_id(self, module_class: Type[Module], module_id: str) -> Module:
         """
         Creates a module of the given class with the given module_id and adds it to the pipeline.
         """
@@ -51,9 +51,9 @@ class PipelineManager:
             raise ValueError(f"Invalid module id {module_id} for the module_class {module_class.gui_config().name}")
         module = module_class(module_id=module_id)
         module.occupy()
-        return self._add_module(module,module_class)
+        return self._add_module(module, module_class)
 
-    def _add_module(self, module: Module,module_class: Type[Module]) -> Module:
+    def _add_module(self, module: Module, module_class: Type[Module]) -> Module:
         self.modules.append(module)
         self.module_map[module.module_id] = module
         module.event_manager = self.event_manager
@@ -105,7 +105,7 @@ class PipelineManager:
         """
         return len(self.pipes_in[module_name]) == 0 and len(self.pipes_out[module_name]) == 0
 
-    def remove_connection(self,source_id: str, target_id: str) -> None:
+    def remove_connection(self, source_id: str, target_id: str) -> None:
         """
         Removes a pipe between the source and target modules.
         Raises:
@@ -144,14 +144,16 @@ class PipelineManager:
             raise ModuleNotFoundError(f"Target module {pipe.target_module.module_id} not found in the pipeline.")
 
         if self.check_connections(pipe.source_module.module_id, pipe.target_module.module_id) is not None:
-                raise ValueError(f"Pipe between source module {pipe.source_module.module_id} and target module {pipe.target_module.module_id} already exists.")
+            raise ValueError(
+                f"Pipe between source module {pipe.source_module.module_id} and target module {pipe.target_module.module_id} already exists.")
 
         self.pipes_in[pipe.target_module.module_id].append(pipe)
         self.pipes_out[pipe.source_module.module_id].append(pipe)
 
-        self.event_manager.notify(OnPipelineChangeEvent(f"Added connection between {pipe.target_module.module_id} and {pipe.source_module.module_id}"))
+        self.event_manager.notify(OnPipelineChangeEvent(
+            f"Added connection between {pipe.target_module.module_id} and {pipe.source_module.module_id}"))
 
-    def expand_connection(self,pipe:Pipe, ports: List[Union[str, Tuple[str, str]]]) -> None:
+    def expand_connection(self, pipe: Pipe, ports: List[Union[str, Tuple[str, str]]]) -> None:
         """
         Expands the ports tranfered with the pipe between the source and target modules with the given ports.
         """
@@ -159,7 +161,7 @@ class PipelineManager:
         self.event_manager.notify(OnPipelineChangeEvent(
             f"Expanded the connection between {pipe.target_module.module_id} and {pipe.source_module.module_id}"))
 
-    def check_connections(self,source_module_id:str,target_module_id:str) -> Pipe | None:
+    def check_connections(self, source_module_id: str, target_module_id: str) -> Pipe | None:
         """
         Checks if a pipe between the source and target modules exist in the pipeline.
         """
@@ -168,7 +170,7 @@ class PipelineManager:
                 return existing_pipe
         return None
 
-    def check_ports_occupied(self,module_id: str,ports:List[str]) -> bool:
+    def check_ports_occupied(self, module_id: str, ports: List[str]) -> bool:
         """
         Checks if the given module ports are occupied by existing pipes.
         """
@@ -218,7 +220,7 @@ class PipelineManager:
             raise RuntimeError(f"The pipeline contains a cycle, only acyclic graphs are supported.")
         return topological_order
 
-    def check_pipeline_runnable(self,ignore:List[str]=None) -> bool:
+    def check_pipeline_runnable(self, ignore: List[str] = None) -> bool:
         """
         Checks if every module input is satisfied.
         """
@@ -229,7 +231,7 @@ class PipelineManager:
                 return False
         return True
 
-    def check_module_satisfied(self,module_id: str) -> bool:
+    def check_module_satisfied(self, module_id: str) -> bool:
         """
         Checks if a modules inputs are satisfied.
         """
@@ -240,16 +242,17 @@ class PipelineManager:
         else:
             return True
 
-    def check_module_runnable(self,module_name: str) -> bool:
+    def check_module_runnable(self, module_name: str) -> bool:
         """
         Checks if the module input port data from the given module_name is not None.
         """
-        if not all(self.module_map[module_name].inputs[port_name].data is not None for port_name in self.module_map[module_name].get_mandatory_inputs()):
+        if not all(self.module_map[module_name].inputs[port_name].data is not None for port_name in
+                   self.module_map[module_name].get_mandatory_inputs()):
             return False
         else:
             return True
 
-    def run(self,ignore_modules: List[str] = None) -> None:
+    def run(self, ignore_modules: List[str] = None) -> None:
         """
         Executes the steps of the pipeline.
         Skips steps of the pipeline if min. one of the mandatory inputs is None.
@@ -263,7 +266,7 @@ class PipelineManager:
         try:
             self.run_order = self.get_run_order()
         except RuntimeError as ex:
-            self.event_manager.notify(PipelineErrorEvent("Cycle in pipeline",ex.args[0],ex))
+            self.event_manager.notify(PipelineErrorEvent("Cycle in pipeline", ex.args[0], ex))
             return
         with ThreadPoolExecutor(max_workers=1) as executor:
             while self.run_order:
@@ -277,41 +280,42 @@ class PipelineManager:
                 for pipe in module_pipes:
                     pipe.run()
                 if self.check_module_runnable(module_name):
-                        self.executing = module_name
-                        self.event_manager.notify(ModuleStartedEvent(module_name))
-                        future = executor.submit(run_module,module) #if the run of a module returns True, the module wants to stop the pipeline.
-                        result = future.result()
-                        if self._cancel_event.is_set():
-                            executor.shutdown(wait=False, cancel_futures=True)
-                            self.running = False
-                            self.event_manager.notify(PipelineStateChangeEvent(PipelineStates.IDLE))
-                            self.event_manager.notify(PipelineCancelEvent(self.executing))
-                            self._cancel_event.clear()
-                            return
-                        if result["status"] == "error":
-                            error = result["error"]
-                            e_type = getattr(error, "error_type", "System Error")
-                            e_desc = getattr(error, "description", str(error))
-                            self.running = False
-                            self.event_manager.notify(PipelineStateChangeEvent(PipelineStates.IDLE))
-                            self.event_manager.notify(ErrorEvent(e_type, e_desc, error))
-                            self._cancel_event.clear()
-                            return
-                        if result["pause"] and not self._cancel_event.is_set():
-                            self.event_manager.notify(PipelinePauseEvent(module_name))
-                            self._continue_event.wait()
-                            self.event_manager.notify(PipelinePauseEvent(module_name,True))
-                            self._continue_event.clear()
-                        module.finished()
-                        self.executing = ""
-                        self.modules_executed += 1
-                        self.event_manager.notify(ModuleExecutedEvent(module_name))
-                        if self._cancel_event.is_set():
-                            self.running = False
-                            self.event_manager.notify(PipelineStateChangeEvent(PipelineStates.IDLE))
-                            self.event_manager.notify(PipelineCancelEvent(self.executing))
-                            self._cancel_event.clear()
-                            return
+                    self.executing = module_name
+                    self.event_manager.notify(ModuleStartedEvent(module_name))
+                    future = executor.submit(run_module,
+                                             module)  # if the run of a module returns True, the module wants to stop the pipeline.
+                    result = future.result()
+                    if self._cancel_event.is_set():
+                        executor.shutdown(wait=False, cancel_futures=True)
+                        self.running = False
+                        self.event_manager.notify(PipelineStateChangeEvent(PipelineStates.IDLE))
+                        self.event_manager.notify(PipelineCancelEvent(self.executing))
+                        self._cancel_event.clear()
+                        return
+                    if result["status"] == "error":
+                        error = result["error"]
+                        e_type = getattr(error, "error_type", "System Error")
+                        e_desc = getattr(error, "description", str(error))
+                        self.running = False
+                        self.event_manager.notify(PipelineStateChangeEvent(PipelineStates.IDLE))
+                        self.event_manager.notify(ErrorEvent(e_type, e_desc, error))
+                        self._cancel_event.clear()
+                        return
+                    if result["pause"] and not self._cancel_event.is_set():
+                        self.event_manager.notify(PipelinePauseEvent(module_name))
+                        self._continue_event.wait()
+                        self.event_manager.notify(PipelinePauseEvent(module_name, True))
+                        self._continue_event.clear()
+                    module.finished()
+                    self.executing = ""
+                    self.modules_executed += 1
+                    self.event_manager.notify(ModuleExecutedEvent(module_name))
+                    if self._cancel_event.is_set():
+                        self.running = False
+                        self.event_manager.notify(PipelineStateChangeEvent(PipelineStates.IDLE))
+                        self.event_manager.notify(PipelineCancelEvent(self.executing))
+                        self._cancel_event.clear()
+                        return
                 else:
                     self.modules_executed += 1
                     self.event_manager.notify(ModuleExecutedEvent(module_name))
@@ -332,10 +336,12 @@ class PipelineManager:
         self._cancel_event.set()
         self._continue_event.set()
 
+
 class PipelineRunningException(Exception):
     """
     Exception raised if a module in the pipeline has an error and the pipeline needs to stop.
     """
+
     def __init__(self, error_type: str, description: str):
         self.error_type = error_type
         self.description = description
