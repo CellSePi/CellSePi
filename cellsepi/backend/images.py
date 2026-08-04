@@ -49,6 +49,7 @@ class BatchImageSegmentation(Notifier):
         self.pause_now = False
         self.resume_now = False
         self.executor = None
+        self.mask_paths = None
 
     # the following methods handle the different actions and handle accordingly
     def cancel_action(self):
@@ -84,7 +85,7 @@ class BatchImageSegmentation(Notifier):
             self.diameter = self.gui.csp.config.get_diameter()
             self.suffix = self.gui.csp.config.get_mask_suffix()
             image_paths = self.gui.csp.image_paths
-            mask_paths = self.gui.csp.mask_paths
+            self.mask_paths = self.gui.csp.mask_paths
             model_path = self.gui.csp.model_path
             model_type = self.gui.csp.model_type.value.name
             n_images = len(image_paths)
@@ -97,6 +98,7 @@ class BatchImageSegmentation(Notifier):
         else:
             event_manager.notify(ProgressEvent(percent=0, process="Segmentation started."))
             model_type = model_type.value.name
+            self.mask_paths = mask_paths
 
         settings_manager = SettingsManager()
 
@@ -169,10 +171,10 @@ class BatchImageSegmentation(Notifier):
                     percent = msg["percent"]
 
                     if not msg["skipped"]:
+                        if img_id not in self.mask_paths:
+                            self.mask_paths[img_id] = {}
+                        self.mask_paths[img_id][self.segmentation_channel] = msg["new_path"]
                         if event_manager is None:
-                            if img_id not in self.gui.csp.mask_paths:
-                                self.gui.csp.mask_paths[img_id] = {}
-                            self.gui.csp.mask_paths[img_id][self.segmentation_channel] = msg["new_path"]
                             self.gui.directory.update_mask_check(img_id)
                             self.gui.page.run_task(self.gui.average_diameter.get_avg_diameter, img_id)
 

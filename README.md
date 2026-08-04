@@ -1,12 +1,9 @@
 # 🦠 CellSePi – Cell Segmentation Pipeline 🦠
-
-[![PyPI version](https://img.shields.io/pypi/v/cellsepi.svg)](https://pypi.org/project/cellsepi/)
-[![License](https://img.shields.io/pypi/l/cellsepi.svg)](LICENSE)
-[![PyPI Downloads](https://img.shields.io/pypi/dm/cellsepi.svg)](https://pypi.org/project/cellsepi/)
-[![Last Commit](https://img.shields.io/github/last-commit/PraiseTheDarkFlo/cellsepi.svg)](https://github.com/PraiseTheDarkFlo/cellsepi)
-![GitHub Repo stars](https://img.shields.io/github/stars/PraiseTheDarkFlo/cellsepi)
-![GitHub forks](https://img.shields.io/github/forks/PraiseTheDarkFlo/cellsepi)
-![GitHub issues](https://img.shields.io/github/issues/PraiseTheDarkFlo/cellsepi)
+[![License](https://img.shields.io/pypi/l/cellsepi.svg?style=for-the-badge&logo=pypi&color=blue)](LICENSE)
+[![Last Commit](https://img.shields.io/github/last-commit/CellSePi/cellsepi.svg?style=for-the-badge&logo=github)](https://github.com/CellSePi/cellsepi)
+![GitHub Repo stars](https://img.shields.io/github/stars/CellSePi/cellsepi?style=for-the-badge&logo=github&color=yellow)
+![GitHub forks](https://img.shields.io/github/forks/CellSePi/cellsepi?style=for-the-badge&logo=github)
+![GitHub issues](https://img.shields.io/github/issues/CellSePi/cellsepi?style=for-the-badge&logo=github&color=red)
 
 > **Data analysis software, which supports modular pipelining of analysis tasks including segmentation and fine-tuning of microscopy images, powered by Cellpose and spot detection using the Big-Fish library.**
 
@@ -33,7 +30,6 @@
 * [Training](#training)
 * [Modular Workflow Pipeline](#modular-workflow-pipeline)
 * [Guides](https://github.com/CellSePi/CellSePi/blob/main/README.md#%EF%B8%8F-guides)
-* [Build](#build)
 * [Citations](https://github.com/CellSePi/CellSePi/blob/main/README.md#-citations)
 * [Authors](https://github.com/CellSePi/CellSePi/blob/main/README.md#%EF%B8%8F-authors)
 * [License](#license)
@@ -50,19 +46,11 @@ CellSePi is a powerful cell segmentation pipeline designed for microscopy images
 
 ## 🚀 Usage
 
-### Via the Executable
 1. Navigate to the `Release` section on GitHub.
 2. Choose the wanted release and select the necessary operating system version:`Linux`, `MacOS` or `Windows`
 3. Download the executable
 4. *If downloaded a split release:* Follow the *How-to-combine-archives*-guide in [Guides](#-guides)  
 
-### Via the Terminal
-
-Run the following command to launch the GUI:
-
-```bash
-  python -m cellsepi
-```
 ### Further Information
 > **Note:** MacOS blocks execution of release.  
 > (Similar warning on Windows)  
@@ -342,14 +330,6 @@ Windows (PowerShell):
 ```
 cmd /c copy /b cellsepi_*.part* cellsepi_combined_archive.zip
 ```
-## Build
-
-```bash
-  python -m cellsepi build
-```
-  For Windows, you need [Visual Studio 2022](https://learn.microsoft.com/en-us/visualstudio/install/install-visual-studio?view=vs-2022) with Desktop development with C++ workload installed ([Flet Windows build docs](https://flet.dev/docs/publish/windows/)).
-
-
 
 ## 📚 Citations
 
@@ -370,18 +350,9 @@ generalization for cellular segmentation.* bioRxiv, 2025.*
   Scanline Filling Algorithm. [Website](https://medium.com/@dillihangrae/scanline-filling-algorithm-852ad47fb0dd)
 - **Arthur Imbert, Wei Ouyang, Adham Safieddine, Emeline Coleno, Christophe Zimmer, Edouard Bertrand, Thomas Walter, Florian Mueller. FISH-quant v2:** a scalable and modular analysis tool for smFISH image analysis. bioRxiv (2021) [Paper](https://doi.org/10.1101/2021.07.20.453024)
 
-## ✍️ Authors
-
-Developed by:  
-- **Jenna Ahlvers** – [GitHub](https://github.com/Jnnnaa)  
-- **Santosh Chhetri Thapa** – [GitHub](https://github.com/SantoshCT111)  
-- **Nike Dratt** – [GitHub](https://github.com/SirHenry10)  
-- **Pascal Heß** – [GitHub](https://github.com/Pasykaru)  
-- **Florian Hock** – [GitHub](https://github.com/PraiseTheDarkFlo)
-
 ## 📝 License
 
-This project is licensed under the **Apache License 2.0** – see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **Apache-2.0 license** – see the [LICENSE](LICENSE) file for details.
 
 ## 📖 How to cite 
 If you use our repository in you own work, please cite us as follows: 
@@ -401,4 +372,4 @@ or as bibtext:
 
 ## 💭 Feedback & Contributions
 
-Report bugs or suggest features via [GitHub Issues](https://github.com/PraiseTheDarkFlo/CellSePi/issues).
+Report bugs or suggest features via [GitHub Issues](https://github.com/CellSePi/CellSePi/issues).
