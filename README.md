@@ -9,16 +9,16 @@
 
 ## 🌟 Highlights
 
-- **User-Friendly Interface:** Intuitive GUI for seamless image segmentation
-- **Modularization:** Personalize your data analysis process by constructing an individual execution pipeline 
-- **Advanced Segmentation:** Leverage different Cellpose models for accurate cellular segmentation
-- **Correction Tools:** Easily refine and correct segmentation results with an integrated drawing tool
-- **Custom Model Training:** Train and fine-tune models with your own data
-- **Batch Processing:** Process multiple images simultaneously
-- **Multi-Format Support:** Compatible with `.lif`, `.tif`/`.tiff`/`ome.tif`/`ome.tiff`, `.nd2`/`.nd2` and `.czi` image formats
-- **Fluorescence Readout:** Automatically extract fluorescence data
-- **Configurable Profiles:** Save and manage processing parameters effortlessly
-- **Adjustable Image Settings:** Manually or automatically fine-tune contrast and brightness
+- **User-Friendly Interface:** Intuitive GUI for seamless image segmentation.
+- **Modularization:** Personalize your data analyzis process by constructing an individual execution pipeline 
+- **Advanced Segmentation:** Leverage different Cellpose models for accurate cellular segmentation.
+- **Correction Tools:** Easily refine and correct segmentation results with an integrated drawing tool.
+- **Custom Model Training:** Train and fine-tune models with your own data.
+- **Batch Processing:** Process multiple images simultaneously.
+- **Multi-Format Support:** Compatible with `.lif`, `.tif`/`.tiff`/`ome.tif`/`ome.tiff`, `.nd2`/`.nd2` and `.czi` image formats.
+- **Fluorescence Readout:** Automatically extract fluorescence data.
+- **Configurable Profiles:** Save and manage processing parameters effortlessly.
+- **Adjustable Image Settings:** Manually or automatically fine-tune contrast and brightness.
 
 ## Table of Contents
 * [Overview](#overview)
@@ -46,7 +46,7 @@ CellSePi is a powerful cell segmentation pipeline designed for microscopy images
 
 ## 🚀 Usage
 
-1. Navigate to the `Release` section on GitHub
+1. Navigate to the `Release` section on GitHub.
 2. Choose the wanted release and select the necessary operating system version:`Linux`, `MacOS` or `Windows`
 3. Download the executable
 4. *If downloaded a split release:* Follow the *How-to-combine-archives*-guide in [Guides](#-guides)  
@@ -80,8 +80,7 @@ CellSePi is a powerful cell segmentation pipeline designed for microscopy images
 `OME-TIFF / TIFF Dir`
 
 Both 2D and 3D images are supported.   
-3D images are viewed through Mean- or Max-Projection.  
-> **Note:** Masks can only be loaded via directories.
+3D images are viewed through Mean- or Max-Projection. 
 
 ## Model Support
 The following Cellpose models are currently available for segmentation:    
@@ -106,7 +105,7 @@ Main Window with Loaded Images
 ## Functionalities 
 
 **Menu**
-- **Settings:** Configure cache, performance, image and segmentation options
+- **Settings:** Configure cache, performance, image and segmentation options 
 - **Dark/Light mode:** Adapts to your system settings. The changed theme is only active for the current session
 - **Plugins:** Import new modules
 - **Error log:** Information about errors during pipeline execution
@@ -121,23 +120,21 @@ Main Window with Loaded Images
 Configure characteristics of the cache, application performance, segmentation and image adjustments through the provided setting interface:   
 
 Cache:
-- **Cutoff**: Specifies the maximum number of image and mask directories stored in the cache when the application closes. Any excess directories are automatically deleted
-
-- The cache operates on a Least Recently Used (LRU) basis, meaning that the oldest, unused directories are removed first when the limit is reached
+- **Cutoff:** Amount of image and mask directories stored in cache
 
 Performance: 
-- **Segmantation downscaling:** Set mode, maximum pixels and maximum fraction applied during segmentation
+- **Segmantation downscaling:** Set mode, maximum pixels and maximum fraction applied during segmentation 
 - **Visualization downscaling:** Set mode, maximum pixels and maximum fraction applied in the window visualization
 
 Image:   
 - **Normalize Gallery:** Normalization applied to the image gallery
-- **Margin:** Border margin to exclude image edges from the normalization calculation
-- **Upper/Lower Quantile:** Quantile used during normalization
+- **Margin:** Margin used between rows
+- **Upper/Lower Quantil:** Quantil used during normalization
 
 Segmentation:  
 - **Mask Deletion Diameter:** Deletes cells detected during segmentation below the specified diameter
 
-Default settings are provided on first use. Later changes can be saved or reset to default.
+There are already default settings provided at the first usage. Later changes can be saved or reseted to default.
 
 ![Settings](docs/gifs/Settings_GIF.gif?raw=true)
 
@@ -181,8 +178,8 @@ When starting the segmentation, choose the following:
 - **Continue:** Segment only images with missing mask
 
 During segmentation, you can:
-- **Pause:** Temporarily halt the process and resume later
-- **Cancel:** Abort the process
+- **Pause:** Temporarily halt the process and resume later.
+- **Cancel:** Abort the process, reverting to the previous masks or removing them if none existed before.
 
 ![Segmentation](docs/gifs/Segmentation.gif?raw=true)
 
@@ -194,8 +191,8 @@ Generates an `.xlsx`, `.tsv`, `.csv` or `.pdf` file containing the extracted flu
 
 **Correction Tools**  
 Correct segmentation errors manually or draw masks to train new models.  
-- **Cell ID Shifting:** Automatically adjusts cell IDs to maintain a consecutive numbering when editing mask
-- **Drawing:** Draw own cells. Finishes the outline and fills the cell with color automatically
+- **Cell ID Shifting:** Automatically adjusts cell IDs to maintain a consecutive numbering when a cell is deleted.
+- **Drawing:** Draw own cells. Finishes the outline and fills the cell with color automatically 
 - **Deletion:** Delete an unwanted cell or all cells
 - **Undo/Redo changes:** If the deletion or drawing is not to your liking, you are able to reverse the made changes
 
@@ -232,8 +229,8 @@ Solely, upload an implemented python script through the Plugin function in the m
 
 ## Training  
 Train your own models using the **Cellpose** framework. Two training modes are available:
-1. **New Model Training:** Train a model from scratch using standard Cellpose models (`sam`, `sam v2`, `nuclei`, `cyto`, `cyto2` or `cyto3`)
-2. **Model Fine-Tuning:** Retrain an existing model with your own images and masks for improved performance
+1. **New Model Training:** Train a model from scratch using standard Cellpose models (`sam`, `sam v2`, `nuclei`, `cyto`, `cyto2` or `cyto3`).
+2. **Model Fine-Tuning:** Retrain an existing model with your own images and masks for improved performance.
 
 During training: 
 - **Cancel:** Terminate the training
@@ -250,10 +247,10 @@ Encode functionality of the analysis task. Choose one or multiple to build the f
 Functionalities: 
 - **Add Connection:** Connect multiple modules
 - **Option Settings:** Configure the functionality behind the module
-- **View Ports:** See incoming and outcoming data
+- **View Ports:** See incoming and outcoming data 
 - **Copy:** Use instead of dragging and dropping to add the module to the pipeline
 
-For further information on how to create a new module, can be found in the module development [documentation](https://cellsepi.github.io/CellSePi/). 
+For further information on how to create a new module, use the following link: https://cellsepi.github.io/CellSePi/
 
 **Pipeline Menu**
 
