@@ -142,7 +142,6 @@ def run_cellpose_evaluation(image_paths,
                         mask[mask == cell_id] = 0
 
             directory, filename = os.path.split(image_path)
-            # ToDo EK: Change directory here
             name, _ = os.path.splitext(filename)
             # new_path = os.path.join(directory, f"{name}{suffix}.npy")
             if module_directory is None:

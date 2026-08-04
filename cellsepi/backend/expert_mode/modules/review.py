@@ -124,6 +124,9 @@ class Review(Module):
     def run(self):
         self.event_manager.notify(ProgressEvent(percent=0, process=f"Preparing: starting"))
         # reset
+
+        # ToDo EK: Coppy files here
+
         self._icon_x = {}
         self._icon_check = {}
         self.image_id = None

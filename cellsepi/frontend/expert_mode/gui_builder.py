@@ -421,7 +421,7 @@ class Builder:
             self.progress_text.value = f"{current}/{total}"
         else:
             self.progress_pipeline.value = (
-                        current / self.pipeline_gui.module_count) if self.pipeline_gui.module_count > 0 else 0
+                    current / self.pipeline_gui.module_count) if self.pipeline_gui.module_count > 0 else 0
             self.progress_text.value = f"{current}/{self.pipeline_gui.module_count}"
         self.progress_text.update()
         self.progress_pipeline.update()
@@ -458,7 +458,8 @@ class Builder:
         files = await self.file_picker.pick_files(
             file_type=ft.FilePickerFileType.CUSTOM,
             allowed_extensions=["csp"],
-            allow_multiple=False
+            allow_multiple=False,
+            initial_directory=pathlib.Path.home() / "Downloads"
         )
         self.load_button.icon_color = MAIN_COLOR
         self.load_button.update()
