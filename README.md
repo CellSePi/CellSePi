@@ -250,7 +250,7 @@ Functionalities:
 - **View Ports:** See incoming and outcoming data 
 - **Copy:** Use instead of dragging and dropping to add the module to the pipeline
 
-For further information on how to create a new module, use the following link: https://cellsepi.github.io/CellSePi/
+For further information on how to create a new module, can be found in the module development [documentation](https://cellsepi.github.io/CellSePi/). 
 
 **Pipeline Menu**
 
