@@ -44,7 +44,8 @@ class ReadFiles(Module):
             path=self.user_file_path.path,
             file_type=self.user_file_type.value.ref,
             event_manager=self.event_manager,
-            overwrite=overwrite
+            overwrite=overwrite,
+            module_directory=self.get_working_directory()
         )
 
         self.outputs.image_paths.data = load_directory(
