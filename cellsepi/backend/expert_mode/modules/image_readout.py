@@ -1,6 +1,6 @@
 import pathlib
 
-from backend.constants import ExportFileType, APP_DIR
+from backend.constants import ExportFileType, APP_DIR, downloads_directory
 from backend.fluorescence import BatchImageReadout
 from backend.expert_mode.module import *
 
@@ -16,9 +16,9 @@ class ImageReadoutModule(Module):
             InputPort("image_paths", dict),
             InputPort("mask_paths", dict),
         )
-        readout_dir = APP_DIR / "readout"
-        readout_dir.mkdir(parents=True, exist_ok=True)
-        self.user_export_directory_path: DirectoryPath = DirectoryPath(str(readout_dir))
+        # readout_dir = APP_DIR / "readout"
+        # readout_dir.mkdir(parents=True, exist_ok=True)
+        self.user_export_directory_path: DirectoryPath = DirectoryPath(str(downloads_directory()))
         self.user_export_file_name: str = "fluorescence_readout"
         self.user_export_file_type: ExportFileType = ExportFileType.EXCEL
         self.user_segmentation_channel: str = "2"
