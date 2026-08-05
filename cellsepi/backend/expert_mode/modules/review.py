@@ -124,6 +124,11 @@ class Review(Module):
     def run(self):
         self.event_manager.notify(ProgressEvent(percent=0, process=f"Preparing: starting"))
         # reset
+
+        # ToDo EK: Copy here files into module directory
+        for path in self.inputs.mask_paths.data:
+            pass
+
         self._icon_x = {}
         self._icon_check = {}
         self.image_id = None
