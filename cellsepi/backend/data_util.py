@@ -263,6 +263,9 @@ class CellSePiImage:
                 case FileType.CZI | FileType.ND2 | FileType.ND2_DIR | FileType.TIFF_DIR | FileType.OME_TIFF:
                     for img_meta in self._img.ome_metadata.images:
                         bit_depth = img_meta.pixels.significant_bits
+                        if bit_depth is None:
+                            raise TypeError(f"Unsupported bit depth: {bit_depth}")
+
                         bit_depths.append(bit_depth)
                 case _:
                     raise TypeError(f"Unsupported file type: {self.file_type}")

@@ -4,7 +4,7 @@ from typing import cast
 
 from flet_extended_interactive_viewer import FletExtendedInteractiveViewer
 
-from backend.constants import MAIN_COLOR, ERROR_COLOR, SUCCESS_COLOR
+from backend.constants import MAIN_COLOR, ERROR_COLOR, SUCCESS_COLOR, downloads_directory
 from backend.error_manager import ErrorManager
 from frontend.expert_mode.gui_pipeline import PipelineGUI
 from frontend.expert_mode.gui_pipeline_listener import PipelineChangeListener, ModuleExecutedListener, \
@@ -458,7 +458,8 @@ class Builder:
         files = await self.file_picker.pick_files(
             file_type=ft.FilePickerFileType.CUSTOM,
             allowed_extensions=["csp"],
-            allow_multiple=False
+            allow_multiple=False,
+            initial_directory=str(downloads_directory()),
         )
         self.load_button.icon_color = MAIN_COLOR
         self.load_button.update()
