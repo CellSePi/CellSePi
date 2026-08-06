@@ -96,3 +96,8 @@ def downloads_directory() -> Path:
     home = Path.home()
     downloads_dir = home / "Downloads"
     return downloads_dir
+
+def export_directory() -> Path:
+    new_dir = downloads_directory() / "CellSePi"
+    # new_dir.mkdir(parents=True, exist_ok=True)
+    return new_dir

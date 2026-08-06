@@ -1,3 +1,6 @@
+import pathlib
+import shutil
+
 from backend.constants import MAIN_COLOR, HIGHLIGHT_COLOR, ERROR_COLOR, SUCCESS_COLOR
 from image_editing_view import ImageEditingView
 
@@ -125,9 +128,24 @@ class Review(Module):
         self.event_manager.notify(ProgressEvent(percent=0, process=f"Preparing: starting"))
         # reset
 
+        if self.inputs.mask_paths.data is None:
+            self.inputs.mask_paths.data = {}
+
+        working_directory = self.get_working_directory()
         # ToDo EK: Copy here files into module directory
-        for path in self.inputs.mask_paths.data:
+        original_mask_paths = self.inputs.mask_paths.data
+        new_mask_paths = {}
+        for key in original_mask_paths:
+            new_mask_paths[key] = {}
+            for c_id, path in original_mask_paths[key].items():
+                path = pathlib.Path(path)
+                file_name = path.name
+                new_path = pathlib.Path(working_directory) / file_name
+
+                shutil.copy2(path, new_path)
+                new_mask_paths[key][c_id] = str(new_path)
             pass
+        self.inputs.mask_paths.data = new_mask_paths
 
         self._icon_x = {}
         self._icon_check = {}
@@ -136,8 +154,6 @@ class Review(Module):
         self._image_gallery.controls.clear()
         self._text_field_mask_suffix.visible = True
         # reset image_viewer
-        if self.inputs.mask_paths.data is None:
-            self.inputs.mask_paths.data = {}
         self._canvas.set_main_paths(self.inputs.image_paths.data)
         self._canvas.set_mask_paths(self.inputs.mask_paths.data)
         self._canvas.reset_image(without_update=True)

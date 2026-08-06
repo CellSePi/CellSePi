@@ -1,6 +1,7 @@
+from datetime import datetime
 import pathlib
 
-from backend.constants import ExportFileType, APP_DIR, downloads_directory
+from backend.constants import ExportFileType, APP_DIR, downloads_directory, export_directory
 from backend.fluorescence import BatchImageReadout
 from backend.expert_mode.module import *
 
@@ -16,10 +17,11 @@ class ImageReadoutModule(Module):
             InputPort("image_paths", dict),
             InputPort("mask_paths", dict),
         )
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         # readout_dir = APP_DIR / "readout"
         # readout_dir.mkdir(parents=True, exist_ok=True)
-        self.user_export_directory_path: DirectoryPath = DirectoryPath(str(downloads_directory()))
-        self.user_export_file_name: str = "fluorescence_readout"
+        self.user_export_directory_path: DirectoryPath = DirectoryPath(str(export_directory()))
+        self.user_export_file_name: str = f"fluorescence_readout_{timestamp}"
         self.user_export_file_type: ExportFileType = ExportFileType.EXCEL
         self.user_segmentation_channel: str = "2"
         self.user_channel_prefix: str = "c"
@@ -29,6 +31,7 @@ class ImageReadoutModule(Module):
             pathlib.Path(self.user_export_directory_path.path) / self.user_export_file_name
         ).with_suffix(self.user_export_file_type.value.extension)
 
+        path_with_new_suffix.parent.mkdir(parents=True, exist_ok=True)
         (BatchImageReadout(
             self.inputs.image_paths.data,
             self.inputs.mask_paths.data,
