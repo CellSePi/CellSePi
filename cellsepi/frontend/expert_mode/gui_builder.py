@@ -4,13 +4,16 @@ from typing import cast
 
 from flet_extended_interactive_viewer import FletExtendedInteractiveViewer
 
-from backend.constants import MAIN_COLOR, ERROR_COLOR, SUCCESS_COLOR
+from backend.constants import MAIN_COLOR, ERROR_COLOR, SUCCESS_COLOR, downloads_directory
 from backend.error_manager import ErrorManager
 from frontend.expert_mode.gui_pipeline import PipelineGUI
-from frontend.expert_mode.gui_pipeline_listener import PipelineChangeListener, ModuleExecutedListener, ModuleStartedListener, \
-    ModuleProgressListener, ModuleErrorListener, DragAndDropListener, PipelinePauseListener, PipelineCancelListener, PipelineErrorListener
+from frontend.expert_mode.gui_pipeline_listener import PipelineChangeListener, ModuleExecutedListener, \
+    ModuleStartedListener, \
+    ModuleProgressListener, ModuleErrorListener, DragAndDropListener, PipelinePauseListener, PipelineCancelListener, \
+    PipelineErrorListener
 from frontend.expert_mode.pipeline_storage import PipelineStorage
 from frontend.expert_mode.expert_constants import *
+
 
 def is_rendert(control):
     """
@@ -19,7 +22,7 @@ def is_rendert(control):
     if not control.visible:
         return False
 
-    #checks iterative the parents if they are visible, because they effect if the child is rendert
+    # checks iterative the parents if they are visible, because they effect if the child is rendert
     parent = control.parent
     while parent is not None:
         if not parent.visible:
@@ -28,14 +31,15 @@ def is_rendert(control):
 
     return True
 
+
 class Builder:
-    def __init__(self,page: ft.Page):
+    def __init__(self, page: ft.Page):
         self.page = page
         self.builder_page_stack = ft.Stack()
         self.pipeline_gui = PipelineGUI(self.page)
         self.pipeline_gui.interactive_view = None
         self.pipeline_running_event = None
-        self.help_text =  ft.Container(
+        self.help_text = ft.Container(
             content=ft.Column(
                 controls=[
                     ft.Text(
@@ -52,19 +56,19 @@ class Builder:
                             weight=ft.FontWeight.BOLD,
                             color=ft.Colors.GREY_400
                         ),
-                        ft.Icon(ft.Icons.CROP_FREE,size=50,color=ft.Colors.GREY_400),
+                        ft.Icon(ft.Icons.CROP_FREE, size=50, color=ft.Colors.GREY_400),
                     ],
-                    alignment=ft.MainAxisAlignment.CENTER,
+                        alignment=ft.MainAxisAlignment.CENTER,
                     ),
                 ],
                 spacing=2,
                 alignment=ft.MainAxisAlignment.CENTER,
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             )
-            ,alignment=ft.Alignment.CENTER,
+            , alignment=ft.Alignment.CENTER,
             width=self.page.width,
             height=self.page.height,
-            animate_opacity= ft.Animation(duration=600, curve=ft.AnimationCurve.LINEAR_TO_EASE_OUT),
+            animate_opacity=ft.Animation(duration=600, curve=ft.AnimationCurve.LINEAR_TO_EASE_OUT),
         )
         self.pipeline_storage = PipelineStorage(self.pipeline_gui)
         self.file_picker = ft.FilePicker()
@@ -75,13 +79,17 @@ class Builder:
                                              shape=ft.RoundedRectangleBorder(radius=12), ),
                                          tooltip="Load pipeline\n[Ctrl + L]", hover_color=ft.Colors.WHITE12)
         self.save_as_button = ft.IconButton(icon=ft.Icons.SAVE_AS_ROUNDED, on_click=self.click_save_as_file,
-                                            icon_color=MAIN_ACTIVE_COLOR if len(self.pipeline_gui.modules) > 0 else ft.Colors.WHITE24, disabled=False if len(self.pipeline_gui.modules) > 0 else True,
+                                            icon_color=MAIN_ACTIVE_COLOR if len(
+                                                self.pipeline_gui.modules) > 0 else ft.Colors.WHITE24,
+                                            disabled=False if len(self.pipeline_gui.modules) > 0 else True,
                                             style=ft.ButtonStyle(
-                                               shape=ft.RoundedRectangleBorder(radius=12), ),
-                                            tooltip="Save as pipeline\n[Ctrl + Shift + S]", hover_color=ft.Colors.WHITE12)
+                                                shape=ft.RoundedRectangleBorder(radius=12), ),
+                                            tooltip="Save as pipeline\n[Ctrl + Shift + S]",
+                                            hover_color=ft.Colors.WHITE12)
 
         self.page.on_keyboard_event = lambda e: self.on_keyboard(e)
-        self.save_button = ft.IconButton(icon=ft.Icons.SAVE_ROUNDED, on_click=lambda e: self.page.run_task(self.click_save_file),
+        self.save_button = ft.IconButton(icon=ft.Icons.SAVE_ROUNDED,
+                                         on_click=lambda e: self.page.run_task(self.click_save_file),
                                          icon_color=MAIN_ACTIVE_COLOR if self.pipeline_gui.pipeline_directory != "" else ft.Colors.WHITE24,
                                          disabled=False if self.pipeline_gui.pipeline_directory != "" else True,
                                          style=ft.ButtonStyle(
@@ -90,26 +98,28 @@ class Builder:
         self.run_menu_button = ft.IconButton(icon=ft.Icons.PLAY_ARROW, on_click=self.run_menu_click,
                                              icon_color=MAIN_ACTIVE_COLOR,
                                              style=ft.ButtonStyle(
-                                             shape=ft.RoundedRectangleBorder(radius=12), ),
+                                                 shape=ft.RoundedRectangleBorder(radius=12), ),
                                              tooltip="Show run menu\n[Ctrl + R]", hover_color=ft.Colors.WHITE12)
-        self.delete_button = ft.IconButton(icon=ft.Icons.DELETE, on_click=self.delete_button_click, icon_color=MAIN_ACTIVE_COLOR,
+        self.delete_button = ft.IconButton(icon=ft.Icons.DELETE, on_click=self.delete_button_click,
+                                           icon_color=MAIN_ACTIVE_COLOR,
                                            style=ft.ButtonStyle(
-                                              shape=ft.RoundedRectangleBorder(radius=12),),
+                                               shape=ft.RoundedRectangleBorder(radius=12), ),
                                            tooltip="Show delete buttons\n[Ctrl + D]", hover_color=ft.Colors.WHITE12)
         self.port_button = ft.IconButton(icon=ft.Icons.VISIBILITY, on_click=self.port_button_click,
                                          icon_color=MAIN_ACTIVE_COLOR,
                                          style=ft.ButtonStyle(
-                                               shape=ft.RoundedRectangleBorder(radius=12), ),
-                                         tooltip="Show which ports get transferred\n[Ctrl + P]", hover_color=ft.Colors.WHITE12)
+                                             shape=ft.RoundedRectangleBorder(radius=12), ),
+                                         tooltip="Show which ports get transferred\n[Ctrl + P]",
+                                         hover_color=ft.Colors.WHITE12)
 
         self.left_tools = ft.Container(ft.Container(ft.Column(
-                [
-                    self.load_button, self.save_as_button,self.save_button,self.run_menu_button,self.delete_button,self.port_button
-                ], tight=True,spacing=2
-            ), bgcolor=MENU_COLOR, expand=True
-            ),bgcolor=ft.Colors.TRANSPARENT,border_radius=ft.BorderRadius.all(10),
-            bottom=BOTTOM_SPACING,left=SPACING_X,width=40,blur=10)
-
+            [
+                self.load_button, self.save_as_button, self.save_button, self.run_menu_button, self.delete_button,
+                self.port_button
+            ], tight=True, spacing=2
+        ), bgcolor=MENU_COLOR, expand=True
+        ), bgcolor=ft.Colors.TRANSPARENT, border_radius=ft.BorderRadius.all(10),
+            bottom=BOTTOM_SPACING, left=SPACING_X, width=40, blur=10)
 
         self.start_button = ft.Button(  # button to start the pipeline
             content="Start",
@@ -117,7 +127,7 @@ class Builder:
             tooltip="Start the pipeline",
             disabled=False if len(self.pipeline_gui.modules) > 0 else True,
             on_click=lambda e:
-                self.page.run_task(self.run),
+            self.page.run_task(self.run),
             opacity=0.75,
         )
 
@@ -130,7 +140,6 @@ class Builder:
             opacity=0.75
         )
 
-
         self.cancel_button = ft.Button(  # button to cancel the pipeline
             content="Cancel",
             tooltip="Cancel the pipeline",
@@ -140,27 +149,36 @@ class Builder:
             visible=False,
             opacity=0.75
         )
-        self.progress_bar_module = ft.ProgressBar(value=0, width=220,bgcolor=ft.Colors.WHITE24,color=MAIN_COLOR)
-        self.progress_pipeline = ft.ProgressRing(value=0,width=50,height=50,stroke_width=8,bgcolor=ft.Colors.WHITE24,color=MAIN_COLOR)
-        self.progress_text = ft.Text(f"{self.pipeline_gui.pipeline.modules_executed}/{len(self.pipeline_gui.pipeline.modules)}", weight=ft.FontWeight.BOLD, tooltip="How many modules has been executed", color=MAIN_ACTIVE_COLOR)
-        self.progress_stack = ft.Stack([self.progress_pipeline,ft.Container(self.progress_text,alignment=ft.Alignment.CENTER)],width=50,height=50,)
+        self.progress_bar_module = ft.ProgressBar(value=0, width=220, bgcolor=ft.Colors.WHITE24, color=MAIN_COLOR)
+        self.progress_pipeline = ft.ProgressRing(value=0, width=50, height=50, stroke_width=8,
+                                                 bgcolor=ft.Colors.WHITE24, color=MAIN_COLOR)
+        self.progress_text = ft.Text(
+            f"{self.pipeline_gui.pipeline.modules_executed}/{len(self.pipeline_gui.pipeline.modules)}",
+            weight=ft.FontWeight.BOLD, tooltip="How many modules has been executed", color=MAIN_ACTIVE_COLOR)
+        self.progress_stack = ft.Stack(
+            [self.progress_pipeline, ft.Container(self.progress_text, alignment=ft.Alignment.CENTER)], width=50,
+            height=50, )
         self.progress_bar_module_text = ft.Text("0%", color=MAIN_ACTIVE_COLOR)
-        self.progress_and_start = ft.Column([ft.Container(self.progress_stack,alignment=ft.Alignment.CENTER),
-            ft.Container(
-                content=ft.Stack([self.start_button, self.resume_button,self.cancel_button]),alignment=ft.Alignment.CENTER)],width=130,spacing=20
-        )
-        self.running_module = ft.Text("Module",color=ft.Colors.WHITE70,width=230,overflow=ft.TextOverflow.ELLIPSIS,max_lines=1,theme_style=ft.TextThemeStyle.HEADLINE_SMALL)
-        self.info_text = ft.Text("Idle, waiting for start.", color=MAIN_ACTIVE_COLOR, width=250, overflow=ft.TextOverflow.ELLIPSIS, max_lines=2)
-        self.category_icon = ft.Icon(ft.Icons.CATEGORY_ROUNDED,color=SUCCESS_COLOR)
-        self.run_infos = ft.Column([ft.Row([self.category_icon,self.running_module]),self.info_text])
+        self.progress_and_start = ft.Column([ft.Container(self.progress_stack, alignment=ft.Alignment.CENTER),
+                                             ft.Container(
+                                                 content=ft.Stack(
+                                                     [self.start_button, self.resume_button, self.cancel_button]),
+                                                 alignment=ft.Alignment.CENTER)], width=130, spacing=20
+                                            )
+        self.running_module = ft.Text("Module", color=ft.Colors.WHITE70, width=230, overflow=ft.TextOverflow.ELLIPSIS,
+                                      max_lines=1, theme_style=ft.TextThemeStyle.HEADLINE_SMALL)
+        self.info_text = ft.Text("Idle, waiting for start.", color=MAIN_ACTIVE_COLOR, width=250,
+                                 overflow=ft.TextOverflow.ELLIPSIS, max_lines=2)
+        self.category_icon = ft.Icon(ft.Icons.CATEGORY_ROUNDED, color=SUCCESS_COLOR)
+        self.run_infos = ft.Column([ft.Row([self.category_icon, self.running_module]), self.info_text])
         self.left_run_menu = ft.Column([
-            self.run_infos,ft.Row([ft.Container(self.progress_bar_module),self.progress_bar_module_text],width=260),
-        ],alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
+            self.run_infos, ft.Row([ft.Container(self.progress_bar_module), self.progress_bar_module_text], width=260),
+        ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
 
         self.zoom_menu_button = ft.IconButton(icon=ft.Icons.SEARCH, on_click=lambda e: self.zoom_menu_click(),
                                               icon_color=MAIN_ACTIVE_COLOR,
                                               style=ft.ButtonStyle(
-                                                 shape=ft.RoundedRectangleBorder(radius=12), ),
+                                                  shape=ft.RoundedRectangleBorder(radius=12), ),
                                               tooltip="Show zoom menu\n[Ctrl + M]", hover_color=ft.Colors.WHITE12)
 
         self.right_tools = ft.Container(ft.Container(ft.Column(
@@ -169,58 +187,67 @@ class Builder:
             ], tight=True, spacing=2
         ), bgcolor=MENU_COLOR, expand=True
         ), bgcolor=ft.Colors.TRANSPARENT, border_radius=ft.BorderRadius.all(10),
-            bottom=BOTTOM_SPACING, right=SPACING_X+10, width=40, blur=10)
+            bottom=BOTTOM_SPACING, right=SPACING_X + 10, width=40, blur=10)
 
         self.interactive_view = None
         self.zoom_menu = ft.Container(ft.Container(ft.Row(
             [
                 ft.IconButton(icon=ft.Icons.ZOOM_IN, icon_color=MAIN_ACTIVE_COLOR,
                               style=ft.ButtonStyle(
-                                                 shape=ft.RoundedRectangleBorder(radius=12), ), on_click=self.zoom_in, tooltip="Zoom in\n[Ctrl + .]", hover_color=ft.Colors.WHITE12),
+                                  shape=ft.RoundedRectangleBorder(radius=12), ), on_click=self.zoom_in,
+                              tooltip="Zoom in\n[Ctrl + .]", hover_color=ft.Colors.WHITE12),
                 ft.IconButton(icon=ft.Icons.ZOOM_OUT, icon_color=MAIN_ACTIVE_COLOR,
                               style=ft.ButtonStyle(
-                                                 shape=ft.RoundedRectangleBorder(radius=12), ), on_click=self.zoom_out, tooltip="Zoom out\n[Ctrl + ,]", hover_color=ft.Colors.WHITE12),
+                                  shape=ft.RoundedRectangleBorder(radius=12), ), on_click=self.zoom_out,
+                              tooltip="Zoom out\n[Ctrl + ,]", hover_color=ft.Colors.WHITE12),
                 ft.IconButton(icon=ft.Icons.CROP_FREE, icon_color=MAIN_ACTIVE_COLOR,
                               style=ft.ButtonStyle(
-                               shape=ft.RoundedRectangleBorder(radius=12), ),
-                              on_click=self.reset_view, tooltip="Reset view\n[Ctrl + -]", hover_color=ft.Colors.WHITE12),
+                                  shape=ft.RoundedRectangleBorder(radius=12), ),
+                              on_click=self.reset_view, tooltip="Reset view\n[Ctrl + -]",
+                              hover_color=ft.Colors.WHITE12),
             ], spacing=2
         ), bgcolor=MENU_COLOR, expand=True
         ), bgcolor=ft.Colors.TRANSPARENT, border_radius=ft.BorderRadius.all(10),
-            bottom=BOTTOM_SPACING, right=cast(float, self.right_tools.right) + cast(float, self.right_tools.width) + 5, blur=10, opacity=0,
+            bottom=BOTTOM_SPACING, right=cast(float, self.right_tools.right) + cast(float, self.right_tools.width) + 5,
+            blur=10, opacity=0,
             animate_opacity=ft.Animation(duration=300, curve=ft.AnimationCurve.LINEAR_TO_EASE_OUT),
             animate=ft.Animation(duration=300, curve=ft.AnimationCurve.LINEAR_TO_EASE_OUT),
         )
 
         self.run_menu = ft.Container(ft.Container(ft.Row(
             [
-                ft.Container(self.left_run_menu,padding=10),ft.VerticalDivider(), ft.Column([ft.Row([ft.Container(self.progress_and_start,padding=10)],alignment=ft.MainAxisAlignment.CENTER)],alignment=ft.MainAxisAlignment.CENTER),
+                ft.Container(self.left_run_menu, padding=10), ft.VerticalDivider(), ft.Column(
+                [ft.Row([ft.Container(self.progress_and_start, padding=10)], alignment=ft.MainAxisAlignment.CENTER)],
+                alignment=ft.MainAxisAlignment.CENTER),
             ], spacing=2
         ), bgcolor=MENU_COLOR, expand=True, padding=10
-        ), bgcolor=ft.Colors.TRANSPARENT, border_radius=ft.BorderRadius.all(10),width=0,height=150,
-            bottom=BOTTOM_SPACING, left=cast(float, self.left_tools.left) + cast(float, self.left_tools.width) + 5,blur=10,opacity=0,
-            )
+        ), bgcolor=ft.Colors.TRANSPARENT, border_radius=ft.BorderRadius.all(10), width=0, height=150,
+            bottom=BOTTOM_SPACING, left=cast(float, self.left_tools.left) + cast(float, self.left_tools.width) + 5,
+            blur=10, opacity=0,
+        )
         self.setup()
         self.page_forward = ft.IconButton(icon=ft.Icons.CHEVRON_RIGHT_SHARP, on_click=self.press_page_forward,
                                           icon_color=MAIN_ACTIVE_COLOR,
                                           style=ft.ButtonStyle(
-                                         shape=ft.RoundedRectangleBorder(radius=12), ),
+                                              shape=ft.RoundedRectangleBorder(radius=12), ),
                                           tooltip="Get to the next page\n[Ctrl + E]", hover_color=ft.Colors.WHITE12)
         self.page_backward = ft.IconButton(icon=ft.Icons.CHEVRON_LEFT_SHARP, on_click=self.press_page_backward,
                                            icon_color=ft.Colors.WHITE24,
                                            style=ft.ButtonStyle(
-                                           shape=ft.RoundedRectangleBorder(radius=12), ), disabled=True,
-                                           tooltip="Return to the last page\n[Ctrl + Q]", hover_color=ft.Colors.WHITE12,)
+                                               shape=ft.RoundedRectangleBorder(radius=12), ), disabled=True,
+                                           tooltip="Return to the last page\n[Ctrl + Q]",
+                                           hover_color=ft.Colors.WHITE12, )
         self.pipeline_gui.build_show_room(self.builder_page_stack)
         self.pipeline_gui.interactive_view = self.interactive_view
         self.switch_pages = ft.Container(ft.Container(ft.Row(
-                    [
-                        self.page_backward, self.page_forward,
-                    ], tight=True,spacing=2
-                ), bgcolor=MENU_COLOR, expand=True, height=40
-                ), bgcolor=ft.Colors.TRANSPARENT, border_radius=ft.BorderRadius.all(10),
-                    top=self.pipeline_gui.show_room_container.top + self.pipeline_gui.show_room_container.height + 5,
-                    left=self.pipeline_gui.show_room_container.left,blur=10,visible=True if self.pipeline_gui.show_room_max_page_number > 1 else False)
+            [
+                self.page_backward, self.page_forward,
+            ], tight=True, spacing=2
+        ), bgcolor=MENU_COLOR, expand=True, height=40
+        ), bgcolor=ft.Colors.TRANSPARENT, border_radius=ft.BorderRadius.all(10),
+            top=self.pipeline_gui.show_room_container.top + self.pipeline_gui.show_room_container.height + 5,
+            left=self.pipeline_gui.show_room_container.left, blur=10,
+            visible=True if self.pipeline_gui.show_room_max_page_number > 1 else False)
         self.builder_page_stack.controls.insert(1, self.switch_pages)
         self.add_all_listeners()
         self.error_manager = ErrorManager(self.page)
@@ -246,7 +273,7 @@ class Builder:
 
         self.pipeline_gui.pipeline.cancel()
 
-    async def run(self,ignore_check=False):
+    async def run(self, ignore_check=False):
         """
         To run the pipeline.
 
@@ -262,16 +289,18 @@ class Builder:
                     if not self.pipeline_gui.pipeline.check_module_satisfied(mod.module_id):
                         if not mod.show_ports:
                             mod.ports_in_out_clicked()
+
             def dismiss_dialog_ignore(e):
                 cupertino_alert_dialog.open = False
                 e.control.page.update()
-                self.page.run_task(self.run,True)
+                self.page.run_task(self.run, True)
+
             cupertino_alert_dialog = ft.CupertinoAlertDialog(
                 title=ft.Text("Mandatory Input Warning"),
                 content=ft.Text("Not all mandatory inputs are satisfied."),
                 actions=[
                     ft.CupertinoDialogAction(
-                        "Change modules",default=True, on_click=dismiss_dialog
+                        "Change modules", default=True, on_click=dismiss_dialog
                     ),
                     ft.CupertinoDialogAction(content="Skip modules", destructive=True, on_click=dismiss_dialog_ignore),
                 ],
@@ -291,7 +320,7 @@ class Builder:
         self.load_button.icon_color = ft.Colors.WHITE24
         self.load_button.update()
         for module in self.pipeline_gui.modules.values():
-            await self.pipeline_gui.lines_gui.update_delete_buttons(module,True)
+            await self.pipeline_gui.lines_gui.update_delete_buttons(module, True)
             await module.disable_tools()
             module.waiting_button.visible = True
             module.delete_button.visible = False
@@ -302,8 +331,9 @@ class Builder:
             await module.check_warning()
         self.update_modules_executed(reset=True)
         self.pipeline_running_event.clear()
-        await asyncio.to_thread(self.pipeline_gui.pipeline.run,show_room_module_ids)
-        if len(self.pipeline_gui.pipeline.modules) - len(MODULE_REGISTRY) * 2 != self.pipeline_gui.module_count or self.pipeline_gui.module_count != self.pipeline_gui.pipeline.modules_executed:
+        await asyncio.to_thread(self.pipeline_gui.pipeline.run, show_room_module_ids)
+        if len(self.pipeline_gui.pipeline.modules) - len(
+                MODULE_REGISTRY) * 2 != self.pipeline_gui.module_count or self.pipeline_gui.module_count != self.pipeline_gui.pipeline.modules_executed:
             self.update_modules_executed(reset=True)
         self.start_button.visible = True
         self.start_button.update()
@@ -320,24 +350,24 @@ class Builder:
         """
         pipeline_change_listener = PipelineChangeListener(self)
         self.pipeline_gui.pipeline.event_manager.subscribe(listener=pipeline_change_listener)
-        module_executed_listener =ModuleExecutedListener(self)
+        module_executed_listener = ModuleExecutedListener(self)
         self.pipeline_gui.pipeline.event_manager.subscribe(listener=module_executed_listener)
-        module_started_listener =ModuleStartedListener(self)
+        module_started_listener = ModuleStartedListener(self)
         self.pipeline_gui.pipeline.event_manager.subscribe(listener=module_started_listener)
-        module_progress_listener =ModuleProgressListener(self)
+        module_progress_listener = ModuleProgressListener(self)
         self.pipeline_gui.pipeline.event_manager.subscribe(listener=module_progress_listener)
-        module_error_listener =ModuleErrorListener(self)
+        module_error_listener = ModuleErrorListener(self)
         self.pipeline_gui.pipeline.event_manager.subscribe(listener=module_error_listener)
-        drag_and_drop_listener =DragAndDropListener(self)
+        drag_and_drop_listener = DragAndDropListener(self)
         self.pipeline_gui.pipeline.event_manager.subscribe(listener=drag_and_drop_listener)
-        pipeline_pause_listener =PipelinePauseListener(self)
+        pipeline_pause_listener = PipelinePauseListener(self)
         self.pipeline_gui.pipeline.event_manager.subscribe(listener=pipeline_pause_listener)
-        pipeline_cancel_listener =PipelineCancelListener(self)
+        pipeline_cancel_listener = PipelineCancelListener(self)
         self.pipeline_gui.pipeline.event_manager.subscribe(listener=pipeline_cancel_listener)
-        pipeline_error_listener =PipelineErrorListener(self)
+        pipeline_error_listener = PipelineErrorListener(self)
         self.pipeline_gui.pipeline.event_manager.subscribe(listener=pipeline_error_listener)
 
-    def on_keyboard(self,e: ft.KeyboardEvent):
+    def on_keyboard(self, e: ft.KeyboardEvent):
         """
         All Keyboard shortcuts of the ExpertMode.
         Only working when ExpertMode visible
@@ -368,13 +398,13 @@ class Builder:
         if e.ctrl and e.key == "M" and not e.alt and not e.shift and not e.meta:
             self.zoom_menu_click()
         if e.ctrl and e.key == "." and not e.alt and not e.shift and not e.meta:
-            asyncio.create_task(self.interactive_view.zoom(1.0+ZOOM_VALUE))
+            asyncio.create_task(self.interactive_view.zoom(1.0 + ZOOM_VALUE))
         if e.ctrl and e.key == "," and not e.alt and not e.shift and not e.meta:
-            asyncio.create_task(self.interactive_view.zoom(1.0-ZOOM_VALUE))
+            asyncio.create_task(self.interactive_view.zoom(1.0 - ZOOM_VALUE))
         if e.ctrl and e.key == "-" and not e.alt and not e.shift and not e.meta:
             asyncio.create_task(self.interactive_view.reset(400))
 
-    def update_modules_executed(self,reset:bool=False):
+    def update_modules_executed(self, reset: bool = False):
         """
         Updates the gui of the run menu how many modules were executed.
 
@@ -383,14 +413,15 @@ class Builder:
         """
         if reset:
             self.pipeline_gui.pipeline.modules_executed = 0
-        current =self.pipeline_gui.pipeline.modules_executed
+        current = self.pipeline_gui.pipeline.modules_executed
         if not self.pipeline_gui.pipeline.running:
             total = len(self.pipeline_gui.pipeline.modules) - len(MODULE_REGISTRY) * 2
             self.progress_pipeline.value = (current / total) if total > 0 else 0
             self.pipeline_gui.module_count = total
             self.progress_text.value = f"{current}/{total}"
         else:
-            self.progress_pipeline.value = (current / self.pipeline_gui.module_count) if self.pipeline_gui.module_count > 0 else 0
+            self.progress_pipeline.value = (
+                        current / self.pipeline_gui.module_count) if self.pipeline_gui.module_count > 0 else 0
             self.progress_text.value = f"{current}/{self.pipeline_gui.module_count}"
         self.progress_text.update()
         self.progress_pipeline.update()
@@ -424,8 +455,12 @@ class Builder:
         """
         Handles if pipline file is selected.
         """
-        files = await self.file_picker.pick_files(file_type=ft.FilePickerFileType.CUSTOM, allowed_extensions=["csp"],
-                                    allow_multiple=False)
+        files = await self.file_picker.pick_files(
+            file_type=ft.FilePickerFileType.CUSTOM,
+            allowed_extensions=["csp"],
+            allow_multiple=False,
+            initial_directory=str(downloads_directory()),
+        )
         self.load_button.icon_color = MAIN_COLOR
         self.load_button.update()
         if files is not None and len(files) > 0:
@@ -458,13 +493,12 @@ class Builder:
                         self.pipeline_gui.pipeline_dict = {}
                         self.error_manager.log_and_show(f"Failed to load pipeline: {exception}", exception)
 
-
                 cupertino_alert_dialog = ft.CupertinoAlertDialog(
                     title=ft.Text("Unsaved Changes"),
                     content=ft.Text("Loading will discard any unsaved changes to the currently opened pipeline."),
                     actions=[
                         ft.CupertinoDialogAction(
-                            "Cancel",default=True, on_click=cancel_dialog
+                            "Cancel", default=True, on_click=cancel_dialog
                         ),
                         ft.CupertinoDialogAction(content="Ok", destructive=True, on_click=ok_dialog),
                     ],
@@ -478,7 +512,8 @@ class Builder:
             else:
                 if self.pipeline_gui.pipeline.running:
                     self.pipeline_gui.page.show_dialog(
-                        ft.SnackBar(ft.Text(f"Failed to load pipeline: a previous pipeline execution is still active!", color=ft.Colors.WHITE),
+                        ft.SnackBar(ft.Text(f"Failed to load pipeline: a previous pipeline execution is still active!",
+                                            color=ft.Colors.WHITE),
                                     bgcolor=ERROR_COLOR))
                     self.pipeline_gui.page.update()
                     return
@@ -493,32 +528,36 @@ class Builder:
                     self.pipeline_gui.pipeline_name = "NewPipeline"
                     self.pipeline_gui.pipeline_directory = ""
                     self.pipeline_gui.pipeline_dict = {}
-                    self.error_manager.log_and_show(f"Failed to load pipeline: {exception1}",exception1)
+                    self.error_manager.log_and_show(f"Failed to load pipeline: {exception1}", exception1)
 
         self.load_button.icon_color = MAIN_ACTIVE_COLOR
         self.load_button.update()
 
-    async def click_save_as_file(self, e: ft.Event[ft.Button]=None):
+    async def click_save_as_file(self, e: ft.Event[ft.Button] = None):
         """
         Called to save a file is at a specific location.
         """
         dir = await self.file_saver.save_file(file_type=ft.FilePickerFileType.CUSTOM, allowed_extensions=["csp"],
-                             dialog_title="Save Pipeline", file_name=str(self.pipeline_gui.pipeline_name),
-                             initial_directory=str(self.pipeline_gui.pipeline_directory))
+                                              dialog_title="Save Pipeline",
+                                              file_name=str(self.pipeline_gui.pipeline_name),
+                                              initial_directory=str(self.pipeline_gui.pipeline_directory))
         self.save_as_button.icon_color = MAIN_COLOR
         self.save_as_button.update()
         if dir is not None:
             if Path(dir).suffix == "":
                 dir = dir + ".csp"
             if Path(dir).suffix != ".csp":
-                self.pipeline_gui.page.show_dialog(ft.SnackBar(ft.Text(f"Pipeline name must have .csp suffix!",color=ft.Colors.WHITE),bgcolor=ERROR_COLOR))
+                self.pipeline_gui.page.show_dialog(
+                    ft.SnackBar(ft.Text(f"Pipeline name must have .csp suffix!", color=ft.Colors.WHITE),
+                                bgcolor=ERROR_COLOR))
                 self.pipeline_gui.page.update()
                 self.page.title = f"CellSePi - {self.pipeline_gui.pipeline_name}*"
                 self.save_as_button.icon_color = MAIN_ACTIVE_COLOR
                 self.page.update()
                 return
             await self.pipeline_storage.save_as_pipeline(dir)
-            self.pipeline_gui.page.show_dialog(ft.SnackBar(ft.Text(f"Pipeline saved at {dir}",color=ft.Colors.WHITE),bgcolor=SUCCESS_COLOR))
+            self.pipeline_gui.page.show_dialog(
+                ft.SnackBar(ft.Text(f"Pipeline saved at {dir}", color=ft.Colors.WHITE), bgcolor=SUCCESS_COLOR))
             self.pipeline_gui.page.update()
             self.page.title = f"CellSePi - {self.pipeline_gui.pipeline_name}"
             self.save_button.icon_color = ft.Colors.WHITE24
@@ -537,7 +576,7 @@ class Builder:
             self.page_backward.icon_color = MAIN_ACTIVE_COLOR
             self.page_backward.disabled = False
             self.page_backward.update()
-        if self.pipeline_gui.show_room_page_number >= self.pipeline_gui.show_room_max_page_number-1:
+        if self.pipeline_gui.show_room_page_number >= self.pipeline_gui.show_room_max_page_number - 1:
             self.page_forward.icon_color = ft.Colors.WHITE24
             self.page_forward.disabled = True
             self.page_forward.update()
@@ -551,7 +590,7 @@ class Builder:
             self.page_backward.icon_color = ft.Colors.WHITE24
             self.page_backward.disabled = True
             self.page_backward.update()
-        if self.pipeline_gui.show_room_page_number < self.pipeline_gui.show_room_max_page_number-1:
+        if self.pipeline_gui.show_room_page_number < self.pipeline_gui.show_room_max_page_number - 1:
             self.page_forward.icon_color = MAIN_ACTIVE_COLOR
             self.page_forward.disabled = False
             self.page_forward.update()
@@ -560,7 +599,7 @@ class Builder:
         """
         Called when the run menu button got clicked.
         """
-        if self.run_menu.opacity==1:
+        if self.run_menu.opacity == 1:
             self.run_menu.animate = ft.Animation(duration=300, curve=ft.AnimationCurve.LINEAR_TO_EASE_OUT)
             self.run_menu.animate_opacity = ft.Animation(duration=300, curve=ft.AnimationCurve.LINEAR_TO_EASE_OUT)
             self.run_menu.update()
@@ -591,7 +630,7 @@ class Builder:
         """
         Called when the zoom menu button got clicked.
         """
-        if self.zoom_menu.opacity==1:
+        if self.zoom_menu.opacity == 1:
             self.zoom_menu_button.icon_color = MAIN_ACTIVE_COLOR
             self.zoom_menu_button.tooltip = f"Show zoom menu\n[Ctrl + M]"
             self.zoom_menu_button.update()
@@ -648,14 +687,16 @@ class Builder:
         """
         Setup all the GUI elements.
         """
-        canvas = ft.Stack([self.help_text,ft.Container(
+        canvas = ft.Stack([self.help_text, ft.Container(
             content=self.pipeline_gui,
             width=CANVAS_WIDTH,
             height=CANVAS_HEIGHT,
             bgcolor=ft.Colors.TRANSPARENT,
-        )],expand=True)
+        )], expand=True)
 
-        self.interactive_view = FletExtendedInteractiveViewer(content=canvas, constrained=False,scale_enabled=False,expand=True)
+        self.interactive_view = FletExtendedInteractiveViewer(content=canvas, constrained=False, scale_enabled=False,
+                                                              expand=True)
+
         def on_resize(e):
             """
             Called when the resize-event is triggered.
@@ -667,11 +708,10 @@ class Builder:
 
         self.page.on_resize = on_resize
         self.builder_page_stack = ft.Stack([
-                self.interactive_view,
-                self.left_tools,
-                self.right_tools,
-                self.run_menu,
-                self.zoom_menu,
-             ],expand=True
-            )
-
+            self.interactive_view,
+            self.left_tools,
+            self.right_tools,
+            self.run_menu,
+            self.zoom_menu,
+        ], expand=True
+        )

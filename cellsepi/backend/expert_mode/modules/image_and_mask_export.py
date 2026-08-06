@@ -1,6 +1,6 @@
 import pathlib
 
-from backend.constants import downloads_directory
+from backend.constants import downloads_directory, export_directory
 from backend.data_util import FileTransfer
 from backend.expert_mode.module import *
 
@@ -16,7 +16,7 @@ class ImageExportModule(Module):
             InputPort("image_paths", dict, opt=True),
             InputPort("mask_paths", dict, opt=True),
         )
-        self.user_export_file_path: DirectoryPath = DirectoryPath(str(downloads_directory()))
+        self.user_export_file_path: DirectoryPath = DirectoryPath(str(export_directory()))
         self.user_channel_prefix: str = "c"
 
     def run(self):

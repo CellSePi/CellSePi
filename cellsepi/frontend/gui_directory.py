@@ -152,8 +152,6 @@ class DirectoryCard(ft.Card):
             self.icon_check = {}
             self.icon_x = {}
 
-
-
     def create_path_list_tile(self):
         def on_enter_text(text_filed):
             text_filed.color = MAIN_COLOR
@@ -246,7 +244,8 @@ class DirectoryCard(ft.Card):
     def select_dir_and_update(self, path):
         if path:
             self.directory_path.value = path
-            self.select_directory(path, self.file_type, self.gui.csp.config.get_channel_prefix(), self.gui.csp.config.get_mask_suffix())
+            self.select_directory(path, self.file_type, self.gui.csp.config.get_channel_prefix(),
+                                  self.gui.csp.config.get_mask_suffix())
             self.load_images()
         else:
             self.image_gallery.controls.clear()
@@ -273,6 +272,7 @@ class DirectoryCard(ft.Card):
             mask_suffix: str = "_seg",
             event_manager: EventManager = None,
             overwrite: bool = True,
+            module_directory: pathlib.Path = None,
     ):
         """
             Gets the working directory and copies the images in there.
@@ -290,8 +290,11 @@ class DirectoryCard(ft.Card):
 
         image_source_identifier = consistent_hash(str(path.absolute()))
 
-        working_directory = (DirectoryManager(APP_DIR)
-                             .get_cache_dir_path(f"tmp_{file_type.name}_{image_source_identifier}/", makedir=False))
+        if module_directory is not None:
+            working_directory = module_directory / f"tmp_{file_type.name}_{image_source_identifier}/"
+        else:
+            working_directory = (DirectoryManager(APP_DIR)
+                                 .get_cache_dir_path(f"tmp_{file_type.name}_{image_source_identifier}/", makedir=False))
 
         # case empty folder
         if file_type.value.source == SourceType.DIRECTORY:
@@ -421,7 +424,9 @@ class DirectoryCard(ft.Card):
                 self.gui.training_environment.start_button.disabled = False
                 if ((self.gui.csp.model_path is not None and (
                         self.gui.csp.model_type == ModelType.CUSTOM))
-                        or self.gui.csp.model_type in [ModelType.CP_CYTO, ModelType.CP_NUCLEI, ModelType.CP_SAM, ModelType.CP_SAM_V2, ModelType.CP_DINO, ModelType.CP_SMALL_DINO]):
+                        or self.gui.csp.model_type in [ModelType.CP_CYTO, ModelType.CP_NUCLEI, ModelType.CP_SAM,
+                                                       ModelType.CP_SAM_V2, ModelType.CP_DINO,
+                                                       ModelType.CP_SMALL_DINO]):
                     self.gui.progress_bar_text.value = "Ready to Start"
                     self.gui.start_button.disabled = False
                 self.gui.ready_to_start = True

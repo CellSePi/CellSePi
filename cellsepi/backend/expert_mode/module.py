@@ -1,23 +1,23 @@
+import flet as ft
 import threading
-
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Callable
 from typing import List
 
-import flet as ft
-
+from backend.constants import APP_DIR
 from backend.expert_mode.event_manager import EventManager
-from backend.expert_mode.listener import ProgressEvent
-from backend.expert_mode.limits import Limit
 from backend.expert_mode.ports import *
+
+from backend.data_util import DirectoryManager
 
 
 class FilePath:
     """
     Type to specify FilePath's
     """
-    def __init__(self, path: str = "", suffix: List[str]=None):
+
+    def __init__(self, path: str = "", suffix: List[str] = None):
         self.path = path
         self.suffix = suffix
 
@@ -26,9 +26,9 @@ class DirectoryPath:
     """
     Type to specify DirectoryPath's
     """
+
     def __init__(self, path: str = ""):
         self.path = path
-
 
 
 class Categories(Enum):
@@ -44,6 +44,7 @@ class Categories(Enum):
     FILTERS = ft.Colors.PURPLE_ACCENT
     MANUAL = ft.Colors.PINK
     SEGMENTATION = ft.Colors.AMBER_ACCENT
+
 
 class ModuleGuiConfig:
     """Stores configuration information for a module's GUI representation.
@@ -62,15 +63,18 @@ class ModuleGuiConfig:
     )
     ```
     """
-    def __init__(self, name: str, category: Categories, description:str = None):
+
+    def __init__(self, name: str, category: Categories, description: str = None):
         self.name = name
         self.category = category
         self.description = description
+
 
 class IdNumberManager:
     """
     Manages the module ID's so every module has a unique ID.
     """
+
     def __init__(self):
         self._occupied_id_numbers = set()
         self._next_id_number = 0
@@ -93,7 +97,7 @@ class IdNumberManager:
         if id_number in self._occupied_id_numbers:
             raise ValueError(f"Number {id_number} already occupied!")
         self._occupied_id_numbers.add(id_number)
-        if id_number ==  self._next_id_number:
+        if id_number == self._next_id_number:
             self._next_id_number = id_number + 1
 
     def free_id_number(self, id_number: int) -> None:
@@ -119,16 +123,16 @@ class Module(ABC):
     You can specify user attributes with 'user_' as prefix.
     With these automatic overlay gets created if settings is None.
     """
+
     @abstractmethod
-    def __init__(self,module_id: str = None):
-        self.module_id:str = self.get_new_id() if module_id is None else module_id
+    def __init__(self, module_id: str = None):
+        self.module_id: str = self.get_new_id() if module_id is None else module_id
         self.event_manager: EventManager | None = None
         self._cancel_event: threading.Event | None = None
         self.inputs: InputPorts = InputPorts()
         self.outputs: OutputPorts = OutputPorts()
         self._settings: ft.Control | None = None
-        self._on_settings_dismiss: Callable[[], None] | None = lambda : None
-
+        self._on_settings_dismiss: Callable[[], None] | None = lambda: None
         """
         User-defined attributes convention:        
         - Add custom attributes by prefixing them with 'user_'.
@@ -147,7 +151,6 @@ class Module(ABC):
                 followed by the attribute name. Example: on_change_user_example
         """
 
-
     @classmethod
     def get_new_id(cls) -> str:
         """
@@ -158,7 +161,7 @@ class Module(ABC):
         return cls.gui_config().name + "_" + str(cls._id_number_manager.get_id_number())
 
     @classmethod
-    def occupy_id_number(cls,id_number: int):
+    def occupy_id_number(cls, id_number: int):
         """
         Occupies the given ID number in the id number manager.
         """
@@ -201,7 +204,7 @@ class Module(ABC):
         else:
             raise ValueError("module_id dosen't contain a number!")
 
-    def get_id_number(self)-> int:
+    def get_id_number(self) -> int:
         """
         Gets the module ID's number.
         """
@@ -239,7 +242,7 @@ class Module(ABC):
         return mandatory_inputs
 
     @property
-    def settings(self) -> ft.Control |None:
+    def settings(self) -> ft.Control | None:
         """
         The settings overlay of the module in the gui.
         If it is None it gets generated automatically if the modules has user_attributes.
@@ -277,7 +280,7 @@ class Module(ABC):
         return keys
 
     @abstractmethod
-    def run(self) -> bool: #pragma: no cover
+    def run(self) -> bool:  # pragma: no cover
         """
         Returns True if the pipeline should pause.
         """
@@ -286,4 +289,13 @@ class Module(ABC):
     def __str__(self):
         return f"module_id: {self.module_id}, category: {self.gui_config().category}, module_name: {self.gui_config().name}, inputs: {self.inputs}, outputs: {self.outputs}, user_attributes: {self.get_user_attributes}"
 
+    def get_working_directory(self):
+        wd = DirectoryManager(APP_DIR).modules_working_directory
+        if wd is not None:
+            wd = wd / f"{self.gui_config().name}_{self.module_id}"
+            wd.mkdir(parents=True, exist_ok=True)
 
+        assert wd is not None, f"Working directory for module {self.module_id} not found!"
+        # if wd is None:
+        #     wd = APP_DIR / "modules" / self.module_id
+        return wd
