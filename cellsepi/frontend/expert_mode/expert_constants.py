@@ -5,6 +5,7 @@ import flet as ft
 from backend.expert_mode.modules.image_and_mask_export import ImageExportModule
 from backend.expert_mode.modules.image_readout import ImageReadoutModule
 from backend.expert_mode.modules.image_segmentation import ImageSegmentationModule
+from backend.expert_mode.modules.mask_operations import MaskOperations
 from backend.expert_mode.modules.project_3d_to_2d import Project3dTo2d
 from backend.expert_mode.modules.read_files import ReadFiles
 from backend.expert_mode.modules.review import Review
@@ -32,7 +33,7 @@ USER_OPTIONS_LIMIT = 9
 ZOOM_VALUE = 0.20
 BOTTOM_SPACING = 20
 MAIN_ACTIVE_COLOR = ft.Colors.WHITE60
-THROTTLE_UPDATE_LINES = 0.036 #~30FPS
+THROTTLE_UPDATE_LINES = 0.036 # ~30FPS
 MAX_TOTAL_CHARS_ENUM = 28
 DEBUG = False
 
@@ -44,6 +45,7 @@ MODULE_REGISTRY = {
     "READ_FILES": ReadFiles,
     "READ_DIRS": ReadDir,
     "PROJECTION_3D_TO_2D": Project3dTo2d,
+    "MASK_OPERATIONS": MaskOperations,
     "REVIEW": Review
 }
 
