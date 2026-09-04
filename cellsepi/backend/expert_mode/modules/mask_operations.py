@@ -73,20 +73,18 @@ class MaskOperations(Module):
 
                 if self.user_operation == MaskOperation.DIFFERENCE:
                     suffix = "_diff"
-
                     new_mask = substract_masks(mask_A, mask_B)
-
-                    pass
-
 
                 elif self.user_operation == MaskOperation.UNION:
                     suffix = "_union"
+                    new_mask = unite_masks(mask_A, mask_B)
+
                 elif self.user_operation == MaskOperation.INTERSECTION:
                     suffix = "_intersection"
+                    new_mask = intersect_masks(mask_A, mask_B)
+
                 else:
                     raise PipelineRunningException("Value Error", "Invalid mask operation.")
-
-                # base_dir = os.path.dirname(image_path)
 
                 name_without_type = mask_A_path.stem
 
@@ -127,6 +125,57 @@ def substract_masks(mask_A, mask_B):
 
     new_mask["masks"] = new_mask_mask
     new_mask["outlines"] = new_outlines
-    # ToDos Flows aren't handled yet
+
+    # ToDo Flows aren't handled yet
+
+    return new_mask
+
+
+def unite_masks(mask_A, mask_B):
+    new_mask = dict(mask_A)
+
+    mask_A_mask = np.array(new_mask["masks"]).astype(np.uint16)
+    mask_A_outlines = np.array(new_mask["outlines"]).astype(np.uint16)
+
+    # Necessary to prevent overlapping masks
+    mask_B_diff = substract_masks(mask_B, mask_A)
+
+    mask_B_mask = np.array(mask_B_diff["masks"]).astype(np.uint16)
+    mask_B_outlines = np.array(mask_B_diff["outlines"]).astype(np.uint16)
+
+    offset = np.max(mask_A_mask)
+    mask_B_mask[mask_B_mask > 0] = offset + mask_B_mask[mask_B_mask > 0]
+    mask_B_outlines[mask_B_outlines > 0] = offset + mask_B_outlines[mask_B_outlines > 0]
+
+    new_mask_mask = mask_A_mask + mask_B_mask
+    new_outlines = mask_A_outlines + mask_B_outlines
+
+    new_mask["masks"] = new_mask_mask
+    new_mask["outlines"] = new_outlines
+
+    # ToDo Flows aren't handled yet
+
+    return new_mask
+
+
+def intersect_masks(mask_A, mask_B):
+    new_mask = dict(mask_A)
+
+    mask_A_mask = np.array(new_mask["masks"]).astype(np.uint16)
+    mask_A_outlines = np.array(new_mask["outlines"]).astype(np.uint16)
+
+    mask_B_mask = np.array(mask_B["masks"]).astype(np.uint16)
+    # mask_B_outlines = np.array(mask_B["outlines"]).astype(np.uint16)
+
+    mask_A_mask[mask_B_mask == 0] = 0
+    mask_A_outlines[mask_B_mask == 0] = 0
+
+    new_mask_mask = mask_A_mask
+    new_outlines = mask_A_outlines
+
+    new_mask["masks"] = new_mask_mask
+    new_mask["outlines"] = new_outlines
+
+    # ToDo Flows aren't handled yet
 
     return new_mask
