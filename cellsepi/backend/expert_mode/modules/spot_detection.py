@@ -181,6 +181,12 @@ class SpotDetectionModule(Module):
                     mask_seg,
                     self.user_mask_spot_radius_pixels
                 )
+
+                axes = (0, 2, 1) if len(mask["masks"].shape) == 3 else (1, 0)
+
+                mask["masks"] = mask["masks"].transpose(axes)
+                mask["outlines"] = mask["outlines"].transpose(axes)
+
                 np.save(new_path, mask)
 
                 self.event_manager.notify(ProgressEvent(percent=int((iN + 1) / n_series * 100),

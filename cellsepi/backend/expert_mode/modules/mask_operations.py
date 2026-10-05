@@ -31,6 +31,8 @@ class MaskOperations(Module):
             InputPort("mask_paths", dict),
         )
         self.user_operation: MaskOperation = MaskOperation.DIFFERENCE
+        self.user_Mask_Channel_A: int = 1
+        self.user_Mask_Channel_B: int = 2
 
     def run(self):
         base_dir = self.get_working_directory()
@@ -41,6 +43,9 @@ class MaskOperations(Module):
         n_series = len(masks_A)
         n_series_B = len(masks_B)
         assert n_series == n_series_B, "Number of series in A and B must be equal."
+
+        channel_A = str(self.user_Mask_Channel_A)
+        channel_B = str(self.user_Mask_Channel_B)
 
         self.event_manager.notify(ProgressEvent(percent=0, process=f"Mask Operations: Starting"))
 
@@ -57,43 +62,46 @@ class MaskOperations(Module):
 
             assert series in masks_B, f"Series {series} not found in B."
 
-            for channel in masks_A[series]:
-                mask_A_path = masks_A[series][channel]
-                mask_A_path = pathlib.Path(mask_A_path)
 
-                mask_A = np.load(mask_A_path, allow_pickle=True).item()
-                # mask_A = mask_A_data["masks"].astype(np.uint16)
-                assert channel in masks_B[series], f"Channel {channel} not found in B series {series}."
+            assert channel_A in masks_A[series], f"Channel {channel_A} not found in A series {series}."
+            assert channel_B in masks_B[series], f"Channel {channel_B} not found in B series {series}."
 
-                mask_B_path = masks_B[series][channel]
-                mask_B_path = pathlib.Path(mask_B_path)
+            mask_A_path = masks_A[series][channel_A]
+            mask_A_path = pathlib.Path(mask_A_path)
 
-                mask_B = np.load(mask_B_path, allow_pickle=True).item()
-                # mask_B = mask_B_data["masks"].astype(np.uint16)
+            mask_A = np.load(mask_A_path, allow_pickle=True).item()
+            # mask_A = mask_A_data["masks"].astype(np.uint16)
 
-                if self.user_operation == MaskOperation.DIFFERENCE:
-                    suffix = "_diff"
-                    new_mask = substract_masks(mask_A, mask_B)
 
-                elif self.user_operation == MaskOperation.UNION:
-                    suffix = "_union"
-                    new_mask = unite_masks(mask_A, mask_B)
+            mask_B_path = masks_B[series][channel_B]
+            mask_B_path = pathlib.Path(mask_B_path)
 
-                elif self.user_operation == MaskOperation.INTERSECTION:
-                    suffix = "_intersection"
-                    new_mask = intersect_masks(mask_A, mask_B)
+            mask_B = np.load(mask_B_path, allow_pickle=True).item()
+            # mask_B = mask_B_data["masks"].astype(np.uint16)
 
-                else:
-                    raise PipelineRunningException("Value Error", "Invalid mask operation.")
+            if self.user_operation == MaskOperation.DIFFERENCE:
+                suffix = "_diff"
+                new_mask = substract_masks(mask_A, mask_B)
 
-                name_without_type = mask_A_path.stem
+            elif self.user_operation == MaskOperation.UNION:
+                suffix = "_union"
+                new_mask = unite_masks(mask_A, mask_B)
 
-                new_filename = f"{name_without_type}{suffix}.npy"
-                new_path = os.path.join(base_dir, new_filename)
+            elif self.user_operation == MaskOperation.INTERSECTION:
+                suffix = "_intersection"
+                new_mask = intersect_masks(mask_A, mask_B)
 
-                np.save(new_path, new_mask)
+            else:
+                raise PipelineRunningException("Value Error", "Invalid mask operation.")
 
-                outputs_masks[series][channel] = new_path
+            name_without_type = mask_A_path.stem
+
+            new_filename = f"{name_without_type}{suffix}.npy"
+            new_path = os.path.join(base_dir, new_filename)
+
+            np.save(new_path, new_mask)
+
+            outputs_masks[series][channel_A] = new_path
 
             self.event_manager.notify(
                 ProgressEvent(
