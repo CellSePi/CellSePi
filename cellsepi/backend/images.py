@@ -97,8 +97,8 @@ class BatchImageSegmentation(Notifier):
             model_type = self.gui.csp.model_type.value.name
             n_images = len(image_paths)
             current_done_count = sum(
-                1 for img_id in mask_paths
-                if self.segmentation_channel in mask_paths[img_id] and mask_paths[img_id][
+                1 for img_id in self.mask_paths
+                if self.segmentation_channel in self.mask_paths[img_id] and self.mask_paths[img_id][
                     self.segmentation_channel] is not None
             )
             percent = int((current_done_count / n_images) * 100)
@@ -112,7 +112,7 @@ class BatchImageSegmentation(Notifier):
 
         config = {
             "image_paths": image_paths,
-            "mask_paths": mask_paths,
+            "mask_paths": self.mask_paths,
             "model_path": model_path,
             "model_type_str": model_type,
             "segmentation_channel": self.segmentation_channel,
