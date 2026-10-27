@@ -242,15 +242,29 @@ class PipelineManager:
         else:
             return True
 
+    @staticmethod
+    def _port_has_data(port) -> bool:
+        if port.mode == "single":
+            return port.data is not None
+        if port.mode == "multi_list":
+            return len(port.data) > 0
+        return any(len(v) > 0 for v in port.data.values())  # multi_tagged
+
     def check_module_runnable(self, module_name: str) -> bool:
         """
-        Checks if the module input port data from the given module_name is not None.
+        Checks if every mandatory input port of the module has data.
         """
-        if not all(self.module_map[module_name].inputs[port_name].data is not None for port_name in
-                   self.module_map[module_name].get_mandatory_inputs()):
-            return False
-        else:
-            return True
+        module = self.module_map[module_name]
+        return all(self._port_has_data(module.inputs[name]) for name in module.get_mandatory_inputs())
+
+    def _prepare_inputs(self, module: Module) -> None:
+        """
+        Clears all input ports and refills them from the incoming pipes.
+        """
+        for port in module.inputs.values():
+            port.clear()
+        for pipe in self.pipes_in[module.module_id]:
+            pipe.run()
 
     def run(self, ignore_modules: List[str] = None) -> None:
         """
@@ -276,14 +290,11 @@ class PipelineManager:
                 if ignore_modules is not None and module_name in ignore_modules:
                     continue
                 module = self.module_map[module_name]
-                module_pipes = self.pipes_in[module.module_id]
-                for pipe in module_pipes:
-                    pipe.run()
+                self._prepare_inputs(module)
                 if self.check_module_runnable(module_name):
                     self.executing = module_name
                     self.event_manager.notify(ModuleStartedEvent(module_name))
-                    future = executor.submit(run_module,
-                                             module)  # if the run of a module returns True, the module wants to stop the pipeline.
+                    future = executor.submit(run_module,module)  # If the run of a module returns True, the module wants to stop the pipeline
                     result = future.result()
                     if self._cancel_event.is_set():
                         executor.shutdown(wait=False, cancel_futures=True)

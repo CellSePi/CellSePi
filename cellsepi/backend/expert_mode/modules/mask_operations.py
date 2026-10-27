@@ -38,8 +38,8 @@ class MaskOperations(Module):
         base_dir = self.get_working_directory()
 
         # ToDo Continue here with checking how values for A and B can be ob
-        masks_A = self.inputs.mask_paths.data["A"][-1]
-        masks_B = self.inputs.mask_paths.data["B"][-1]
+        masks_A = self.inputs.mask_paths.data["A"]
+        masks_B = self.inputs.mask_paths.data["B"]
         n_series = len(masks_A)
         n_series_B = len(masks_B)
         assert n_series == n_series_B, "Number of series in A and B must be equal."
