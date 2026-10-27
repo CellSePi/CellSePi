@@ -10,6 +10,7 @@ class DummyModule1(Module):
         self.outputs = {
             "port1": OutputPort("port1", int),
             "port5": OutputPort("port5", str),
+            "port6": OutputPort("port6", int)
         }
         self._on_settings_dismiss = self.test
         self._event_manager = None
@@ -84,7 +85,7 @@ class DummyModule5(Module):
         result = 900
         self.outputs["port5"].data = result
 
-class DummyPauseModule(Module):
+class DummyModulePause(Module):
     _gui_config = ModuleGuiConfig("testPause", None, None)
     def __init__(self, module_id: str = None):
         super().__init__(module_id)
@@ -105,13 +106,14 @@ class DummyPauseModule(Module):
         self.outputs["port1"].data = result
         return True
 
-class DummyMultiModule(Module):
+class DummyModuleMulti(Module):
     _gui_config = ModuleGuiConfig("testMulti", None, None)
     def __init__(self, module_id: str = None):
         super().__init__(module_id)
         self.inputs = {
             "port1": InputPort("port1", int,multi=["cat","dog"]),
-            "port5": InputPort("port5",int,multi=True)
+            "port5": InputPort("port5",int,multi=True),
+            "port6": InputPort("port6", int, multi=True,opt=True)
         }
         self.outputs = {
             "port7": OutputPort("port7", int),
@@ -138,7 +140,7 @@ class DummyMultiModule(Module):
         self.outputs["port9"].data = result3
 
 
-class DummyCancelDuringRunModule(Module):
+class DummyModuleCancelDuringRun(Module):
     _gui_config = ModuleGuiConfig("CancelDuringRun", None, None)
 
     def __init__(self, module_id: str = None):

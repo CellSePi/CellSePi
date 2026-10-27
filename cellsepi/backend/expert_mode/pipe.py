@@ -68,6 +68,8 @@ class Pipe:
                     f"Type mismatch on port {port_name}, source_module provided {out_port.data_type.__name__}, output_module provided {in_port.data_type.__name__}!")
 
             data = copy_data(out_port.data)
+            if data is None and in_port.mode != "single":
+                continue # skipped source module, don't put None into a multi port
             if tag is None:
                 in_port.add_data(data)
             else:
