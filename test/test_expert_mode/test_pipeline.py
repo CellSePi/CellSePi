@@ -301,7 +301,7 @@ def test_cancel_during_module_execution():
     cancel_listener = DummyCancelListener()
     pipeline.event_manager.subscribe(cancel_listener)
 
-    mod = pipeline.add_module(DummyCancelDuringRunModule)
+    mod = pipeline.add_module(DummyModuleCancelDuringRun)
     mod.pipeline_manager_ref = pipeline
 
     pipeline.run()
