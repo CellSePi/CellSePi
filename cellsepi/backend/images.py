@@ -122,6 +122,8 @@ class BatchImageSegmentation(Notifier):
             "gpu_flag": self.GPU,
             "delete_small_masks": settings_manager.settings.segmentation.delete_small_masks,
             "mask_deletion_diameter": settings_manager.settings.segmentation.mask_deletion_diameter,
+            "eval_without_flow_thresh": settings_manager.settings.segmentation.eval_without_flow_threshold,
+            "flow_threshold": settings_manager.settings.segmentation.flow_threshold,
             "rescale_settings": settings_manager.settings.performance.segmentation_downscaling.model_dump(mode="json")
         }
 

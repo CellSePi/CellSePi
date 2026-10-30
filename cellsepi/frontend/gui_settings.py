@@ -33,7 +33,10 @@ class GUISettings:
                                          self.settings_manager.settings.image.upper_quantile,
                                          self.settings_manager.settings.performance.visualization_downscaling.mode.value,
                                          self.settings_manager.settings.performance.visualization_downscaling.max_pixels,
-                                         self.settings_manager.settings.performance.visualization_downscaling.max_fraction)
+                                         self.settings_manager.settings.performance.visualization_downscaling.max_fraction,
+                                         self.settings_manager.settings.segmentation.flow_threshold,
+                                         self.settings_manager.settings.segmentation.eval_without_flow_threshold,
+                                         )
         self.overlay = PageOverlay(
             page,
             content=None,
@@ -60,7 +63,9 @@ class GUISettings:
                                          self.settings_manager.settings.image.upper_quantile,
                                          self.settings_manager.settings.performance.visualization_downscaling.mode.value,
                                          self.settings_manager.settings.performance.visualization_downscaling.max_pixels,
-                                         self.settings_manager.settings.performance.visualization_downscaling.max_fraction)
+                                         self.settings_manager.settings.performance.visualization_downscaling.max_fraction,
+                                         self.settings_manager.settings.segmentation.flow_threshold,
+                                         self.settings_manager.settings.segmentation.eval_without_flow_threshold,)
         self.overlay.close()
 
     async def _cancel(self):

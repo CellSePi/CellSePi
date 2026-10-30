@@ -42,7 +42,8 @@ class PerformanceConfig(BaseModel):
 class SegmentationRunConfig(BaseModel):
     delete_small_masks: bool = False
     mask_deletion_diameter: float = Field(default=0.00, ge=0.0)  #segmented mask smaller than this diameter deletes the mask
-
+    eval_without_flow_threshold:bool = False
+    flow_threshold: float = Field(default=0.4, ge=0.0, le=1.0)
 
 
 class ImageNormalizationConfig(BaseModel):

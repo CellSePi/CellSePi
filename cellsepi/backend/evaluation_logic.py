@@ -15,6 +15,8 @@ def run_cellpose_evaluation(image_paths,
                             gpu_flag,
                             delete_small_masks,
                             mask_deletion_diameter,
+                            eval_without_flow_thresh,
+                            flow_threshold,
                             rescale_settings
                             ):
     import numpy as np
@@ -90,19 +92,23 @@ def run_cellpose_evaluation(image_paths,
             factor = np.max(image.shape[-2:]) / np.max(original_shape[-2:])
             current_diameter = current_diameter * factor
 
+
+            flow_threshold = 0.0 if eval_without_flow_thresh else flow_threshold
+            print("flow thresh:", flow_threshold)
+
             if model_type in [ModelType.CP_NUCLEI, ModelType.CP_CYTO]:
                 if image.ndim == 3:
                     res = model.eval(image, diameter=current_diameter, channels=[0, 0], z_axis=0, do_3D=False,
-                                     stitch_threshold=0.5)
+                                     stitch_threshold=0.5, flow_threshold=flow_threshold)
                 else:
-                    res = model.eval(image, diameter=current_diameter, channels=[0, 0])
+                    res = model.eval(image, diameter=current_diameter, channels=[0, 0],flow_threshold=flow_threshold)
                 mask, flow, style = res[:3]
 
             elif model_type in [ModelType.CP_SAM, ModelType.CP_SAM_V2, ModelType.CP_DINO, ModelType.CP_SMALL_DINO]:
                 if image.ndim == 3:
-                    res = model.eval(image, diameter=current_diameter, z_axis=0, do_3D=False, stitch_threshold=0.5)
+                    res = model.eval(image, diameter=current_diameter, z_axis=0, do_3D=False, stitch_threshold=0.5,flow_threshold=flow_threshold)
                 else:
-                    res = model.eval(image, diameter=current_diameter)
+                    res = model.eval(image, diameter=current_diameter,flow_threshold=flow_threshold)
                 mask, flow, style = res[:3]
 
             if mask is not None:
