@@ -2,6 +2,7 @@ import math
 from enum import Enum
 import flet as ft
 
+from backend.expert_mode.modules.colocalization import Colocalization
 from backend.expert_mode.modules.image_and_mask_export import ImageExportModule
 from backend.expert_mode.modules.image_readout import ImageReadoutModule
 from backend.expert_mode.modules.image_segmentation import ImageSegmentationModule
@@ -12,7 +13,7 @@ from backend.expert_mode.modules.review import Review
 from backend.expert_mode.modules.spot_detection import SpotDetectionModule
 from backend.expert_mode.modules.read_dir import ReadDir
 
-#Constants used in the PipelineBuildingTool(ExpertMode)
+# Constants used in the PipelineBuildingTool(ExpertMode)
 CANVAS_HEIGHT = 10000
 CANVAS_WIDTH = 10000
 MODULE_WIDTH = 235
@@ -33,7 +34,7 @@ USER_OPTIONS_LIMIT = 9
 ZOOM_VALUE = 0.20
 BOTTOM_SPACING = 20
 MAIN_ACTIVE_COLOR = ft.Colors.WHITE60
-THROTTLE_UPDATE_LINES = 0.036 # ~30FPS
+THROTTLE_UPDATE_LINES = 0.036  # ~30FPS
 MAX_TOTAL_CHARS_ENUM = 28
 DEBUG = False
 
@@ -47,4 +48,5 @@ MODULE_REGISTRY = {
     "MASK_OPERATIONS": MaskOperations,
     "IMAGE_READOUT": ImageReadoutModule,
     "IMAGE_EXPORT": ImageExportModule,
+    "COLOCALIZATION": Colocalization,
 }
