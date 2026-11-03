@@ -262,6 +262,30 @@ class GUISegmentation:
                         self.gui.page.run_task(self.gui.average_diameter.get_avg_diameter)
                         await self.gui.canvas.update_mask_image(True)
 
+                        has_existing_confidence_masks = any(
+                            bf_channel in confidence_data
+                            and confidence_data[bf_channel] is not None
+                            and os.path.exists(confidence_data[bf_channel])
+                            for confidence_data in self.gui.canvas._confidence_mask_paths.values()
+    )
+                        #delete confidence masks
+                        if has_existing_confidence_masks:
+                            for img in list(self.gui.canvas._confidence_mask_paths.keys()):
+                                confidence_data = self.gui.canvas._confidence_mask_paths.get(img, {})
+                                path = confidence_data.get(bf_channel)
+
+                                if path and os.path.exists(path):
+                                    os.remove(path)
+                                confidence_data.pop(bf_channel, None)
+
+                                if not confidence_data:
+                                    self.gui.canvas._confidence_mask_paths.pop(img, None)
+
+                            if self.gui.canvas._confidence_mask_path is not None:
+                                self.gui.canvas._confidence_mask_data = None
+                                self.gui.canvas._confidence_mask_path = None
+
+
                 def threaded_segmentation_runner():
                     try:
                         self.segmentation.run()

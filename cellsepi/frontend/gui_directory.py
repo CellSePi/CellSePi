@@ -12,7 +12,7 @@ from frontend.dialogs import ChoiceDialog
 from frontend.gui_fluorescence import FluorescenceReadoutControl
 from backend.constants import FileType, SourceType, APP_DIR, ModelType, MAIN_COLOR, HIGHLIGHT_COLOR, ERROR_COLOR, \
     SUCCESS_COLOR
-from backend.data_util import consistent_hash, extract_from_directory, DirectoryManager
+from backend.data_util import consistent_hash, extract_from_directory, DirectoryManager, find_confidence_masks
 from backend.data_util import extract_from_file, load_directory, \
     convert_tiffs_to_png_parallel
 from backend.expert_mode.event_manager import EventManager
@@ -434,6 +434,7 @@ class DirectoryCard(ft.Card):
         self.gui.csp.image_paths = image_paths
         self.gui.csp.mask_paths = mask_paths
         self.gui.canvas.set_mask_paths(self.gui.csp.mask_paths)
+        self.gui.canvas.set_confidence_mask_paths(find_confidence_masks(working_directory))
         self.gui.canvas.set_main_paths(self.gui.csp.image_paths)
 
     def load_images(self):

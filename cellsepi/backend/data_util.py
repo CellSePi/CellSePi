@@ -67,7 +67,22 @@ def organize_files(files, mask_suffix=""):
     id_to_file = dict(sorted(id_to_file.items()))
 
     return id_to_file
+def find_confidence_masks(directory, confidence_suffix="_confidence"):
+    directory = Path(directory)
 
+    if not directory.exists():
+        return {}
+    confidence_files = [
+        path
+        for path in directory.glob("*.npy")
+        if path.stem.endswith(confidence_suffix)
+    ]
+    id_to_confidence = organize_files(
+        confidence_files,
+        mask_suffix=confidence_suffix,
+    )
+
+    return id_to_confidence
 
 def load_directory(directory, mask_suffix=None,
                    return_type: ReturnTypePath = ReturnTypePath.BOTH_PATHS, event_manager: EventManager = None):

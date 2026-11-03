@@ -38,14 +38,13 @@ MAX_TOTAL_CHARS_ENUM = 28
 DEBUG = False
 
 MODULE_REGISTRY = {
-    "IMAGE_READOUT": ImageReadoutModule,
-    "IMAGE_EXPORT": ImageExportModule,
-    "IMAGE_SEGMENTATION": ImageSegmentationModule,
-    "SPOT_DETECTION": SpotDetectionModule,
     "READ_FILES": ReadFiles,
     "READ_DIRS": ReadDir,
     "PROJECTION_3D_TO_2D": Project3dTo2d,
+    "IMAGE_SEGMENTATION": ImageSegmentationModule,
+    "SPOT_DETECTION": SpotDetectionModule,
+    "REVIEW": Review,
     "MASK_OPERATIONS": MaskOperations,
-    "REVIEW": Review
+    "IMAGE_READOUT": ImageReadoutModule,
+    "IMAGE_EXPORT": ImageExportModule,
 }
-
