@@ -2,6 +2,7 @@ import math
 from enum import Enum
 import flet as ft
 
+from backend.expert_mode.modules.colocalization import Colocalization
 from backend.expert_mode.modules.image_and_mask_export import ImageExportModule
 from backend.expert_mode.modules.image_readout import ImageReadoutModule
 from backend.expert_mode.modules.image_segmentation import ImageSegmentationModule
@@ -46,6 +47,7 @@ MODULE_REGISTRY = {
     "READ_DIRS": ReadDir,
     "PROJECTION_3D_TO_2D": Project3dTo2d,
     "MASK_OPERATIONS": MaskOperations,
+    "COLOCALIZATION": Colocalization,
     "REVIEW": Review
 }
 

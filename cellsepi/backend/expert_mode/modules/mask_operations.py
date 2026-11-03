@@ -20,7 +20,8 @@ class MaskOperations(Module):
     _gui_config = ModuleGuiConfig(
         "MaskOperations",
         Categories.FILTERS,
-        "This module provides set operations on masks featuring the same dimensions.")
+        "This module provides set operations on masks featuring the same dimensions."
+    )
 
     def __init__(self, module_id: str = None) -> None:
         super().__init__(module_id)
@@ -28,7 +29,7 @@ class MaskOperations(Module):
             InputPort("mask_paths", dict, multi=["A", "B"]),
         )
         self.outputs = OutputPorts(
-            InputPort("mask_paths", dict),
+            OutputPort("mask_paths", dict),
         )
         self.user_operation: MaskOperation = MaskOperation.DIFFERENCE
         self.user_Mask_Channel_A: int = 1
@@ -62,7 +63,6 @@ class MaskOperations(Module):
 
             assert series in masks_B, f"Series {series} not found in B."
 
-
             assert channel_A in masks_A[series], f"Channel {channel_A} not found in A series {series}."
             assert channel_B in masks_B[series], f"Channel {channel_B} not found in B series {series}."
 
@@ -71,7 +71,6 @@ class MaskOperations(Module):
 
             mask_A = np.load(mask_A_path, allow_pickle=True).item()
             # mask_A = mask_A_data["masks"].astype(np.uint16)
-
 
             mask_B_path = masks_B[series][channel_B]
             mask_B_path = pathlib.Path(mask_B_path)

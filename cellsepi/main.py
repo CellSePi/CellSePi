@@ -5,7 +5,6 @@ from frontend.gui import GUI
 
 async def async_main(page: ft.Page):
     page.window.prevent_close = True
-    print("Starting CellSePi...")
     gui = GUI(page)
     page.title = "CellSePi"
     page.window.width = 1440
@@ -13,19 +12,17 @@ async def async_main(page: ft.Page):
     page.window.on_event = lambda e: page.run_task(gui.handle_closing_event, e)
     page.update()
     await page.window.center()
+    print("Started")
     gui.build()
     page.window.visible = True
     page.update()
-    print("CellSePi is running!")
 
 def main():
     ft.context.disable_auto_update()
-    print("Starting CellSePi... main()")
     ft.run(main=async_main, view=ft.AppView.FLET_APP_HIDDEN)
 
 
 if __name__ == "__main__":
-    print("Starting CellSePi...")
     multiprocessing.freeze_support()
     main()
 
