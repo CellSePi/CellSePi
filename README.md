@@ -353,6 +353,39 @@ generalization for cellular segmentation.* bioRxiv, 2025.*
   Scanline Filling Algorithm. [Website](https://medium.com/@dillihangrae/scanline-filling-algorithm-852ad47fb0dd)
 - **Arthur Imbert, Wei Ouyang, Adham Safieddine, Emeline Coleno, Christophe Zimmer, Edouard Bertrand, Thomas Walter, Florian Mueller. FISH-quant v2:** a scalable and modular analysis tool for smFISH image analysis. bioRxiv (2021) [Paper](https://doi.org/10.1101/2021.07.20.453024)
 
+## 🏗️ How to Build
+
+Activate your virtual environment and install the project dependencies before building. Run the build command from the project directory.
+
+### Desktop
+
+Build each desktop version on its target operating system:
+
+| Target | Build command | Build on |
+|---|---|---|
+| Linux | `flet build linux` | Linux |
+| macOS (universal) | `flet build macos` | macOS |
+| macOS (Apple Silicon / ARM64) | `flet build macos --arch arm64` | macOS |
+| Windows | `flet build windows` | Windows |
+
+The macOS build is universal by default. The ARM64 command produces a build for Apple Silicon Macs. Flet’s build system requires macOS for a macOS target, Windows for a Windows target, and Linux for a Linux target; Windows can also build Linux apps through WSL. <citation src="2,5"></citation>
+
+### Web
+
+A web build can be run on Linux, macOS, or Windows:
+
+```bash
+flet build web
+```
+
+### Troubhleshooting
+If a build fails with an import error for a dependency, remove the previous build output and try again:
+
+```bash
+rm -rf build
+```
+On Windows please use the explorer to delete the build folder `build/` in the project directory.
+
 ## 📝 License
 
 This project is licensed under the **Apache-2.0 license** – see the [LICENSE](LICENSE) file for details.
