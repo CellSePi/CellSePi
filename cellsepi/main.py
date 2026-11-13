@@ -18,7 +18,7 @@ async def async_main(page: ft.Page):
 
 def main():
     ft.context.disable_auto_update()
-    ft.run(main=async_main, view=ft.AppView.FLET_APP_HIDDEN)
+    ft.run(main=async_main, view=ft.AppView.FLET_APP)#, view=ft.AppView.FLET_APP_HIDDEN)
 
 
 if __name__ == "__main__":

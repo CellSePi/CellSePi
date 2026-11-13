@@ -208,13 +208,13 @@ def get_XY_radius(mask):
 def process_cytoplasm(cytoplasm_mask, series, channel):
     mask_ids = np.unique(cytoplasm_mask)
 
-    cytoplasm_table = pd.DataFrame(
-        columns=[
-            "Cytoplasm ID", "Cytoplasm Nr", "Channel", "Series",
-            "Cytoplasm X", "Cytoplasm Y", "Cytoplasm Z",
-            "Cytoplasm Radius", "Cytoplasm Volume"
-        ]
-    )
+    # cytoplasm_table = pd.DataFrame(
+    #     columns=[
+    #         "Cytoplasm ID", "Cytoplasm Nr", "Channel", "Series",
+    #         "Cytoplasm X", "Cytoplasm Y", "Cytoplasm Z",
+    #         "Cytoplasm Radius", "Cytoplasm Volume"
+    #     ]
+    # )
 
     prop_dicts = []
     for mask_id in mask_ids:
