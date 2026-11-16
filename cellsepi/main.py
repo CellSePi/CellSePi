@@ -4,6 +4,7 @@ import flet as ft
 from frontend.gui import GUI
 
 async def async_main(page: ft.Page):
+    print("async main")
     page.window.prevent_close = True
     gui = GUI(page)
     page.title = "CellSePi"
@@ -17,11 +18,13 @@ async def async_main(page: ft.Page):
     page.update()
 
 def main():
+    print("main")
     ft.context.disable_auto_update()
     ft.run(main=async_main, view=ft.AppView.FLET_APP)#, view=ft.AppView.FLET_APP_HIDDEN)
 
 
 if __name__ == "__main__":
+    print("if")
     multiprocessing.freeze_support()
     main()
 

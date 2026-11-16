@@ -52,10 +52,23 @@ class Colocalization(Module):
         # self.user_Export_File_Type: ExportFileType = ExportFileType.EXCEL
 
     def run(self):
+
+        def get_channels(mask_paths_data):
+            channels = {
+                key
+                for mask_paths in mask_paths_data
+                for elem in mask_paths.values()
+                for key in elem.keys()
+            }
+            return channels
+
         base_dir = self.get_working_directory()
 
-        lengths = [len(self.inputs.mask_paths.data["Cytoplasm Mask"]), len(self.inputs.mask_paths.data["Nuclei Mask"]),
-                   len(self.inputs.mask_paths.data["Spot Masks"])]
+        lengths = [
+            len(self.inputs.mask_paths.data["Cytoplasm Mask"]),
+            len(self.inputs.mask_paths.data["Nuclei Mask"]),
+            len(self.inputs.mask_paths.data["Spot Masks"])
+        ]
         lengths = np.array(lengths)
         lengths[0] = np.min([lengths[0], 1])  # Required to counteract issue with InputPorts
         lengths[1] = np.min([lengths[1], 1])  # Required to counteract issue with InputPorts
@@ -73,15 +86,28 @@ class Colocalization(Module):
 
         if has_cytoplasm:
             cytoplasm_mask_paths = self.inputs.mask_paths.data["Cytoplasm Mask"][-1]
-            channel_cytoplasm = next(
-                iter(next(iter(cytoplasm_mask_paths.values()))))  # Gets the first channel in cytoplasm
+            # channel_cytoplasm = get_channels([cytoplasm_mask_paths])  # Gets the first channel in cytoplasm
+            channel_cytoplasm = str(self.user_Cytoplasm_Mask_Channel)
         if has_nuclei:
             nuclei_mask_paths = self.inputs.mask_paths.data["Nuclei Mask"][-1]
-            channel_nuclei = next(iter(next(iter(nuclei_mask_paths.values()))))  # Gets the first channel in nuclei
+            # channel_nuclei = get_channels([nuclei_mask_paths])  # Gets the first channel in nuclei
+            channel_nuclei = str(self.user_Nuclei_Mask_Channel)
+
         if has_spots:
             spot_masks_paths = self.inputs.mask_paths.data["Spot Masks"]
-            channel_spots = [next(iter(next(iter(spot_mask_paths.values())))) for spot_mask_paths in
-                             spot_masks_paths]  # Gets the first channel of every spot path
+            spot_masks_paths.append({"Series002": {"6": "test Path"}})
+            masks_dict = {}
+            for spot_mask_paths in spot_masks_paths:
+                for series in spot_mask_paths:
+                    if series not in masks_dict:
+                        masks_dict[series] = {}
+                    for channel_id in spot_mask_paths[series]:
+                        if channel_id in masks_dict[series]:
+                            raise PipelineRunningException(f"Channel {channel_id} already present in mask paths {masks_dict[series]}.")
+                        masks_dict[series][channel_id] = spot_mask_paths[series][channel_id]
+
+            spot_masks_paths = masks_dict
+            channel_spots = get_channels(spot_masks_paths)  # Gets the channels of all spot paths
 
         # assert len(cytoplasm_mask_paths) == len(nuclei_mask_paths), \
         #     "Number of series in cytoplasm and nuclei mask needs to be equal."
@@ -94,6 +120,8 @@ class Colocalization(Module):
         output_data = []
 
         cytoplasm_tables = []
+        nuclei_tables = []
+        spot_tables = []
 
         n_series = len(cytoplasm_mask_paths)
         for iN, series in enumerate(cytoplasm_mask_paths):
@@ -113,16 +141,26 @@ class Colocalization(Module):
                 cytoplasm_mask_path = pathlib.Path(cytoplasm_mask_path)
                 cytoplasm_mask = np.load(cytoplasm_mask_path, allow_pickle=True).item()
 
-                cur_cytoplasm_table = process_cytoplasm(cytoplasm_mask, series=series, channel=channel_cytoplasm)
+                cur_cytoplasm_table = process_cytoplasm(
+                    cytoplasm_mask,
+                    series=series, channel=channel_cytoplasm
+                )
                 cytoplasm_tables.append(cur_cytoplasm_table)
 
             if has_nuclei:
                 nuclei_mask_path = nuclei_mask_paths[series][channel_nuclei]
                 nuclei_mask_path = pathlib.Path(nuclei_mask_path)
                 nuclei_mask = np.load(nuclei_mask_path, allow_pickle=True).item()
+                cur_nuclei_table = process_nuclei(
+                    nuclei_mask,
+                    series=series, channel=channel_nuclei,
+                    cytoplasm_mask=cytoplasm_mask,
+                    cur_cytoplasm_table=cur_cytoplasm_table
+                )
+                nuclei_tables.append(cur_nuclei_table)
 
             if has_spots:
-                spot_masks_paths = [
+                spot_masks_path = [
                     pathlib.Path(spot_mask[series][channel_spot])
                     for spot_mask, channel_spot in zip(spot_masks_paths, channel_spots)
                 ]
@@ -153,15 +191,8 @@ class Colocalization(Module):
             cytoplasm_table = pd.concat(cytoplasm_tables)
 
         nuclei_table = None
-        if has_nuclei:
-            nuclei_table = pd.DataFrame(
-                columns=[
-                    "Nuclei ID", "Nuclei Nr", "Channel", "Series",
-                    "Nuclei X", "Nuclei Y", "Nuclei Z",
-                    "Nucleus Radius", "Nucleus Volume",
-                    "Cytoplasm ID", "in cytoplasm",
-                ]
-            )
+        if len(nuclei_tables) > 0:
+            nuclei_table = pd.concat(nuclei_tables)
 
         spot_table = None
         if has_spots:
@@ -205,8 +236,14 @@ def get_XY_radius(mask):
     return np.sqrt(np.sum(yx_mask) / np.pi)
 
 
+def overlap(mask_A, mask_B):
+    return np.sum(np.logical_and(mask_A, mask_B))
+
+
 def process_cytoplasm(cytoplasm_mask, series, channel):
-    mask_ids = np.unique(cytoplasm_mask)
+    cytoplasm_mask_raw = cytoplasm_mask["masks"]
+
+    mask_ids = np.unique(cytoplasm_mask_raw)
 
     # cytoplasm_table = pd.DataFrame(
     #     columns=[
@@ -221,13 +258,13 @@ def process_cytoplasm(cytoplasm_mask, series, channel):
         if mask_id == 0:
             # Skip Background
             continue
-        mask = cytoplasm_mask == mask_id
+        c_mask = cytoplasm_mask_raw == mask_id
 
-        cytoplasm_id = f"{series}-{channel}-{mask_id}"
+        cytoplasm_id = f"C-{series}-{channel}-{mask_id}"
 
-        center = get_center(mask)
-        radius = get_XY_radius(mask)
-        volume = get_volume(mask)
+        center = get_center(c_mask)
+        radius = get_XY_radius(c_mask)
+        volume = get_volume(c_mask)
 
         prop_dict = {
             "Cytoplasm ID": cytoplasm_id,
@@ -239,6 +276,72 @@ def process_cytoplasm(cytoplasm_mask, series, channel):
             "Cytoplasm Z": center[-3] if len(center) == 3 else None,
             "Cytoplasm Radius": radius,
             "Cytoplasm Volume": volume,
+        }
+        prop_dicts.append(prop_dict)
+    df = pd.DataFrame(prop_dicts)
+    return df
+
+
+def process_nuclei(nuclei_mask, series, channel, cytoplasm_mask=None, cur_cytoplasm_table=None):
+    cytoplasm_present = cytoplasm_mask is not None
+    if cytoplasm_present:
+        cytoplasm_mask_raw = cytoplasm_mask["masks"]
+        cytoplasm_mask_ids = np.unique(cytoplasm_mask_raw)
+
+    nuclei_mask_raw = nuclei_mask["masks"]
+    mask_ids = np.unique(nuclei_mask_raw)
+
+    # nuclei_table = pd.DataFrame(
+    #     columns=[
+    #         "Nuclei ID", "Nuclei Nr", "Channel", "Series",
+    #         "Nuclei X", "Nuclei Y", "Nuclei Z",
+    #         "Nucleus Radius", "Nucleus Volume",
+    #         "Cytoplasm ID", "in cytoplasm",
+    #     ]
+    # )
+
+    prop_dicts = []
+    for mask_id in mask_ids:
+        if mask_id == 0:
+            # Skip Background
+            continue
+        n_mask = nuclei_mask_raw == mask_id
+
+        nuclei_id = f"N-{series}-{channel}-{mask_id}"
+
+        center = get_center(n_mask)
+        radius = get_XY_radius(n_mask)
+        volume = get_volume(n_mask)
+
+        cytoplasm_id = None
+        cytoplasm_nr = None
+        cytoplasm_overlap = None
+
+        if cytoplasm_present:
+            overlaps = [overlap(n_mask, c_mask_id == cytoplasm_mask_raw) for c_mask_id in cytoplasm_mask_ids]
+            max_overlap_idx = np.argmax(overlaps)
+            max_overlap = overlaps[max_overlap_idx]
+            max_overlap_cytoplasm_id = cytoplasm_mask_ids[max_overlap_idx]
+            overlap_fraction = max_overlap / volume
+
+            if max_overlap_cytoplasm_id != 0 and overlap_fraction > 0.5:
+                cytoplasm_id = f"C-{series}-{channel}-{max_overlap_cytoplasm_id}"
+                cytoplasm_nr = max_overlap_cytoplasm_id
+                cytoplasm_overlap = overlap_fraction
+
+        prop_dict = {
+            "Nuclei ID": nuclei_id,
+            "Nuclei Nr": mask_id,
+            "Channel": channel,
+            "Series": series,
+            "Nuclei X": center[-1],
+            "Nuclei Y": center[-2],
+            "Nuclei Z": center[-3] if len(center) == 3 else None,
+            "Nuclei Radius": radius,
+            "Nuclei Volume": volume,
+            "Cytoplasm ID": cytoplasm_id,
+            "Cytoplasm Nr": cytoplasm_nr,
+            "Cytoplasm Overlap": cytoplasm_overlap,  # Fraction of the nuclei that is covered by the cytoplasm
         }
         prop_dicts.append(prop_dict)
     df = pd.DataFrame(prop_dicts)
