@@ -85,11 +85,6 @@ class Colocalization(Module):
         lengths[1] = np.min([lengths[1], 1])  # Required to counteract issue with InputPorts
         if np.sum(lengths) < 2:
             raise PipelineRunningException("Value Error", "Not enough masks provided (at least 2 required).")
-        # if len(self.inputs.mask_paths.data["Nuclei Mask"]) < 1:
-        #     raise PipelineRunningException("Value Error", "Nuclei mask not found (1 required).")
-        # Spot masks are optional. If no spot masks are provided, the module will only colocate cytoplasm and nuclei masks.
-        # if len(self.inputs.mask_paths.data["Spot Masks"]) < 1:
-        #     raise PipelineRunningException("Value Error", "Spot mask not found (1 or more required).")
 
         has_cytoplasm = len(self.inputs.mask_paths.data["Cytoplasm Mask"]) > 0
         has_nuclei = len(self.inputs.mask_paths.data["Nuclei Mask"]) > 0
@@ -122,11 +117,9 @@ class Colocalization(Module):
                         masks_dict[series][channel_id] = spot_mask_paths[series][channel_id]
 
             spot_masks_paths = masks_dict
-            channel_spots = get_channels([spot_masks_paths])  # Gets the channels of all spot paths
+            # channel_spots = get_channels([spot_masks_paths])  # Gets the channels of all spot paths
 
         self.event_manager.notify(ProgressEvent(percent=0, process=f"Mask Operations: Starting"))
-
-        # output_data = []
 
         cytoplasm_tables = []
         nuclei_tables = []
@@ -570,11 +563,12 @@ def derive_full_colocalization(pairs_by_id: dict):
 
         colocalizations = set()
         for neighbor in neighbors_to_expand:
-            # if not neighbor in neighborhood_set:
-            #     continue
-
-            paths = expand_node(neighbor, path + [spot_id], pairs_by_id,
-                                neighborhood_set=neighborhood_set.intersection(neighbors))
+            paths = expand_node(
+                neighbor,
+                path + [spot_id],
+                pairs_by_id,
+                neighborhood_set=neighborhood_set.intersection(neighbors)
+            )
             colocalizations.update(paths)
 
         return colocalizations
@@ -582,7 +576,12 @@ def derive_full_colocalization(pairs_by_id: dict):
     colocalizations = set()
     for spot_id in pairs_by_id.keys():
         neighbors = get_neighbors(spot_id, pairs_by_id)
-        cur_colocalizations = expand_node(spot_id, path=[], pairs_by_id=pairs_by_id, neighborhood_set=neighbors)
+        cur_colocalizations = expand_node(
+            spot_id,
+            path=[],
+            pairs_by_id=pairs_by_id,
+            neighborhood_set=neighbors
+        )
         colocalizations.update(cur_colocalizations)
     return colocalizations
 
@@ -592,8 +591,11 @@ def identify_common_neighbors(spots, pairs_by_id):
 
     all_neighbors = {neighbor for spot_neighbors in per_spot_neighbors for neighbor in spot_neighbors}
 
-    common_neighbors = [neighbor for neighbor in all_neighbors if
-                        np.all([neighbor in spot_neighbors for spot_neighbors in per_spot_neighbors])]
+    common_neighbors = [
+        neighbor
+        for neighbor in all_neighbors
+        if np.all([neighbor in spot_neighbors for spot_neighbors in per_spot_neighbors])
+    ]
 
     return common_neighbors
 
