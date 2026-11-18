@@ -354,3 +354,5 @@ class BatchImageReadout(Notifier):
             self._call_completion_listeners(readout=df, readout_path=readout_path, **kwargs)
         else:
             event_manager.notify(ProgressEvent(100, "Completed Readout"))
+
+        return df

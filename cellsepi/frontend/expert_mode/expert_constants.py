@@ -10,6 +10,7 @@ from backend.expert_mode.modules.mask_operations import MaskOperations
 from backend.expert_mode.modules.project_3d_to_2d import Project3dTo2d
 from backend.expert_mode.modules.read_files import ReadFiles
 from backend.expert_mode.modules.review import Review
+from backend.expert_mode.modules.table_viewer import TableViewer
 from backend.expert_mode.modules.spot_detection import SpotDetectionModule
 from backend.expert_mode.modules.read_dir import ReadDir
 
@@ -49,4 +50,5 @@ MODULE_REGISTRY = {
     "IMAGE_READOUT": ImageReadoutModule,
     "IMAGE_EXPORT": ImageExportModule,
     "COLOCALIZATION": Colocalization,
+    "TABLE_VIEWER": TableViewer,
 }

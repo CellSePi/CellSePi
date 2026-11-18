@@ -88,7 +88,7 @@ class ModuleGUI(ft.GestureDetector):
                                                 shape=ft.RoundedRectangleBorder(radius=12),
                                             ), on_click=self.open_options,
                                             tooltip="Options", hover_color=ft.Colors.WHITE12,
-                                            visible=True if len(self.module.get_user_attributes) != 0 else False, )
+                                            visible=self.module.settings is not None or bool(self.module.get_user_attributes), )
         self.copy_button = ft.IconButton(icon=ft.Icons.CONTENT_COPY, icon_color=ft.Colors.WHITE60,
                                          style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=12)),
                                          on_click=self.copy_module,

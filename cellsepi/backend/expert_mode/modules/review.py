@@ -14,8 +14,10 @@ class Review(Module):
     mask_opacity = 128
     outline_color = (0, 255, 0)
     _instances = []
-    _gui_config = ModuleGuiConfig("Review", Categories.MANUAL,
-                                  "This module allows you to manually review and edit masks. Also you can create new masks when no mask are given.")
+    _gui_config = ModuleGuiConfig(
+        "Review", Categories.MANUAL,
+        "This module allows you to manually review and edit masks. Also you can create new masks when no mask are given."
+    )
 
     def __init__(self, module_id: str = None) -> None:
         super().__init__(module_id)
@@ -105,7 +107,8 @@ class Review(Module):
                                     top=20,
                                     left=20,
                                     right=20,
-                                    bottom=10)
+                                    bottom=10
+                                )
                             ),
                             self._control_menu
                         ],
