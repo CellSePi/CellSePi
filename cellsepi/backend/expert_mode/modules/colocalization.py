@@ -1,6 +1,8 @@
 import itertools
 import os
 import pathlib
+import time
+import timeit
 from collections import defaultdict
 from datetime import datetime
 from enum import auto
@@ -40,7 +42,10 @@ class Colocalization(Module):
                 ]
             ),
         )
+
         self.outputs = OutputPorts(
+            OutputPort("cytoplasm_table", pd.DataFrame),
+            OutputPort("nuclei_table", pd.DataFrame),
             OutputPort("spot_table", pd.DataFrame),
             OutputPort("colocalization_table", pd.DataFrame),
         )
@@ -111,6 +116,7 @@ class Colocalization(Module):
                     for channel_id in spot_mask_paths[series]:
                         if channel_id in masks_dict[series]:
                             raise PipelineRunningException(
+                                "ValueError",
                                 f"Channel {channel_id} already present in mask paths {masks_dict[series]}."
                             )
                         masks_dict[series][channel_id] = spot_mask_paths[series][channel_id]
@@ -118,15 +124,9 @@ class Colocalization(Module):
             spot_masks_paths = masks_dict
             channel_spots = get_channels([spot_masks_paths])  # Gets the channels of all spot paths
 
-        # assert len(cytoplasm_mask_paths) == len(nuclei_mask_paths), \
-        #     "Number of series in cytoplasm and nuclei mask needs to be equal."
-        # for spot_mask in spot_masks_paths:
-        #     assert len(cytoplasm_mask_paths) == len(spot_mask), \
-        #         "Number of series in cytoplasm and spot masks needs to be equal."
-
         self.event_manager.notify(ProgressEvent(percent=0, process=f"Mask Operations: Starting"))
 
-        output_data = []
+        # output_data = []
 
         cytoplasm_tables = []
         nuclei_tables = []
@@ -134,9 +134,12 @@ class Colocalization(Module):
 
         series_paths = cytoplasm_mask_paths if has_cytoplasm else nuclei_mask_paths if has_nuclei else spot_masks_paths
         n_series = len(series_paths)
+
+        durations = {"Cytoplasm": [], "Nuclei": [], "Spot": []}
         for iN, series in enumerate(series_paths):
-            if iN > 0:
-                continue
+            # if iN > 0:
+            #     print(f"Skipping series {iN} {series}")
+            #     continue
 
             if self.is_cancelled():
                 self.outputs.spot_table.data = None
@@ -152,22 +155,28 @@ class Colocalization(Module):
                 cytoplasm_mask_path = pathlib.Path(cytoplasm_mask_path)
                 cytoplasm_mask = np.load(cytoplasm_mask_path, allow_pickle=True).item()
 
+                ta = time.time()
                 cur_cytoplasm_table = process_cytoplasm(
                     cytoplasm_mask,
                     series=series, channel=channel_cytoplasm
                 )
+                tb = time.time()
+                durations["Cytoplasm"].append(tb - ta)
                 cytoplasm_tables.append(cur_cytoplasm_table)
 
             if has_nuclei:
                 nuclei_mask_path = nuclei_mask_paths[series][channel_nuclei]
                 nuclei_mask_path = pathlib.Path(nuclei_mask_path)
                 nuclei_mask = np.load(nuclei_mask_path, allow_pickle=True).item()
+                ta = time.time()
                 cur_nuclei_table = process_nuclei(
                     nuclei_mask,
                     series=series, channel=channel_nuclei,
                     cytoplasm_mask=cytoplasm_mask if has_cytoplasm else None,
                     cur_cytoplasm_table=cur_cytoplasm_table if has_cytoplasm else None
                 )
+                tb = time.time()
+                durations["Nuclei"].append(tb - ta)
                 nuclei_tables.append(cur_nuclei_table)
 
             if has_spots:
@@ -181,6 +190,7 @@ class Colocalization(Module):
                     for channel_id, path in zip(spot_masks_paths[series].keys(), spot_masks_path)
                 }
 
+                ta = time.time()
                 for channel_spot, spot_mask in spot_masks.items():
                     spot_tables.append(
                         process_spots(
@@ -191,6 +201,8 @@ class Colocalization(Module):
                             nuclei_channel=channel_nuclei if has_nuclei else None,
                         )
                     )
+                tb = time.time()
+                durations["Spot"].append(tb - ta)
 
             self.event_manager.notify(
                 ProgressEvent(
@@ -199,30 +211,34 @@ class Colocalization(Module):
                 )
             )
 
-        # cytoplasm_table = None
-        # if has_cytoplasm:
-        #     cytoplasm_table = pd.DataFrame(
-        #         columns=[
-        #             "Cytoplasm ID", "Cytoplasm Nr", "Channel", "Series",
-        #             "Cytoplasm X", "Cytoplasm Y", "Cytoplasm Z",
-        #             "Cytoplasm Radius", "Cytoplasm Volume"
-        #         ]
-        #     )
+        for key in durations.keys():
+            print(f"{key}: {np.sum(durations[key])} seconds")
+
         cytoplasm_table = None
         if len(cytoplasm_tables) > 0:
             cytoplasm_table = pd.concat(cytoplasm_tables, ignore_index=True)
+            cytoplasm_table = cytoplasm_table.set_index("Cytoplasm ID", drop=False)
 
         nuclei_table = None
         if len(nuclei_tables) > 0:
             nuclei_table = pd.concat(nuclei_tables, ignore_index=True)
+            nuclei_table = nuclei_table.set_index("Nucleus ID", drop=False)
 
         spot_table = None
         colocalization_table = None
         if has_spots:
             spot_table = pd.concat(spot_tables, ignore_index=True)
+            spot_table = spot_table.set_index("Spot ID", drop=False)
 
-            if len(spot_table["Channel"].unique()) > 1:
-                colocalization_table = colocalize_spots(spot_table)
+            if spot_table is not None and len(spot_table["Channel"].unique()) > 1:
+                ta = time.time()
+                colocalization_table = colocalize_spots(
+                    spot_table,
+                    max_xy_radius=self.user_Colocalization_Radius_X_and_Y,
+                    max_z_radius=self.user_Colocalization_Radius_Z
+                )
+                tb = time.time()
+                print(f"Colocalization took {tb - ta} seconds")
 
         self.outputs.cytoplasm_table.data = cytoplasm_table
         self.outputs.nuclei_table.data = nuclei_table
@@ -232,10 +248,19 @@ class Colocalization(Module):
 
 
 def get_center(mask):
-    coords = np.argwhere(mask)  # rows are the available axes
-    center = coords.mean(axis=0) if len(coords) else None
+    mask = np.asarray(mask, dtype=bool)
+    count = np.count_nonzero(mask)
+    if count == 0:
+        return None
 
-    return center
+    center = []
+    for axis in range(mask.ndim):
+        # Count True values at each position along this axis
+        other_axes = tuple(i for i in range(mask.ndim) if i != axis)
+        counts = mask.sum(axis=other_axes)
+        center.append(np.dot(np.arange(mask.shape[axis]), counts) / count)
+
+    return np.array(center)
 
 
 def get_volume(mask):
@@ -304,7 +329,7 @@ def process_nuclei(nuclei_mask, series, channel, cytoplasm_mask=None, cur_cytopl
             continue
         n_mask = nuclei_mask_raw == mask_id
 
-        nuclei_id = f"{nuclei_id_prefix}-{series}-{channel}-{mask_id}"
+        nucleus_id = f"{nuclei_id_prefix}-{series}-{channel}-{mask_id}"
 
         center = get_center(n_mask)
         radius = get_XY_radius(n_mask)
@@ -323,11 +348,11 @@ def process_nuclei(nuclei_mask, series, channel, cytoplasm_mask=None, cur_cytopl
 
             if max_overlap_cytoplasm_id != 0 and overlap_fraction > 0.5:
                 cytoplasm_id = f"{cytoplasm_id_prefix}-{series}-{channel}-{max_overlap_cytoplasm_id}"
-                cytoplasm_nr = max_overlap_cytoplasm_id
+                # cytoplasm_nr = max_overlap_cytoplasm_id
                 cytoplasm_overlap = overlap_fraction
 
         prop_dict = {
-            "Nuclei ID": nuclei_id,
+            "Nucleus ID": nucleus_id,
             "Series": series,
             "Channel": channel,
             "Nuclei Nr": mask_id,
@@ -337,7 +362,7 @@ def process_nuclei(nuclei_mask, series, channel, cytoplasm_mask=None, cur_cytopl
             "Nuclei Radius": radius,
             "Nuclei Volume": volume,
             "Cytoplasm ID": cytoplasm_id,
-            "Cytoplasm Nr": cytoplasm_nr,
+            # "Cytoplasm Nr": cytoplasm_nr,
             "Cytoplasm Overlap": cytoplasm_overlap,  # Fraction of the nuclei that is covered by the cytoplasm
         }
         prop_dicts.append(prop_dict)
@@ -352,14 +377,14 @@ def process_spots(spot_mask, series, channel, cytoplasm_mask=None, nuclei_mask=N
     for mask_id in np.unique(spot_mask_raw):
         if mask_id == 0:
             continue
+
         s_mask = spot_mask_raw == mask_id
         center = get_center(s_mask)
         radius = get_XY_radius(s_mask)
         volume = get_volume(s_mask)
 
-        # Identify enclosing cytoplasm
+        # Identify whether the spot is inside a cytoplasm
         cytoplasm_id = None
-        cytoplasm_nr = None
         cytoplasm_overlap = None
         if cytoplasm_mask is not None:
             c_mask = cytoplasm_mask["masks"]
@@ -367,20 +392,18 @@ def process_spots(spot_mask, series, channel, cytoplasm_mask=None, nuclei_mask=N
             max_idx = np.argmax(counts)
             if labels[max_idx] != 0 and counts[max_idx] / volume > 0.5:
                 cytoplasm_id = f"{cytoplasm_id_prefix}-{series}-{cytoplasm_channel}-{labels[max_idx]}"
-                cytoplasm_nr = labels[max_idx]
                 cytoplasm_overlap = counts[max_idx] / volume
 
-        nuclei_id = None
-        nuclei_nr = None
-        nuclei_overlap = None
+        # Identify whether the spot is inside a nucleus
+        nucleus_id = None
+        nucleus_overlap = None
         if nuclei_mask is not None:
             n_mask = nuclei_mask["masks"]
             labels, counts = np.unique(n_mask[s_mask], return_counts=True)
             max_idx = np.argmax(counts)
             if labels[max_idx] != 0 and counts[max_idx] / volume > 0.5:
-                nuclei_id = f"{nuclei_id_prefix}-{series}-{nuclei_channel}-{labels[max_idx]}"
-                nuclei_nr = labels[max_idx]
-                nuclei_overlap = counts[max_idx] / volume
+                nucleus_id = f"{nuclei_id_prefix}-{series}-{nuclei_channel}-{labels[max_idx]}"
+                nucleus_overlap = counts[max_idx] / volume
 
         prop_dict = {
             "Spot ID": f"{spot_id_prefix}-{series}-{channel}-{mask_id}",
@@ -393,11 +416,9 @@ def process_spots(spot_mask, series, channel, cytoplasm_mask=None, nuclei_mask=N
             "Spot Radius": radius,
             "Spot Volume": volume,
             "Cytoplasm ID": cytoplasm_id,
-            "Cytoplasm Nr": cytoplasm_nr,
             "Cytoplasm Overlap": cytoplasm_overlap,
-            "Nuclei ID": nuclei_id,
-            "Nuclei Nr": nuclei_nr,
-            "Nuclei Overlap": nuclei_overlap,
+            "Nucleus ID": nucleus_id,
+            "Nucleus Overlap": nucleus_overlap,
         }
 
         prop_dicts.append(prop_dict)
@@ -408,6 +429,21 @@ def process_spots(spot_mask, series, channel, cytoplasm_mask=None, nuclei_mask=N
 
 def colocalize_spots(spot_table, max_xy_radius=5, max_z_radius=1):
     def get_spot_center_from_table(row):
+        """
+        Calculate the normalized center coordinate for a spot record.
+
+        The coordinate values are read from a table-like row and scaled into unit
+        space using the configured maximum radii. Two-dimensional coordinates are
+        produced when no axial coordinate is present, and three-dimensional
+        coordinates are produced when an axial coordinate is available.
+
+        Args:
+            row (Mapping[str, float | int | None]): Table-like record containing the
+                spot coordinate values.
+
+        Returns:
+            numpy.ndarray: Normalized spot center coordinate.
+        """
         x = row["Spot X"]
         y = row["Spot Y"]
         z = row["Spot Z"]
@@ -428,12 +464,13 @@ def colocalize_spots(spot_table, max_xy_radius=5, max_z_radius=1):
     spot_channels = list(spot_table["Channel"].unique())
     assert len(spot_channels) > 1, "Spot colocalization not available for a single spot channel."
 
+    # Loop over each series and perform colocalization
     prop_dicts = []
     for s in series:
         sub_table = spot_table[spot_table["Series"] == s]
 
         spots_per_channel = {
-            spot_channel: sub_table[sub_table["Channel" == spot_channel]]
+            spot_channel: sub_table[sub_table["Channel"] == spot_channel]
             for spot_channel in spot_channels
         }
 
@@ -442,14 +479,13 @@ def colocalize_spots(spot_table, max_xy_radius=5, max_z_radius=1):
         # Remove tuples covering identical or duplicated combinations
         spot_channel_tuples = [tup for tup in spot_channel_tuples if tup[0] < tup[1]]
 
-        colocalized_spot_pairs = {}
+        # Infer pairwise colocalization between spot channels
         pairs_by_id = {}
-
         for tup in spot_channel_tuples:
 
             # Calculate pairwise distances
-            centers_1 = spots_per_channel[tup[0]].apply(get_spot_center_from_table)
-            centers_2 = spots_per_channel[tup[1]].apply(get_spot_center_from_table)
+            centers_1 = np.array(list(spots_per_channel[tup[0]].apply(get_spot_center_from_table, axis=1)))
+            centers_2 = np.array(list(spots_per_channel[tup[1]].apply(get_spot_center_from_table, axis=1)))
             dist = np.linalg.norm(centers_1[:, np.newaxis, :] - centers_2[np.newaxis, :, :], axis=-1)
 
             # Colocalized spots adhere to the maximum radii specified by the user (normalization to radii is done in get_spot_center_from_table)
@@ -457,94 +493,38 @@ def colocalize_spots(spot_table, max_xy_radius=5, max_z_radius=1):
 
             # Rows are the individual pairs and columns are the ids
             cur_pairs = zip(
-                [
-                    spots_per_channel[tup[0]][cur_pairs]["Spot ID"],
-                    spots_per_channel[tup[1]][cur_pairs]["Spot ID"]
-                ]
+                spots_per_channel[tup[0]].iloc[cur_pairs[0]]["Spot ID"].values.tolist(),
+                spots_per_channel[tup[1]].iloc[cur_pairs[1]]["Spot ID"].values.tolist()
             )
-            # cur_pairs = {
-            #     tuple(sorted(pair))
-            #     for pair in cur_pairs
-            # }
+            cur_pairs = list(cur_pairs)
 
             pairs_by_id = defaultdict(list)
 
             for a, b in cur_pairs:
-                pairs_by_id[a].append(tup)
-                pairs_by_id[b].append(tup)
+                pairs_by_id[a].append((a, b))
+                pairs_by_id[b].append((a, b))
 
-            colocalized_spot_pairs.append(cur_pairs)
-
-        # # Aggregate pairs into larger colocalization information
-        # # The pairs span a pairwise connection graph
-        # # We want to extract all clusters where all nodes are connected with each other
-        # colocalized_spots = {}
-        # for ID, pairs in pairs_by_id.items():
-        #     if len(pairs) == 1:
-        #         # The ID has only a single pair -> the neighbor is the only colocalized spot
-        #         pair = pairs[0]
-        #         # s1, s2 = pair
-        #
-        #         # pairs_by_id[s1].remove(pair)
-        #         # pairs_by_id[s2].remove(pair)
-        #         colocalized_spots.add(pair)
-        #     else:
-        #         # The spot has at least two other spots colocated to it
-        #         # We need to identify whether they form a cluster or are individual pairs
-        #         # 1. We pick the first pair from pairs
-        #         # 2. We go to the neighbor
-        #         # 3. We check whether a neighbor of our neighbor is also a neighbor of us -> forms a colocalization
-        #         # 4.
-        #
-        #         for pair in pairs:
-        #             s1, s2 = pair
-        #             neighbor = s1 if s2 ==ID else s2
-
-        def extend_cluster(spots, pariy_by_id):
-            spots = list(spots)
-            common_neighbors = identify_common_neighbors(spots=spots, pairs_by_id=pairs_by_id)
-            if len(common_neighbors) == 0:
-                # Only these two form a colocaliatuon
-                return spots
-            else:
-                for neighbor in common_neighbors:
-                    new_cluster = extend_cluster(spots=spots + [neighbor], pairs_by_id=pairs_by_id)
-
-                # They form a three group colocalization
-
-        # # Aggregate pairs into larger colocalization information
-        # # The pairs span a pairwise connection graph
-        # # We want to extract all clusters where all nodes are connected with each other
-        # colocalized_spots = {}
-        # for pair in colocalized_spot_pairs:
-        #     # We need to identify whether this pair (an edge in the graph) forms a circle with other pairs
-        #     # 1. We pick the first pair from pairs
-        #     # 2. We go to the neighbor
-        #     # 3. We check whether a neighbor of our neighbor is also a neighbor of us -> forms a colocalization
-        #
-        #     common_neighbors = identify_common_neighbors(spots=pair, pairs_by_id=pairs_by_id)
-        #     if len(common_neighbors) == 0:
-        #         # Only these two form a colocaliatuon
-        #         colocalized_spots.add(tuple(sorted(pair)))
-        #     elif len(common_neighbors) == 1:
-        #         # They form a three group colocalization
-        #         neighbor = common_neighbors[0]
-        #         colocalized_spots.add(tuple(sorted(list(pair) + [neighbor])))
-        #     elif len(common_neighbors) > 1:
-        #         pass
-        #         # Here multiple cases can occur
+        # Aggregate pairs into larger colocalization information
+        # The pairs span a pairwise connection graph
+        # We want to extract all clusters where all nodes are connected with each other
 
         colocalizations = derive_full_colocalization(pairs_by_id=pairs_by_id)
 
+        # Transform colocalization tuples into a format compatible to pandas DataFrame
+        for colocal in colocalizations:
+            prop_dict = {
+                "Series": s,
+            }
+            for spot_id in colocal:
+                spot_info = spot_table.loc[spot_id]
+                prop_dict[f"Channel {spot_info["Channel"]}"] = spot_id
 
-        prop_dict = {
-            "Spot ID {spot_channel}": spot_table["spot_id"],
-            "Spot ID 2": spot_table["spot_id"],
-        }
+            prop_dicts.append(prop_dict)
 
-        prop_dicts.append(prop_dict)
-
-    colocalization_table = pd.DataFrame(spot_table)
+    # Collect the information into the DataFrame colocalization_table
+    # Columns specify predefined order
+    columns = ["Series"] + [f"Channel {channel_id}" for channel_id in spot_channels]
+    colocalization_table = pd.DataFrame(prop_dicts, columns=columns)
     return colocalization_table
 
 

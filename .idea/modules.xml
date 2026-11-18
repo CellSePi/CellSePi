@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/../CellSePiDrawing/.idea/CellSePiDrawing.iml" filepath="$PROJECT_DIR$/../CellSePiDrawing/.idea/CellSePiDrawing.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/cellsepi.iml" filepath="$PROJECT_DIR$/.idea/cellsepi.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/cellsepi-drawing.iml" filepath="$PROJECT_DIR$/.idea/cellsepi-drawing.iml" />
     </modules>
   </component>
 </project>
